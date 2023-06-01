@@ -1,0 +1,80 @@
+// These configurations provide settings and values for various aspects of dataset management, data ingestion, and table configurations in a system.
+export const config = {
+  "env": process.env.system_env || "local",
+  "api_port": process.env.api_port || 3000,
+  "body_parser_limit": process.env.body_parser_limit || "100mb",
+  "query_api": {
+    "druid": {
+      "host": process.env.druid_host || "http://localhost",
+      "port": process.env.druid_port || 8888,
+      "sql_query_path": "/druid/v2/sql/",
+      "native_query_path": "/druid/v2"
+    }
+  },
+  "db_connector_config": {
+    client: "postgresql",
+    connection: {
+      host: process.env.postgres_host || 'localhost',
+      port: process.env.postgres_port || 5432,
+      database: process.env.postgres_database || 'sb-obsrv',
+      user: process.env.postgres_username || 'obsrv',
+      password: process.env.postgres_password || '5b-0b5rv',
+    }
+  },
+  "telemetry_service_config": {
+    level: process.env.telemetry_log_level || 'info',
+    localStorageEnabled: process.env.telemetry_local_storage_enabled || 'true',
+    dispatcher: process.env.telemetry_local_storage_type || 'kafka',
+    telemetryProxyEnabled: process.env.telemetry_proxy_enabled,
+    proxyURL: process.env.telemetry_proxy_url,
+    proxyAuthKey: process.env.telemetry_proxy_auth_key,
+    compression_type: process.env.telemetry_kafka_compression || 'none',
+    filename: process.env.telemetry_file_filename || 'telemetry-%DATE%.log',
+    maxSize: process.env.telemetry_file_maxsize || '100m',
+    maxFiles: process.env.telemetry_file_maxfiles || '100',
+    "kafka": {    // The default Kafka configuration includes essential parameters such as broker IP addresses and other configuration options.
+      "config": {
+        "brokers": [`${process.env.kafka_host || 'localhost'}:${process.env.kafka_port || 9092}`],
+        "clientId": process.env.client_id || "obsrv-apis",
+        "retry": {
+          "initialRetryTime": process.env.kafka_initial_retry_time ? parseInt(process.env.kafka_initial_retry_time) : 3000,
+          "retries": process.env.kafka_retries ? parseInt(process.env.kafka_retries) : 1
+        },
+        "connectionTimeout": process.env.kafka_connection_timeout ? parseInt(process.env.kafka_connection_timeout) : 5000
+      },
+      "topics": {  // Default Kafka topics depend on type of dataset.
+        "createDataset": `${process.env.system_env || 'local'}.ingest`,
+        "createMasterDataset": `${process.env.system_env || 'local'}.masterdata.ingest`
+      }
+    }
+  },
+  "dataset_types": {
+    normalDataset: "dataset",
+    masterDataset: "master-dataset"
+  },
+  "redis_config": {
+    "redis_host": process.env.redis_host || 'obsrv-redis-headless.redis.svc.cluster.local',
+    "redis_port": process.env.redis_port || 6379
+  },
+  "exclude_datasource_validation": process.env.exclude_datasource_validation || ["system-stats", "failed-events-summary", "masterdata-system-stats"], // list of datasource names to skip validation while calling query API
+  "telemetry_dataset": process.env.telemetry_dataset || "telemetry",
+  "table_names": {     // Names of all tables available for CRUD operations
+    "datasets": "datasets",
+    "datasources": "datasources",
+    "datasetSourceConfig": "dataset_source_config"
+  },
+  "table_config": {   // This object defines the configuration for each table.
+    "datasets": {
+      "primary_key": "id",
+      "references": []
+    },
+    "datasources": {
+      "primary_key": "id",
+      "references": []
+    },
+    "dataset_source_config": {
+      "primary_key": "id",
+      "references": []
+    }
+  }
+}

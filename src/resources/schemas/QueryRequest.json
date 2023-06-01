@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "object",
+      "nullable": true
+    },
+    "querySql": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "nullable": true
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "dataSource": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataSource"
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "context",
+        "querySql"
+      ]
+    },
+    {
+      "required": [
+        "context",
+        "query"
+      ]
+    }
+  ]
+}

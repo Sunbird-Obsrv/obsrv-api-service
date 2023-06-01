@@ -1,0 +1,49 @@
+{
+    "type": "object",
+    "properties": {
+        "datasource": {
+            "type": "string"
+        },
+        "dataset_id": {
+            "type": "string"
+        },
+        "ingestion_spec": {
+            "type": "object"
+        },
+        "datasource_ref": {
+            "type": "string"
+        },
+        "retention_period": {
+            "type": "object"
+        },
+        "archival_policy": {
+            "type": "object"
+        },
+        "purge_policy": {
+            "type": "object"
+        },
+        "backup_config": {
+            "type": "object"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "DISABLED"
+            ]
+        },
+        "created_by": {
+            "type": "string"
+        },
+        "updated_by": {
+            "type": "string"
+        },
+        "published_date": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "dataset_id",
+        "datasource"
+    ]
+}
