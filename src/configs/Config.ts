@@ -53,7 +53,7 @@ export const config = {
     masterDataset: "master-dataset"
   },
   "redis_config": {
-    "redis_host": process.env.redis_host || 'obsrv-redis-headless.redis.svc.cluster.local',
+    "redis_host": process.env.redis_host || 'localhost',
     "redis_port": process.env.redis_port || 6379
   },
   "exclude_datasource_validation": process.env.exclude_datasource_validation || ["system-stats", "failed-events-summary", "masterdata-system-stats"], // list of datasource names to skip validation while calling query API

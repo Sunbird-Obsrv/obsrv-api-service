@@ -1,29 +1,30 @@
+const maxDateRange = process.env.max_date_range ? parseInt(process.env.max_date_range) : 30 // in days
 export const queryRules = {
   "common": {
-    "maxResultThreshold": 100,
-    "maxResultRowLimit": 100
+    "maxResultThreshold": process.env.max_query_threshold ? parseInt(process.env.max_query_threshold) : 5000,
+    "maxResultRowLimit":  process.env.max_query_limit  ? parseInt(process.env.max_query_limit) : 5000
   },
   "rules": [
     {
       "dataset": "telemetry-events",
       "queryRules": {
         "groupBy": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "scan": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "search": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "timeBoundary": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "timeseries": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "topN": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         }
       }
     },
@@ -31,22 +32,22 @@ export const queryRules = {
       "dataset": "summary-events",
       "queryRules": {
         "groupBy": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "scan": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "search": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "timeBoundary": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "timeseries": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         },
         "topN": {
-          "maxDateRange": 30
+          "maxDateRange": maxDateRange
         }
       }
     }
