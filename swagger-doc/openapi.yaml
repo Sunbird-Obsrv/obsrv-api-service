@@ -803,7 +803,8 @@ components:
           extraction_key: events
     DatasetList:
       value:
-        filters: ["ACTIVE", "DISABLED"]
+        filters: 
+          status: ["ACTIVE", "DISABLED"]
     DatasourceCreate:
       value:
         dataset_id: telemetry-raw
@@ -1231,10 +1232,12 @@ components:
 
     DatasourceList:
       value:
-        filters: ["ACTIVE", "DISABLED"]
+        filters: 
+          status: ["ACTIVE", "DISABLED"]
     DatasetSourceConfigList:
       value:
-        filters: ["ACTIVE", "DISABLED"]
+        filters: 
+          status: ["ACTIVE", "DISABLED"]
 
   responses:
     BadRequestResponseSchema:

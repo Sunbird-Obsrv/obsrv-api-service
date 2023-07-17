@@ -76,5 +76,10 @@ class TestDatasetSourceConfig {
   public static VALID_RECORD = { "connector_type": "kafka", "dataset_id": "observations", "connector_config": {}, "status": "ACTIVE", "connector_stats": {}, "created_by": "SYSTEM", "updated_by": "SYSTEM", "created_date": "2023-04-07T18:30:00.000Z", "updated_date": "2023-04-07T18:30:00.000Z" }
 }
 
+class TestExhaust {
+    public static INVALID_DATE_RANGE = { "from": "20213-06-21", "to": "1234-12-12", "type": "transformed"};
+    public static DATE_RANGE_OVER_LIMIT = { "from": "2023-06-01", "to": "2023-07-03", "type": "transformed"};
+    public static VALID_REQUEST = { "from": "2023-06-01", "to": "2023-06-30", "type": "transformed"};
+}
 
-export { TestDruidQuery, TestDataIngestion, TestDataset, TestDataSource, TestDatasetSourceConfig };
+export { TestDruidQuery, TestDataIngestion, TestDataset, TestDataSource, TestDatasetSourceConfig, TestExhaust, };

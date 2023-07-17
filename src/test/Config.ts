@@ -17,9 +17,12 @@ const config = {
   apiDatasetSourceConfigUpdateEndPoint: `${routesConfig.config.dataset_source_config.update.path}`,
   apiDatasetSourceConfigReadEndPoint: `${routesConfig.config.dataset_source_config.read.path}`,
   apiDatasetSourceConfigListEndPoint: `${routesConfig.config.dataset_source_config.list.path}`,
+  apiExhaustEndPoint: `${routesConfig.exhaust.path}`,
   druidHost: "http://localhost",
   druidPort: 8888,
   druidEndPoint: "/druid/v2",
-  druidSqlEndPoint: "/druid/v2/sql/"
+  druidSqlEndPoint: "/druid/v2/sql/",
+  storage_url_expiry: 3600,
+  exhaustMaxDateRange: 31,
 };
 export { config };

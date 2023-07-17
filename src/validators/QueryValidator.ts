@@ -9,10 +9,13 @@ import constants from "../resources/Constants.json";
 import { dbConnector } from "../routes/Router";
 import { routesConfig } from "../configs/RoutesConfig";
 import { config } from "../configs/Config";
+import { isValidDateRange } from "../utils/common";
 export class QueryValidator implements IValidator {
     private limits: ILimits;
+    private momentFormat: string;
     constructor() {
         this.limits = queryRules
+        this.momentFormat = "YYYY-MM-DD HH:MI:SS";
     }
     public async validate(data: any, id: string): Promise<ValidationStatus> {
         let validationStatus
@@ -53,14 +56,14 @@ export class QueryValidator implements IValidator {
         if (queryPayload.query) {
             const dateRange = this.getIntervals(queryPayload.query);
             const extractedDateRange = Array.isArray(dateRange) ? dateRange[0].split("/") : dateRange.toString().split("/");
-            fromDate = moment(extractedDateRange[0], "YYYY-MM-DD HH:MI:SS");
-            toDate = moment(extractedDateRange[1], "YYYY-MM-DD HH:MI:SS");
+            fromDate = moment(extractedDateRange[0], this.momentFormat);
+            toDate = moment(extractedDateRange[1], this.momentFormat);
         } else {
             let vocabulary = queryPayload.querySql.query.split(" ");
             let fromDateIndex = vocabulary.indexOf("TIMESTAMP");
             let toDateIndex = vocabulary.lastIndexOf("TIMESTAMP");
-            fromDate = moment(vocabulary[fromDateIndex + 1], "YYYY-MM-DD HH:MI:SS");
-            toDate = moment(vocabulary[toDateIndex + 1], "YYYY-MM-DD HH:MI:SS");
+            fromDate = moment(vocabulary[fromDateIndex + 1], this.momentFormat);
+            toDate = moment(vocabulary[toDateIndex + 1], this.momentFormat);
         }
         const isValidDates = fromDate && toDate && fromDate.isValid() && toDate.isValid()
         return isValidDates ? this.validateDateRange(fromDate, toDate, allowedRange)
@@ -89,8 +92,7 @@ export class QueryValidator implements IValidator {
     };
 
     private validateDateRange(fromDate: moment.Moment, toDate: moment.Moment, allowedRange: number = 0): ValidationStatus {
-        const differenceInDays = Math.abs(fromDate.diff(toDate, "days"));
-        const isValidDates = (differenceInDays > allowedRange) ? false : true
+        const isValidDates = isValidDateRange(fromDate, toDate, allowedRange);
         return isValidDates
             ? { isValid: true, code: httpStatus[200] }
             : { isValid: false, message: constants.ERROR_MESSAGE.INVALID_DATE_RANGE.replace("${allowedRange}", allowedRange.toString()), code: httpStatus["400_NAME"] };

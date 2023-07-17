@@ -51,5 +51,8 @@
     "message": "Table does not exist in database",
     "status": 404,
     "code": "NOT_FOUND"
+  },
+  "EXHAUST": {
+    "NO_BACKUP_FILES": "Date range provided does not have any backup files"
   }
 }

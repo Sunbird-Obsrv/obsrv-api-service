@@ -15,6 +15,10 @@ chai.should();
 chai.use(chaiHttp);
 
 describe("DATA INGEST API", () => {
+    afterEach(() => {
+        chai.spy.restore()
+    })
+
     it("it should ingest data successfully", (done) => {
         chai.spy.on(dbConnector, "listRecords", () => {
             return Promise.resolve([{}])
@@ -74,7 +78,7 @@ describe("DATA INGEST API", () => {
             return Promise.reject(new Error("error occurred while connecting to postgres"))
         })
         chai.spy.on(globalCache, 'get', () => {
-            return [{ "id": ":datasetId", "dataset_config": { "entry_topic": "topic" } }]
+            return [{ "id": "datasetId", "dataset_config": { "entry_topic": "topic" } }]
         })
          
         chai

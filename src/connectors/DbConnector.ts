@@ -12,6 +12,7 @@ export class DbConnector implements IConnector {
         insert: this.insertRecord,
         update: this.updateRecord,
         read: this.readRecords,
+        upsert: this.upsertRecord,
     }
     public method: any
     constructor(config: DbConnectorConfig) {
@@ -50,6 +51,18 @@ export class DbConnector implements IConnector {
             await dbTransaction(table).where(filters).update(schemaMerger.mergeSchema(currentRecord, values)
             )
         })
+    }
+
+    public async upsertRecord(table: string, fields: any) {
+        const { filters, values } = fields;
+        const existingRecord = await this.pool(table).select().where(filters).first()
+        if (!_.isUndefined(existingRecord)) {
+            await this.pool.transaction(async (dbTransaction) => {
+                await dbTransaction(table).where(filters).update(schemaMerger.mergeSchema(existingRecord, values))
+            })
+        } else {
+            await this.pool(table).insert(values)
+        }
     }
 
     public async readRecords(table: string, fields: any) {

@@ -40,10 +40,24 @@ export class IngestorService {
         throw constants.EMPTY_DATASET_ID
     }
 
+    public async getDatasetConfig(datasetId: string) {
+        let datasetConfigList = globalCache.get("dataset-config");
+        if (!datasetConfigList) await refreshDatasetConfigs();
+
+        datasetConfigList = globalCache.get("dataset-config");
+        const datasetRecord = datasetConfigList.find((record: any) => record.id === datasetId);
+        // Return record if present in cache
+        if (datasetRecord) return datasetRecord;
+        else { // Refresh dataset configs cache in case record present in cache
+            await refreshDatasetConfigs();
+            const datasetConfigList = globalCache.get("dataset-config");
+            const datasetRecord = datasetConfigList.find((record: any) => record.id === datasetId);
+            return datasetRecord;
+        }
+    }
+
     private async getTopic(datasetId: string) {
-        await refreshDatasetConfigs()
-        const datasetConfigList = globalCache.get('dataset-config')
-        const datasetRecord = datasetConfigList.find((record: any) => record.id === datasetId)
+        const datasetRecord = await this.getDatasetConfig(datasetId);
         if (!datasetRecord) {
             throw constants.DATASET_ID_NOT_FOUND;
         } else {

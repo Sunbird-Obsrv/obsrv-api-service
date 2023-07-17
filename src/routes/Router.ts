@@ -13,6 +13,7 @@ import { routesConfig } from "../configs/RoutesConfig";
 import { IngestorService } from "../services/IngestorService";
 import { OperationType, telemetryAuditStart } from "../services/telemetry";
 import telemetryActions from "../data/telemetryActions";
+import { ClientCloudService } from "../services/ClientCloudService";
 
 const validationService = new ValidationService();
 
@@ -26,8 +27,9 @@ export const datasourceService = new DataSourceService(dbConnector, config.table
 export const datasetService = new DatasetService(dbConnector, config.table_names.datasets);
 export const datasetSourceConfigService = new DatasetSourceConfigService(dbConnector, config.table_names.datasetSourceConfig);
 export const ingestorService = new IngestorService(kafkaConnector);
+export const exhaustService = new ClientCloudService(config.exhaust_config.cloud_storage_provider, config.exhaust_config.cloud_storage_config);
 export const globalCache: any = new Map()
-const router = express.Router()
+export const router = express.Router()
 dbConnector.init()
 /** Query API(s) */
 router.post([`${routesConfig.query.native_query.path}`, `${routesConfig.query.native_query_with_params.path}`], ResponseHandler.setApiId(routesConfig.query.native_query.api_id), validationService.validateRequestBody, validationService.validateQuery, queryService.executeNativeQuery);
@@ -54,4 +56,5 @@ router.patch(`${routesConfig.config.datasource.update.path}`, ResponseHandler.se
 router.get(`${routesConfig.config.datasource.read.path}`, ResponseHandler.setApiId(routesConfig.config.datasource.read.api_id), datasourceService.read);
 router.post(`${routesConfig.config.datasource.list.path}`, ResponseHandler.setApiId(routesConfig.config.datasource.list.api_id), validationService.validateRequestBody, datasourceService.list);
 
-export { router }
+/** Exhaust API(s) */
+router.get(`${routesConfig.exhaust.path}`, ResponseHandler.setApiId(routesConfig.exhaust.api_id), validationService.validateRequestParams, exhaustService.getData);
