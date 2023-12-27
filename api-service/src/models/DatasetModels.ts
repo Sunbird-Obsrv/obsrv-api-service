@@ -1,4 +1,5 @@
 import { ValidationStatus } from "./ValidationModels";
+import { Request, Response } from "express";
 
 export interface ISchemaGenerator {
     generate: ((sample: Map<string, any>) => any) |
@@ -9,6 +10,7 @@ export interface ISchemaGenerator {
 export interface IConnector {
     connect(): any;
     execute(sample: any, type?: any, topic?: any): any;
+    executeSql(sql: string[]): any;
     close(): any
 }
 
@@ -42,3 +44,14 @@ export interface Result {
     status: number;
 }
 
+export enum DatasetStatus {
+    Live = 'Live', Retired = 'Retired',
+}
+
+export enum TransformationMode {
+    Strict = 'Strict', Lenient = 'Lenient',
+}
+
+export enum ValidationMode {
+    Strict = 'Strict', IgnoreNewFields = 'IgnoreNewFields', DiscardNewFields = 'DiscardNewFields',
+}

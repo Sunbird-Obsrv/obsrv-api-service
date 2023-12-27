@@ -20,6 +20,12 @@ class TelemetryService {
     message.pid = req.get("x-app-id");
     if (!message.mid) message.mid = uuidv1();
     message.syncts = new Date().getTime();
+    
+    // add obsrv meta
+    const source = {meta: {id: "", connector_type: "api", version: config.version, entry_source: "api"}, trace_id: uuidv1()};
+    const obsrvMeta = {syncts: new Date().getTime(), processingStartTime: new Date().getTime(), flags: {}, timespans: {}, error: {}, source: source};
+    message.obsrv_meta = obsrvMeta;
+
     const data = JSON.stringify(message);
     if (this.config.localStorageEnabled === "true" || this.config.telemetryProxyEnabled === "true") {
       if (this.config.localStorageEnabled === "true" && this.config.telemetryProxyEnabled !== "true") {
