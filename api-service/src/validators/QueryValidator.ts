@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
-import _  from "lodash";
-import moment, { Moment} from "moment";
+import _ from "lodash";
+import moment, { Moment } from "moment";
 import { queryRules } from "../configs/QueryRules";
 import { IConnector, IValidator } from "../models/DatasetModels";
 import { ICommonRules, ILimits, IQuery, IQueryTypeRules, IRules } from "../models/QueryModels";
@@ -30,9 +30,12 @@ export class QueryValidator implements IValidator {
                 return validationStatus.isValid ? (shouldSkip ? validationStatus : this.setDatasourceRef(dataSource, data)) : validationStatus
             case routesConfig.query.sql_query.api_id:
                 validationStatus = await this.validateSqlQuery(data)
-                dataSource = this.getDataSource(data)
-                shouldSkip = _.includes(config.exclude_datasource_validation, dataSource);
-                return validationStatus.isValid ? (shouldSkip ? validationStatus : this.setDatasourceRef(dataSource, data)) : validationStatus
+                if (validationStatus.isValid) {
+                    dataSource = this.getDataSource(data)
+                    shouldSkip = _.includes(config.exclude_datasource_validation, dataSource);
+                    return validationStatus.isValid ? (shouldSkip ? validationStatus : this.setDatasourceRef(dataSource, data)) : validationStatus
+                }
+                return validationStatus
             default:
                 return <ValidationStatus>{ isValid: false }
         }
@@ -45,17 +48,31 @@ export class QueryValidator implements IValidator {
         try {
             return (!_.isEmpty(dataSourceLimits)) ? this.validateQueryRules(queryObj, dataSourceLimits.queryRules[queryObj.query.queryType as keyof IQueryTypeRules]) : { isValid: true }
         } catch (error: any) {
-            return { isValid: false, message: error.message || "error ocuured while validating native query", code: error.code || httpStatus[ "400_NAME" ] };
+            return { isValid: false, message: error.message || "error ocuured while validating native query", code: error.code || httpStatus["400_NAME"] };
         }
     }
 
-    private validateSqlQuery(data: any): ValidationStatus {
-        this.setQueryLimits(data, this.limits.common);
-        let dataSourceLimits = this.getDataSourceLimits(this.getDataSource(data));
+    private validateSqlQuery(data: IQuery): ValidationStatus {
         try {
+            let query = data.querySql.query;
+            if (_.isEmpty(query)) {
+                return { isValid: false, message: "Query must not be empty", code: httpStatus["400_NAME"] };
+            }
+            const fromClause = /\bFROM\b/i;
+            const isFromClausePresent = fromClause.test(query)
+            if (!isFromClausePresent) {
+                return { isValid: false, message: "Invalid SQL Query", code: httpStatus["400_NAME"] };
+            }
+            const dataset = query.substring(query.indexOf("FROM")).split(" ")[1].replace(/\\/g, "");
+            if (_.isEmpty(dataset)) {
+                return { isValid: false, message: "Dataset name must be present in the SQL Query", code: httpStatus["400_NAME"] };
+            }
+            this.setQueryLimits(data, this.limits.common);
+            let datasource = this.getDataSource(data);
+            let dataSourceLimits = this.getDataSourceLimits(datasource);
             return (!_.isEmpty(dataSourceLimits)) ? this.validateQueryRules(data, dataSourceLimits.queryRules.scan) : { isValid: true };
         } catch (error: any) {
-            return { isValid: false, message: error.message || "error ocuured while validating native query", code: error.code || httpStatus[ "400_NAME" ] };
+            return { isValid: false, message: error.message || "error ocuured while validating SQL query", code: error.code || httpStatus[ "500_NAME" ] };
         }
     }
 

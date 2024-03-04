@@ -35,6 +35,8 @@ class TestDruidQuery {
     '{"context":{"dataSource":"telemetry-events"},"querySql":{"query":"SELECT __time FROM \\"invalid-datasource\\" LIMIT 10"}}';
   public static SKIP_VALIDATION_NATIVE = '{"context":{"dataSource":"system-stats"},"query":{"queryType":"timeBoundary","dataSource":"system-stats","granularity":"all","intervals":["2022-10-17/2022-10-19"],"resultFormat":"compactedList","columns":["__time","scans"],"metrics":{"type":"numeric","metric":"count"},"aggregations":[{"type":"count","name":"count"}]}}';
   public static SKIP_VALIDATION_SQL = '{"context":{"dataSource":"failed-events-summary"},"querySql":{"query":"SELECT * FROM \\"failed-events-summary\\" WHERE __time >= TIMESTAMP \'2020-12-31\' AND __time < TIMESTAMP \'2021-01-21\' LIMIT 10"}}';
+  public static INVALID_SQL_QUERY = '{\"context\":{\"dataSource\":\"system-events\",\"granularity\":\"day\"},\"querySql\":{\"query\":\"SELECT *  \"}}';
+  public static MISSING_TABLE_NAME = '{\"context\":{\"dataSource\":\"system-events\",\"granularity\":\"day\"},\"querySql\":{\"query\":\"SELECT * FROM  \"}}';
 }
 
 class TestDataIngestion {
