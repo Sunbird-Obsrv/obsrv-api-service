@@ -1,131 +1,125 @@
 export const routesConfig = {
   default: {
-    api_id: "api",
+    api_id: "obsrv.api",
     validation_schema: null,
   },
   query: {
     native_query: {
-      api_id: "native.query",
+      api_id: "obsrv.native.query",
       method: "post",
-      path: "/data/v1/query",
+      path: "/obsrv/v1/data/query",
       validation_schema: "QueryRequest.json",
     },
     native_query_with_params: {
-      api_id: "native.query",
+      api_id: "obsrv.native.query",
       method: "post",
-      path: "/data/v1/query/:datasetId",
+      path: "/obsrv/v1/data/query/:datasetId",
       validation_schema: "QueryRequest.json",
     },
     sql_query: {
-      api_id: "sql.query",
+      api_id: "obsrv.sql.query",
       method: "post",
-      path: "/data/v1/sql-query",
+      path: "/obsrv/v1/data/sql-query",
       validation_schema: "QueryRequest.json",
     },
     sql_query_with_params: {
-      api_id: "sql.query",
+      api_id: "obsrv.sql.query",
       method: "post",
-      path: "/data/v1/sql-query/:datasetId",
+      path: "/obsrv/v1/data/sql-query/:datasetId",
       validation_schema: "QueryRequest.json",
     },
   },
   config: {
     dataset: {
       save: {
-        api_id: "config.dataset.create",
+        api_id: "obsrv.config.dataset.create",
         method: "post",
-        path: "/datasets/v1/create",
+        path: "/obsrv/v1/datasets/create",
         validation_schema: "DatasetCreateReq.json",
       },
       read: {
-        api_id: "config.dataset.read",
+        api_id: "obsrv.config.dataset.read",
         method: "get",
-        path: "/datasets/v1/get/:datasetId",
+        path: "/obsrv/v1/datasets/get/:datasetId",
         validation_schema: null,
       },
       update: {
-        api_id: "config.dataset.update",
+        api_id: "obsrv.config.dataset.update",
         method: "patch",
-        path: "/datasets/v1/update",
+        path: "/obsrv/v1/datasets/update",
         validation_schema: "DatasetUpdateReq.json",
       },
       list: {
-        api_id: "config.dataset.list",
+        api_id: "obsrv.config.dataset.list",
         method: "post",
-        path: "/datasets/v1/list",
+        path: "/obsrv/v1/datasets/list",
         validation_schema: "DatasetListReq.json",
       },
     },
     datasource: {
       save: {
-        api_id: "config.datasource.create",
+        api_id: "obsrv.config.datasource.create",
         method: "post",
-        path: "/datasources/v1/create",
+        path: "/obsrv/v1/datasources/create",
         validation_schema: "DatasourceSaveReq.json",
       },
       read: {
-        api_id: "config.datasource.read",
+        api_id: "obsrv.config.datasource.read",
         method: "get",
-        path: "/datasources/v1/get/:datasourceId",
+        path: "/obsrv/v1/datasources/get/:datasourceId",
         validation_schema: null,
       },
       update: {
-        api_id: "config.datasource.update",
+        api_id: "obsrv.config.datasource.update",
         method: "patch",
-        path: "/datasources/v1/update",
+        path: "/obsrv/v1/datasources/update",
         validation_schema: "DatasourceUpdateReq.json",
       },
       list: {
-        api_id: "config.datasource.list",
+        api_id: "obsrv.config.datasource.list",
         method: "post",
-        path: "/datasources/v1/list",
+        path: "/obsrv/v1/datasources/list",
         validation_schema: "DatasetListReq.json",
       },
     },
     dataset_source_config: {
       save: {
-        api_id: "config.dataset.source.config.create",
+        api_id: "obsrv.config.dataset.source.config.create",
         method: "post",
-        path: "/datasets/v1/source/config/create",
+        path: "/obsrv/v1/datasets/source/config/create",
         validation_schema: "DatasetSourceConfigSaveReq.json",
       },
       read: {
-        api_id: "config.dataset.source.config.read",
+        api_id: "obsrv.config.dataset.source.config.read",
         method: "get",
-        path: "/datasets/v1/source/config/get/:datasetId",
+        path: "/obsrv/v1/datasets/source/config/get/:datasetId",
         validation_schema: null,
       },
       update: {
-        api_id: "config.dataset.source.config.update",
+        api_id: "obsrv.config.dataset.source.config.update",
         method: "patch",
-        path: "/datasets/v1/source/config/update",
+        path: "/obsrv/v1/datasets/source/config/update",
         validation_schema: "DatasetSourceConfigUpdateReq.json",
       },
       list: {
-        api_id: "config.dataset.source.config.list",
+        api_id: "obsrv.config.dataset.source.config.list",
         method: "post",
-        path: "/datasets/v1/source/config/list",
+        path: "/obsrv/v1/datasets/source/config/list",
         validation_schema: "DatasetListReq.json",
       },
     }
 
   },
   data_ingest: {
-    api_id: "dataset.data.in",
+    api_id: "obsrv.dataset.data.in",
     method: "post",
-    path: "/data/v1/in/:datasetId",
-    validation_schema: "DataIngestionReq.json",
-  },
-  tenant_ingest: {
-    api_id: "dataset.data.in",
-    method: "post",
-    path: "/data/tenant/in/:datasetId",
+    path: "/obsrv/v1/data/create/:datasetId",
     validation_schema: "DataIngestionReq.json",
   },
   exhaust: {
-    api_id: "dataset.data.exhaust",
+    api_id: "obsrv.dataset.data.exhaust",
     method: "get",
-    path: "/data/v1/exhaust/:datasetId",
+    path: "/obsrv/v1/data/exhaust/:datasetId",
     validation_schema: "DataExhaustReq.json"
   },
   prometheus: {
@@ -134,42 +128,36 @@ export const routesConfig = {
     validation_schema: null,
   },
   submit_ingestion: {
-    api_id: "submit.ingestion",
+    api_id: "obsrv.submit.ingestion",
     method: "post",
-    path: "/data/v1/submit/ingestion",
+    path: "/obsrv/v1/data/submit/ingestion",
     validation_schema: "SubmitIngestionReq.json"
   },
   query_wrapper: {
     sql_wrapper: {
-      api_id: "query.wrapper.sql.query",
+      api_id: "obsrv.query.wrapper.sql.query",
       method: "post",
-      path: "/v1/sql",
+      path: "/obsrv/v1/sql",
     },
     native_post: {
-      api_id: "query.wrapper.native.post",
+      api_id: "obsrv.query.wrapper.native.post",
       method: "post",
       path: /\/druid\/v2.*/,
     },
     native_get: {
-      api_id: "query.wrapper.native.get",
+      api_id: "obsrv.query.wrapper.native.get",
       method: "get",
       path: /\/druid\/v2.*/
     },
     native_delete: {
-      api_id: "query.wrapper.native.delete",
+      api_id: "obsrv.query.wrapper.native.delete",
       method: "delete",
       path: "/druid/v2/:queryId"
     },
     druid_status: {
-      api_id: "query.wrapper.status",
+      api_id: "obsrv.query.wrapper.status",
       method: "get",
       path: "/status"
     }
-  },
-  health: {
-    api_id: "api.health",
-    method: "get",
-    path: "/health"
   }
 }
-

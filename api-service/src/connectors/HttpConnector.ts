@@ -24,5 +24,3 @@ export class HTTPConnector implements IConnector {
   }
   
 }
-
-

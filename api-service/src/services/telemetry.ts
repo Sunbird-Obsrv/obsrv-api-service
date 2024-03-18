@@ -14,6 +14,7 @@ const kafka = new Kafka({ clientId: telemetryTopic, brokers: brokerServers });
 const telemetryEventsProducer = kafka.producer();
 telemetryEventsProducer.connect().catch(err => console.error("Unable to connect to kafka", err.message));
 
+
 const getDefaults = () => {
     return {
         eid: 'AUDIT',

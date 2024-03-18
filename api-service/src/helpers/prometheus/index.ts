@@ -32,4 +32,3 @@ const metricsScrapeHandler = async (req: any, res: any, next: NextFunction) => {
 }
 
 export { metricsScrapeHandler, incrementApiCalls, incrementFailedApiCalls, setQueryResponseTime, incrementSuccessfulApiCalls };
-
