@@ -24,7 +24,7 @@ export const eventsValidationAgainstSchema = async (req: Request, res: Response,
         }
 
         const validateEventAgainstSchema = schemaValidation(event, _.omit(schema, "$schema"));
-        ResponseHandler.successResponse(req, res, { status: 200, data: { message: validateEventAgainstSchema?.message } });
+        ResponseHandler.successResponse(req, res, { status: 200, data: { message: validateEventAgainstSchema?.message, isValid: validateEventAgainstSchema?.isValid } });
     }
     catch (error) {
         return errorHandler.handleError(req, res, next, error);

@@ -8,5 +8,5 @@ export const schemaValidation = (payload: Record<string, any>, schema: Record<st
         const errorMessage = error[0]?.schemaPath?.replace("/", "") + " " + error[0]?.message || "Invalid Request Body";
         return { isValid, message: errorMessage }
     }
-    return { isValid, message: "Success" }
+    return { isValid, message: "success" }
 }
