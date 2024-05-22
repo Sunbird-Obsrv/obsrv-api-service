@@ -19,6 +19,7 @@ import { onRequest } from "../helpers/prometheus/helpers";
 import promEntities from "../helpers/prometheus/entities";
 import { metricsScrapeHandler } from "../helpers/prometheus";
 import { HealthService } from "../services/HealthService";
+import { eventsValidationAgainstSchema } from "../services/EventsValidationAgainstSchema";
 
 export const validationService = new ValidationService();
 const httpDruidConnector = new HTTPConnector(`${config.query_api.druid.host}:${config.query_api.druid.port}`)
@@ -76,3 +77,6 @@ router.get(routesConfig.query_wrapper.native_get.path, ResponseHandler.setApiId(
 router.delete(routesConfig.query_wrapper.native_delete.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_delete.api_id), onRequest({ entity: promEntities.data_out }), wrapperService.forwardNativeDel)
 router.get(routesConfig.query_wrapper.druid_status.path, ResponseHandler.setApiId(routesConfig.query_wrapper.druid_status.api_id), wrapperService.nativeStatus)
 router.get(routesConfig.health.path, ResponseHandler.setApiId(routesConfig.health.api_id), healthService.checkHealth.bind(healthService))
+
+/* schema validator */
+router.post(`${routesConfig.schema_validator.path}`, ResponseHandler.setApiId(routesConfig.schema_validator.api_id), validationService.validateRequestBody, eventsValidationAgainstSchema)

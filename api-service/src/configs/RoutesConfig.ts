@@ -170,6 +170,12 @@ export const routesConfig = {
     api_id: "api.health",
     method: "get",
     path: "/health"
+  },
+  schema_validator:{
+    api_id: "api.schema.validate",
+    method: "post",
+    path: "/data/v1/schema/validate",
+    validation_schema: "SchemaValidatorReq.json"
   }
 }
 
