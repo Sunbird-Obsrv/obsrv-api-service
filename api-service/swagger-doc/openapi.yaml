@@ -305,6 +305,11 @@ components:
           properties:
             dataSource:
               type: string
+            dataSourceType:
+              type: string
+              enum:
+                - realtime
+                - datalake
         querySql:
           type: object
           properties:
@@ -320,6 +325,8 @@ components:
         dataset_id:
           type: string
         ingestion_spec:
+          type: object
+        datalake_ingestion_spec:
           type: object
         datasource:
           type: string
@@ -357,6 +364,8 @@ components:
           type: string
         ingestion_spec:
           type: object
+        datalake_ingestion_spec:
+          type: object
         datasource:
           type: string
         datasource_ref:
@@ -382,6 +391,12 @@ components:
           type: string
         metadata:
           type: object
+        type:
+          type: string
+          enum:
+            - datalake
+            - druid
+          
 
     DataIngest:
       description: datasetId in request params is required
@@ -399,6 +414,495 @@ components:
            
              
   examples:
+  
+    DataSourceCreateDatalake:
+      value:
+        id: sb-telemetry_sb-telemetry
+        datasource: sb-telemetry-events
+        type: datalake
+        dataset_id: sb-telemetry
+        ingestion_spec:
+          dataset: sb-telemetry-events
+          schema:
+            table: sb-telemetry-events
+            partitionColumn: eid
+            timestampColumn: syncts
+            primaryKey: mid
+            columnSpec:
+              - type: string
+                name: eid
+              - type: string
+                name: ver
+              - type: long
+                name: syncts
+              - type: double
+                name: ets
+              - type: boolean
+                name: flags_ex_processed
+              - type: boolean
+                name: flags_pp_validation_processed
+              - type: boolean
+                name: flags_pp_duplicate_skipped
+              - type: boolean
+                name: flags_user_denorm
+              - type: boolean
+                name: flags_device_denorm
+              - type: boolean
+                name: flags_loc_denorm
+              - type: boolean
+                name: flags_content_denorm
+              - type: boolean
+                name: flags_coll_denorm
+              - type: string
+                name: mid
+              - type: string
+                name: actor_id
+              - type: string
+                name: actor_type
+              - type: array
+                name: edata_visits
+              - type: string
+                name: edata_type
+              - type: double
+                name: edata_duration
+              - type: long
+                name: edata_size
+              - type: string
+                name: edata_query
+              - type: array
+                name: edata_filters_objectType
+              - type: array
+                name: edata_filters_version
+              - type: array
+                name: edata_filters_status
+              - type: array
+                name: edata_filters_id
+              - type: boolean
+                name: edata_filters_isRootOrg
+              - type: string
+                name: edata_filters_trackable_enabled
+              - type: json
+                name: edata_filters_channel
+              - type: json
+                name: edata_filters_framework
+              - type: json
+                name: edata_filters_resourceType
+              - type: array
+                name: edata_filters_identifier
+              - type: array
+                name: edata_filters_contentType
+              - type: array
+                name: edata_filters_mimeType
+              - type: array
+                name: edata_filters_hashTagId
+              - type: long
+                name: edata_filters_compatibilityLevel_min
+              - type: long
+                name: edata_filters_compatibilityLevel_max
+              - type: string
+                name: edata_filters_createdBy
+              - type: array
+                name: edata_filters_mediaType
+              - type: string
+                name: edata_filters_origin
+              - type: array
+                name: edata_filters_primaryCategory
+              - name: edata_filters_trackable
+              - type: string
+                name: edata_sort_lastUpdatedOn
+              - type: array
+                name: edata_topn
+              - type: string
+                name: edata_pageid
+              - type: string
+                name: edata_uri
+              - type: string
+                name: edata_subtype
+              - type: string
+                name: edata_id
+              - type: string
+                name: edata_data
+              - type: string
+                name: edata_uaspec_agent
+              - type: string
+                name: edata_uaspec_ver
+              - type: string
+                name: edata_uaspec_system
+              - type: string
+                name: edata_uaspec_platform
+              - type: string
+                name: edata_uaspec_raw
+              - type: string
+                name: edata_state
+              - type: array
+                name: edata_props
+              - type: string
+                name: edata_prevstate
+              - type: string
+                name: edata_dspec_os
+              - type: string
+                name: edata_dspec_make
+              - type: string
+                name: edata_dspec_id
+              - type: double
+                name: edata_dspec_idisk
+              - type: double
+                name: edata_dspec_edisk
+              - type: double
+                name: edata_dspec_scrn
+              - type: string
+                name: edata_dspec_camera
+              - type: string
+                name: edata_dspec_cpu
+              - type: long
+                name: edata_dspec_sims
+              - type: string
+                name: edata_dspec_webview
+              - type: array
+                name: edata_extra_pos
+              - type: array
+                name: edata_extra_values
+              - type: string
+                name: edata_extra_query
+              - type: string
+                name: edata_mode
+              - type: timestamp
+                name: '@timestamp'
+              - type: string
+                name: context_channel
+              - type: string
+                name: context_pdata_id
+              - type: string
+                name: context_pdata_ver
+              - type: string
+                name: context_pdata_pid
+              - type: string
+                name: context_env
+              - type: string
+                name: context_sid
+              - type: string
+                name: context_rollup_l1
+              - type: string
+                name: context_rollup_l2
+              - type: string
+                name: context_rollup_l3
+              - type: array
+                name: context_cdata
+              - type: string
+                name: context_did
+              - type: string
+                name: context_uid
+              - type: string
+                name: object_id
+              - type: string
+                name: object_type
+              - type: string
+                name: object_ver
+              - type: string
+                name: object_rollup_l1
+              - type: string
+                name: object_version
+              - type: array
+                name: tags
+              - type: string
+                name: obsrv_meta_source_connector
+              - type: string
+                name: obsrv_meta_source_id
+          inputFormat:
+            type: json
+            flattenSpec:
+              fields:
+                - type: path
+                  expr: $.eid
+                  name: eid
+                - type: path
+                  expr: $.ver
+                  name: ver
+                - type: path
+                  expr: $.syncts
+                  name: syncts
+                - type: path
+                  expr: $.ets
+                  name: ets
+                - type: path
+                  expr: $.flags.ex_processed
+                  name: flags_ex_processed
+                - type: path
+                  expr: $.flags.pp_validation_processed
+                  name: flags_pp_validation_processed
+                - type: path
+                  expr: $.flags.pp_duplicate_skipped
+                  name: flags_pp_duplicate_skipped
+                - type: path
+                  expr: $.flags.user_denorm
+                  name: flags_user_denorm
+                - type: path
+                  expr: $.flags.device_denorm
+                  name: flags_device_denorm
+                - type: path
+                  expr: $.flags.loc_denorm
+                  name: flags_loc_denorm
+                - type: path
+                  expr: $.flags.content_denorm
+                  name: flags_content_denorm
+                - type: path
+                  expr: $.flags.coll_denorm
+                  name: flags_coll_denorm
+                - type: path
+                  expr: $.mid
+                  name: mid
+                - type: path
+                  expr: $.actor.id
+                  name: actor_id
+                - type: path
+                  expr: $.actor.type
+                  name: actor_type
+                - type: path
+                  expr: $.edata.visits[*]
+                  name: edata_visits
+                - type: path
+                  expr: $.edata.type
+                  name: edata_type
+                - type: path
+                  expr: $.edata.duration
+                  name: edata_duration
+                - type: path
+                  expr: $.edata.size
+                  name: edata_size
+                - type: path
+                  expr: $.edata.query
+                  name: edata_query
+                - type: path
+                  expr: $.edata.filters.objectType[*]
+                  name: edata_filters_objectType
+                - type: path
+                  expr: $.edata.filters.version[*]
+                  name: edata_filters_version
+                - type: path
+                  expr: $.edata.filters.status[*]
+                  name: edata_filters_status
+                - type: path
+                  expr: $.edata.filters.id[*]
+                  name: edata_filters_id
+                - type: path
+                  expr: $.edata.filters.isRootOrg
+                  name: edata_filters_isRootOrg
+                - type: path
+                  expr: $.edata.filters.trackable.enabled
+                  name: edata_filters_trackable_enabled
+                - type: path
+                  expr: $.edata.filters.channel
+                  name: edata_filters_channel
+                - type: path
+                  expr: $.edata.filters.framework
+                  name: edata_filters_framework
+                - type: path
+                  expr: $.edata.filters.resourceType
+                  name: edata_filters_resourceType
+                - type: path
+                  expr: $.edata.filters.identifier[*]
+                  name: edata_filters_identifier
+                - type: path
+                  expr: $.edata.filters.contentType[*]
+                  name: edata_filters_contentType
+                - type: path
+                  expr: $.edata.filters.mimeType[*]
+                  name: edata_filters_mimeType
+                - type: path
+                  expr: $.edata.filters.hashTagId[*]
+                  name: edata_filters_hashTagId
+                - type: path
+                  expr: $.edata.filters.compatibilityLevel.min
+                  name: edata_filters_compatibilityLevel_min
+                - type: path
+                  expr: $.edata.filters.compatibilityLevel.max
+                  name: edata_filters_compatibilityLevel_max
+                - type: path
+                  expr: $.edata.filters.createdBy
+                  name: edata_filters_createdBy
+                - type: path
+                  expr: $.edata.filters.mediaType[*]
+                  name: edata_filters_mediaType
+                - type: path
+                  expr: $.edata.filters.origin
+                  name: edata_filters_origin
+                - type: path
+                  expr: $.edata.filters.primaryCategory[*]
+                  name: edata_filters_primaryCategory
+                - type: path
+                  expr: $.edata.filters.trackable
+                  name: edata_filters_trackable
+                - type: path
+                  expr: $.edata.sort.lastUpdatedOn
+                  name: edata_sort_lastUpdatedOn
+                - type: path
+                  expr: $.edata.topn[*]
+                  name: edata_topn
+                - type: path
+                  expr: $.edata.pageid
+                  name: edata_pageid
+                - type: path
+                  expr: $.edata.uri
+                  name: edata_uri
+                - type: path
+                  expr: $.edata.subtype
+                  name: edata_subtype
+                - type: path
+                  expr: $.edata.id
+                  name: edata_id
+                - type: path
+                  expr: $.edata.data
+                  name: edata_data
+                - type: path
+                  expr: $.edata.uaspec.agent
+                  name: edata_uaspec_agent
+                - type: path
+                  expr: $.edata.uaspec.ver
+                  name: edata_uaspec_ver
+                - type: path
+                  expr: $.edata.uaspec.system
+                  name: edata_uaspec_system
+                - type: path
+                  expr: $.edata.uaspec.platform
+                  name: edata_uaspec_platform
+                - type: path
+                  expr: $.edata.uaspec.raw
+                  name: edata_uaspec_raw
+                - type: path
+                  expr: $.edata.state
+                  name: edata_state
+                - type: path
+                  expr: $.edata.props[*]
+                  name: edata_props
+                - type: path
+                  expr: $.edata.prevstate
+                  name: edata_prevstate
+                - type: path
+                  expr: $.edata.dspec.os
+                  name: edata_dspec_os
+                - type: path
+                  expr: $.edata.dspec.make
+                  name: edata_dspec_make
+                - type: path
+                  expr: $.edata.dspec.id
+                  name: edata_dspec_id
+                - type: path
+                  expr: $.edata.dspec.idisk
+                  name: edata_dspec_idisk
+                - type: path
+                  expr: $.edata.dspec.edisk
+                  name: edata_dspec_edisk
+                - type: path
+                  expr: $.edata.dspec.scrn
+                  name: edata_dspec_scrn
+                - type: path
+                  expr: $.edata.dspec.camera
+                  name: edata_dspec_camera
+                - type: path
+                  expr: $.edata.dspec.cpu
+                  name: edata_dspec_cpu
+                - type: path
+                  expr: $.edata.dspec.sims
+                  name: edata_dspec_sims
+                - type: path
+                  expr: $.edata.dspec.webview
+                  name: edata_dspec_webview
+                - type: path
+                  expr: $.edata.extra.pos[*]
+                  name: edata_extra_pos
+                - type: path
+                  expr: $.edata.extra.values[*]
+                  name: edata_extra_values
+                - type: path
+                  expr: $.edata.extra.query
+                  name: edata_extra_query
+                - type: path
+                  expr: $.edata.mode
+                  name: edata_mode
+                - type: path
+                  expr: $.@timestamp
+                  name: '@timestamp'
+                - type: path
+                  expr: $.context.channel
+                  name: context_channel
+                - type: path
+                  expr: $.context.pdata.id
+                  name: context_pdata_id
+                - type: path
+                  expr: $.context.pdata.ver
+                  name: context_pdata_ver
+                - type: path
+                  expr: $.context.pdata.pid
+                  name: context_pdata_pid
+                - type: path
+                  expr: $.context.env
+                  name: context_env
+                - type: path
+                  expr: $.context.sid
+                  name: context_sid
+                - type: path
+                  expr: $.context.rollup.l1
+                  name: context_rollup_l1
+                - type: path
+                  expr: $.context.rollup.l2
+                  name: context_rollup_l2
+                - type: path
+                  expr: $.context.rollup.l3
+                  name: context_rollup_l3
+                - type: path
+                  expr: $.context.cdata[*]
+                  name: context_cdata
+                - type: path
+                  expr: $.context.did
+                  name: context_did
+                - type: path
+                  expr: $.context.uid
+                  name: context_uid
+                - type: path
+                  expr: $.object.id
+                  name: object_id
+                - type: path
+                  expr: $.object.type
+                  name: object_type
+                - type: path
+                  expr: $.object.ver
+                  name: object_ver
+                - type: path
+                  expr: $.object.rollup.l1
+                  name: object_rollup_l1
+                - type: path
+                  expr: $.object.version
+                  name: object_version
+                - type: path
+                  expr: $.tags[*]
+                  name: tags
+                - type: path
+                  expr: $.obsrv_meta.source.connector
+                  name: obsrv_meta_source_connector
+                - type: path
+                  expr: $.obsrv_meta.source.connectorInstance
+                  name: obsrv_meta_source_id
+        datasource_ref: sb-telemetry-events
+        retention_period:
+          enabled: 'false'
+        archival_policy:
+          enabled: 'false'
+        purge_policy:
+          enabled: 'false'
+        backup_config:
+          enabled: 'false'
+        status: Live
+        created_by: SYSTEM
+        updated_by: SYSTEM
+        published_date: '2023-07-03 00:00:00'
+    
+    SqlQueryDatalake:
+      value:
+        context:
+          dataSource: telemetry-events
+          dataSourceType: datalake
+        querySql:
+          query: 'SELECT object_id AS contentId, COUNT(*) AS totalRatingsCount FROM "telemetry-events"  WHERE __time >= TIMESTAMP ''2021-01-01'' AND __time < TIMESTAMP ''2021-01-02'' GROUP BY object_id LIMIT 100'
     
     DataExhaust:
       value:
@@ -447,6 +951,7 @@ components:
       value:
         context:
           dataSource: telemetry-events
+          dataSourceType: realtime
         querySql:
           query: 'SELECT object_id AS contentId, COUNT(*) AS totalRatingsCount FROM "telemetry-events"  WHERE __time >= TIMESTAMP ''2021-01-01'' AND __time < TIMESTAMP ''2021-01-02'' GROUP BY object_id LIMIT 100'
           
@@ -1088,6 +1593,352 @@ components:
                       expr: $.ver
                       name: ver
               appendToExisting: false
+          datalake_ingestion_spec:
+            dataset: sb-telemetry.1_DAY
+            schema:
+              table: sb-telemetry.1_DAY
+              partitionColumn: syncts
+              timestampColumn: date
+              primaryKey: mid
+              columnSpec:
+                - type: string
+                  column: eid
+                - type: string
+                  column: ver
+                - type: long
+                  column: syncts
+                - type: long
+                  column: ets
+                - type: string
+                  column: flags.ex_processed
+                - type: string
+                  column: flags.pp_validation_processed
+                - type: string
+                  column: flags.pp_duplicate_skipped
+                - type: string
+                  column: flags.device_denorm
+                - type: string
+                  column: flags.user_denorm
+                - type: string
+                  column: flags.loc_denorm
+                - type: string
+                  column: derivedlocationdata.district
+                - type: string
+                  column: derivedlocationdata.from
+                - type: string
+                  column: derivedlocationdata.state
+                - type: string
+                  column: mid
+                - type: string
+                  column: type
+                - type: string
+                  column: actor.type
+                - type: string
+                  column: actor.id
+                - type: string
+                  column: edata.type
+                - type: long
+                  column: edata.duration
+                - type: array
+                  column: userdata.subject
+                - type: string
+                  column: userdata.district
+                - type: string
+                  column: userdata.usersubtype
+                - type: array
+                  column: userdata.grade
+                - type: string
+                  column: userdata.usersignintype
+                - type: string
+                  column: userdata.usertype
+                - type: string
+                  column: userdata.userlogintype
+                - type: string
+                  column: userdata.state
+                - type: string
+                  column: '@timestamp'
+                - type: string
+                  column: devicedata.statecustomcode
+                - type: string
+                  column: devicedata.country
+                - type: string
+                  column: devicedata.iso3166statecode
+                - type: string
+                  column: devicedata.city
+                - type: string
+                  column: devicedata.countrycode
+                - type: string
+                  column: devicedata.state
+                - type: string
+                  column: devicedata.devicespec.idisk
+                - type: string
+                  column: devicedata.devicespec.webview
+                - type: string
+                  column: devicedata.devicespec.os
+                - type: string
+                  column: devicedata.devicespec.scrn
+                - type: string
+                  column: devicedata.devicespec.sims
+                - type: string
+                  column: devicedata.devicespec.cpu
+                - type: string
+                  column: devicedata.devicespec.id
+                - type: string
+                  column: devicedata.devicespec.camera
+                - type: string
+                  column: devicedata.devicespec.edisk
+                - type: string
+                  column: devicedata.devicespec.make
+                - type: string
+                  column: devicedata.statecode
+                - type: long
+                  column: devicedata.firstaccess
+                - type: string
+                  column: devicedata.districtcustom
+                - type: string
+                  column: devicedata.statecustomname
+                - type: string
+                  column: devicedata.userdeclared.district
+                - type: string
+                  column: devicedata.userdeclared.state
+                - type: array
+                  column: context.cdata.id
+                - type: array
+                  column: context.cdata.type
+                - type: string
+                  column: context.env
+                - type: string
+                  column: context.channel
+                - type: string
+                  column: context.pdata.id
+                - type: string
+                  column: context.pdata.pid
+                - type: string
+                  column: context.pdata.ver
+                - type: string
+                  column: context.sid
+                - type: string
+                  column: context.did
+                - type: string
+                  column: context.rollup.l1
+                - type: string
+                  column: object.id
+                - type: string
+                  column: object.type
+                - type: string
+                  column: object.version
+                - type: json
+                  column: object.rollup
+                - type: string
+                  column: obsrv.meta.source.connector
+                - type: string
+                  column: obsrv.meta.source.id
+            inputFormat:
+              type: json
+              flattenSpec:
+                fields:
+                  - type: path
+                    expr: $.['eid']
+                    name: eid
+                  - type: path
+                    expr: $.['date']
+                    name: date
+                  - type: path
+                    expr: $.['ver']
+                    name: ver
+                  - type: path
+                    expr: $.['syncts']
+                    name: syncts
+                  - type: path
+                    expr: $.['ets']
+                    name: ets
+                  - type: path
+                    expr: $.flags.['ex_processed']
+                    name: flags.ex_processed
+                  - type: path
+                    expr: $.flags.['pp_validation_processed']
+                    name: flags.pp_validation_processed
+                  - type: path
+                    expr: $.flags.['pp_duplicate_skipped']
+                    name: flags.pp_duplicate_skipped
+                  - type: path
+                    expr: $.flags.['device_denorm']
+                    name: flags.device_denorm
+                  - type: path
+                    expr: $.flags.['user_denorm']
+                    name: flags.user_denorm
+                  - type: path
+                    expr: $.flags.['loc_denorm']
+                    name: flags.loc_denorm
+                  - type: path
+                    expr: $.derivedlocationdata.['district']
+                    name: derivedlocationdata.district
+                  - type: path
+                    expr: $.derivedlocationdata.['from']
+                    name: derivedlocationdata.from
+                  - type: path
+                    expr: $.derivedlocationdata.['state']
+                    name: derivedlocationdata.state
+                  - type: path
+                    expr: $.['mid']
+                    name: mid
+                  - type: path
+                    expr: $.['type']
+                    name: type
+                  - type: path
+                    expr: $.actor.['type']
+                    name: actor.type
+                  - type: path
+                    expr: $.actor.['id']
+                    name: actor.id
+                  - type: path
+                    expr: $.edata.['type']
+                    name: edata.type
+                  - type: path
+                    expr: $.edata.['duration']
+                    name: edata.duration
+                  - type: path
+                    expr: $.userdata.['subject'][*]
+                    name: userdata.subject
+                  - type: path
+                    expr: $.userdata.['district']
+                    name: userdata.district
+                  - type: path
+                    expr: $.userdata.['usersubtype']
+                    name: userdata.usersubtype
+                  - type: path
+                    expr: $.userdata.['grade'][*]
+                    name: userdata.grade
+                  - type: path
+                    expr: $.userdata.['usersignintype']
+                    name: userdata.usersignintype
+                  - type: path
+                    expr: $.userdata.['usertype']
+                    name: userdata.usertype
+                  - type: path
+                    expr: $.userdata.['userlogintype']
+                    name: userdata.userlogintype
+                  - type: path
+                    expr: $.userdata.['state']
+                    name: userdata.state
+                  - type: path
+                    expr: $.['@timestamp']
+                    name: '@timestamp'
+                  - type: path
+                    expr: $.devicedata.['statecustomcode']
+                    name: devicedata.statecustomcode
+                  - type: path
+                    expr: $.devicedata.['country']
+                    name: devicedata.country
+                  - type: path
+                    expr: $.devicedata.['iso3166statecode']
+                    name: devicedata.iso3166statecode
+                  - type: path
+                    expr: $.devicedata.['city']
+                    name: devicedata.city
+                  - type: path
+                    expr: $.devicedata.['countrycode']
+                    name: devicedata.countrycode
+                  - type: path
+                    expr: $.devicedata.['state']
+                    name: devicedata.state
+                  - type: path
+                    expr: $.devicedata.devicespec.['idisk']
+                    name: devicedata.devicespec.idisk
+                  - type: path
+                    expr: $.devicedata.devicespec.['webview']
+                    name: devicedata.devicespec.webview
+                  - type: path
+                    expr: $.devicedata.devicespec.['os']
+                    name: devicedata.devicespec.os
+                  - type: path
+                    expr: $.devicedata.devicespec.['scrn']
+                    name: devicedata.devicespec.scrn
+                  - type: path
+                    expr: $.devicedata.devicespec.['sims']
+                    name: devicedata.devicespec.sims
+                  - type: path
+                    expr: $.devicedata.devicespec.['cpu']
+                    name: devicedata.devicespec.cpu
+                  - type: path
+                    expr: $.devicedata.devicespec.['id']
+                    name: devicedata.devicespec.id
+                  - type: path
+                    expr: $.devicedata.devicespec.['camera']
+                    name: devicedata.devicespec.camera
+                  - type: path
+                    expr: $.devicedata.devicespec.['edisk']
+                    name: devicedata.devicespec.edisk
+                  - type: path
+                    expr: $.devicedata.devicespec.['make']
+                    name: devicedata.devicespec.make
+                  - type: path
+                    expr: $.devicedata.['statecode']
+                    name: devicedata.statecode
+                  - type: path
+                    expr: $.devicedata.['firstaccess']
+                    name: devicedata.firstaccess
+                  - type: path
+                    expr: $.devicedata.['districtcustom']
+                    name: devicedata.districtcustom
+                  - type: path
+                    expr: $.devicedata.['statecustomname']
+                    name: devicedata.statecustomname
+                  - type: path
+                    expr: $.devicedata.userdeclared.['district']
+                    name: devicedata.userdeclared.district
+                  - type: path
+                    expr: $.devicedata.userdeclared.['state']
+                    name: devicedata.userdeclared.state
+                  - type: path
+                    expr: $.context.cdata[*].['id']
+                    name: context.cdata.id
+                  - type: path
+                    expr: $.context.cdata[*].['type']
+                    name: context.cdata.type
+                  - type: path
+                    expr: $.context.['env']
+                    name: context.env
+                  - type: path
+                    expr: $.context.['channel']
+                    name: context.channel
+                  - type: path
+                    expr: $.context.pdata.['id']
+                    name: context.pdata.id
+                  - type: path
+                    expr: $.context.pdata.['pid']
+                    name: context.pdata.pid
+                  - type: path
+                    expr: $.context.pdata.['ver']
+                    name: context.pdata.ver
+                  - type: path
+                    expr: $.context.['sid']
+                    name: context.sid
+                  - type: path
+                    expr: $.context.['did']
+                    name: context.did
+                  - type: path
+                    expr: $.context.rollup.['l1']
+                    name: context.rollup.l1
+                  - type: path
+                    expr: $.object.['id']
+                    name: object.id
+                  - type: path
+                    expr: $.object.['type']
+                    name: object.type
+                  - type: path
+                    expr: $.object.['version']
+                    name: object.version
+                  - type: path
+                    expr: $.object.['rollup']
+                    name: object.rollup
+                  - type: path
+                    expr: $.obsrv_meta.source.['connector']
+                    name: obsrv.meta.source.connector
+                  - type: path
+                    expr: $.obsrv_meta.source.['connectorInstance']
+                    name: obsrv.meta.source.id
+            
         datasource: obsrv-telemetry-events
         datasource_ref: obsrv-telemetry-events
         published_date: "2023-03-27T11:40:43.269Z"
@@ -4447,6 +5298,8 @@ paths:
             examples:
               Example-1:
                 $ref: "#/components/examples/DruidSqlQuery"
+              Example-2:
+                $ref: "#/components/examples/SqlQueryDatalake"
       responses:
         200:
           $ref: "#/components/responses/SqlResponseSchema"
@@ -4573,6 +5426,8 @@ paths:
             examples:
               Example-1:
                 $ref: "#/components/examples/DatasourceCreate"
+              Example-2:
+                $ref: "#/components/examples/DataSourceCreateDatalake"
       responses:
         200:
           $ref: "#/components/responses/DatasourceCreateResponseSchema"

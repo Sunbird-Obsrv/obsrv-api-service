@@ -63,7 +63,8 @@ export class QueryValidator implements IValidator {
             if (!isFromClausePresent) {
                 return { isValid: false, message: "Invalid SQL Query", code: httpStatus["400_NAME"] };
             }
-            const dataset = query.substring(query.indexOf("FROM")).split(" ")[1].replace(/\\/g, "");
+            const fromIndex = query.search(fromClause); 
+            const dataset = query.substring(fromIndex + 4).trim().split(/\s+/)[0].replace(/\\/g, "");  
             if (_.isEmpty(dataset)) {
                 return { isValid: false, message: "Dataset name must be present in the SQL Query", code: httpStatus["400_NAME"] };
             }
@@ -85,7 +86,9 @@ export class QueryValidator implements IValidator {
             fromDate = moment(extractedDateRange[0], this.momentFormat);
             toDate = moment(extractedDateRange[1], this.momentFormat);
         } else {
-            let vocabulary = queryPayload.querySql.query.split(" ");
+            let query = queryPayload.querySql.query; 
+            query = query.toUpperCase().replace(/\s+/g, " ").trim();
+            let vocabulary = query.split(/\s+/);
             let fromDateIndex = vocabulary.indexOf("TIMESTAMP");
             let toDateIndex = vocabulary.lastIndexOf("TIMESTAMP");
             fromDate = moment(vocabulary[fromDateIndex + 1], this.momentFormat);
@@ -100,8 +103,9 @@ export class QueryValidator implements IValidator {
         if (queryPayload.querySql) {
             let query = queryPayload.querySql.query;
             query = query.replace(/\s+/g, " ").trim();
-            let dataSource = query.substring(query.indexOf("FROM")).split(" ")[1].replace(/\\/g, "");
-            return dataSource.replace(/"/g, "");
+            const fromIndex = query.search(/\bFROM\b/i);
+            const dataSource = query.substring(fromIndex).split(/\s+/)[1].replace(/\\/g, "").replace(/"/g, "");
+            return dataSource;
         } else {
             const dataSourceField: any = queryPayload.query.dataSource
             if (typeof dataSourceField == 'object') { return dataSourceField.name }
@@ -141,14 +145,18 @@ export class QueryValidator implements IValidator {
                 queryPayload.query.limit = limits.maxResultRowLimit;
             }
         } else {
-            let vocabulary = queryPayload.querySql.query.split(" ");
-            let queryLimitIndex = vocabulary.indexOf("LIMIT");
-            let queryLimit = Number(vocabulary[queryLimitIndex + 1]);
+            const limitClause = /\bLIMIT\b/i;
+            const vocabulary = queryPayload.querySql.query.split(/\s+/); // Splitting the query by whitespace
+            const queryLimitIndex = vocabulary.findIndex(word => limitClause.test(word));
+            const queryLimit = Number(vocabulary[queryLimitIndex + 1]);
+            
             if (isNaN(queryLimit)) {
-                const updatedVocabulary = [...vocabulary, "LIMIT", limits.maxResultRowLimit].join(" ");
-                queryPayload.querySql.query = updatedVocabulary;
+                // If "LIMIT" clause doesn't exist or its value is not a number, update the query
+                const updatedVocabulary = [...vocabulary, "LIMIT", limits.maxResultRowLimit];
+                queryPayload.querySql.query = updatedVocabulary.join(" ");
             } else {
-                let newLimit = this.getLimit(queryLimit, limits.maxResultRowLimit);
+                // If "LIMIT" clause exists and its value is a number, update the limit
+                const newLimit = this.getLimit(queryLimit, limits.maxResultRowLimit);
                 vocabulary[queryLimitIndex + 1] = newLimit.toString();
                 queryPayload.querySql.query = vocabulary.join(" ");
             }
@@ -166,23 +174,34 @@ export class QueryValidator implements IValidator {
     public async setDatasourceRef(dataSource: string, payload: any): Promise<ValidationStatus> {
         try {
             const granularity = _.get(payload, 'context.granularity')
-            let dataSourceRef = await this.getDataSourceRef(dataSource, granularity);
-            await this.validateDatasource(dataSourceRef)
-            if (payload.querySql) {
+            const dataSourceType = _.get(payload, 'context.dataSourceType', config.query_api.druid.queryType)
+            let dataSourceRef = await this.getDataSourceRef(dataSource, granularity, dataSourceType);
+            if(dataSourceType === config.query_api.druid.queryType) await this.validateDatasource(dataSourceRef)
+            if (payload?.querySql && dataSourceType === config.query_api.druid.queryType) {
                 payload.querySql.query = payload.querySql.query.replace(dataSource, dataSourceRef)
+            }
+            else if(payload?.querySql && dataSourceType === config.query_api.lakehouse.queryType) {
+                // hudi tables doesn't support table names contain '-' so we need to replace it with '_'
+                payload.querySql.query = payload.querySql.query.replace(dataSource, dataSourceRef).replace(/"/g, "").replace(/-/g, "_")
             }
             else {
                 payload.query.dataSource = dataSourceRef
             }
             return { isValid: true };
         } catch (error: any) {
-            console.log(error?.message)
             return { isValid: false, message: error.message || "error ocuured while fetching datasource record", code: error.code || httpStatus[ "400_NAME" ] };
         }
     }
 
-    public async getDataSourceRef(datasource: string, granularity: string | undefined): Promise<string> {
-        const records: any = await dbConnector.readRecords("datasources", { "filters": { "dataset_id": datasource } })
+    public async getDataSourceRef(datasource: string, granularity: string | undefined, dataSourceType: string): Promise<string> {
+        let storageType = dataSourceType === config.query_api.lakehouse.queryType ? config.datasource_storage_types.datalake : config.datasource_storage_types.druid
+        const records: any = await dbConnector.readRecords("datasources", { "filters": { "dataset_id": datasource, "type": storageType } })
+        if (records.length == 0) {
+            const error = { ...constants.INVALID_DATASOURCE }
+            error.message = error.message.replace('${datasource}', datasource)
+            throw error
+        }
+        if(storageType === config.datasource_storage_types.datalake) return `${config.query_api.lakehouse.catalog}.${config.query_api.lakehouse.schema}.${records[0].datasource_ref}_ro`
         const record = records.filter((record: any) => {
             const aggregatedRecord = _.get(record, "metadata.aggregated")
             if(granularity)
