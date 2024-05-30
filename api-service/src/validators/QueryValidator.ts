@@ -63,8 +63,8 @@ export class QueryValidator implements IValidator {
             if (!isFromClausePresent) {
                 return { isValid: false, message: "Invalid SQL Query", code: httpStatus["400_NAME"] };
             }
-            const fromIndex = query.search(fromClause); 
-            const dataset = query.substring(fromIndex + 4).trim().split(/\s+/)[0].replace(/\\/g, "");  
+            const fromIndex = query.search(fromClause);
+            const dataset = query.substring(fromIndex + 4).trim().split(/\s+/)[0].replace(/\\/g, "");
             if (_.isEmpty(dataset)) {
                 return { isValid: false, message: "Dataset name must be present in the SQL Query", code: httpStatus["400_NAME"] };
             }
@@ -73,7 +73,7 @@ export class QueryValidator implements IValidator {
             let dataSourceLimits = this.getDataSourceLimits(datasource);
             return (!_.isEmpty(dataSourceLimits)) ? this.validateQueryRules(data, dataSourceLimits.queryRules.scan) : { isValid: true };
         } catch (error: any) {
-            return { isValid: false, message: error.message || "error ocuured while validating SQL query", code: error.code || httpStatus[ "500_NAME" ] };
+            return { isValid: false, message: error.message || "error ocuured while validating SQL query", code: error.code || httpStatus["500_NAME"] };
         }
     }
 
@@ -86,7 +86,7 @@ export class QueryValidator implements IValidator {
             fromDate = moment(extractedDateRange[0], this.momentFormat);
             toDate = moment(extractedDateRange[1], this.momentFormat);
         } else {
-            let query = queryPayload.querySql.query; 
+            let query = queryPayload.querySql.query;
             query = query.toUpperCase().replace(/\s+/g, " ").trim();
             let vocabulary = query.split(/\s+/);
             let fromDateIndex = vocabulary.indexOf("TIMESTAMP");
@@ -149,7 +149,7 @@ export class QueryValidator implements IValidator {
             const vocabulary = queryPayload.querySql.query.split(/\s+/); // Splitting the query by whitespace
             const queryLimitIndex = vocabulary.findIndex(word => limitClause.test(word));
             const queryLimit = Number(vocabulary[queryLimitIndex + 1]);
-            
+
             if (isNaN(queryLimit)) {
                 // If "LIMIT" clause doesn't exist or its value is not a number, update the query
                 const updatedVocabulary = [...vocabulary, "LIMIT", limits.maxResultRowLimit];
@@ -176,20 +176,21 @@ export class QueryValidator implements IValidator {
             const granularity = _.get(payload, 'context.granularity')
             const dataSourceType = _.get(payload, 'context.dataSourceType', config.query_api.druid.queryType)
             let dataSourceRef = await this.getDataSourceRef(dataSource, granularity, dataSourceType);
-            if(dataSourceType === config.query_api.druid.queryType) await this.validateDatasource(dataSourceRef)
+            if (dataSourceType === config.query_api.druid.queryType) await this.validateDatasource(dataSourceRef)
             if (payload?.querySql && dataSourceType === config.query_api.druid.queryType) {
                 payload.querySql.query = payload.querySql.query.replace(dataSource, dataSourceRef)
             }
-            else if(payload?.querySql && dataSourceType === config.query_api.lakehouse.queryType) {
+            else if (payload?.querySql && dataSourceType === config.query_api.lakehouse.queryType) {
                 // hudi tables doesn't support table names contain '-' so we need to replace it with '_'
-                payload.querySql.query = payload.querySql.query.replace(dataSource, dataSourceRef).replace(/"/g, "").replace(/-/g, "_")
+                let modifiedDataSource = dataSourceRef.replace(/"/g, "").replace(/-/g, "_")
+                payload.querySql.query = payload.querySql.query.replace(dataSource, modifiedDataSource)
             }
             else {
                 payload.query.dataSource = dataSourceRef
             }
             return { isValid: true };
         } catch (error: any) {
-            return { isValid: false, message: error.message || "error ocuured while fetching datasource record", code: error.code || httpStatus[ "400_NAME" ] };
+            return { isValid: false, message: error.message || "error ocuured while fetching datasource record", code: error.code || httpStatus["400_NAME"] };
         }
     }
 
@@ -201,10 +202,10 @@ export class QueryValidator implements IValidator {
             error.message = error.message.replace('${datasource}', datasource)
             throw error
         }
-        if(storageType === config.datasource_storage_types.datalake) return `${config.query_api.lakehouse.catalog}.${config.query_api.lakehouse.schema}.${records[0].datasource_ref}_ro`
+        if (storageType === config.datasource_storage_types.datalake) return `${config.query_api.lakehouse.catalog}.${config.query_api.lakehouse.schema}.${records[0].datasource_ref}_ro`
         const record = records.filter((record: any) => {
             const aggregatedRecord = _.get(record, "metadata.aggregated")
-            if(granularity)
+            if (granularity)
                 return aggregatedRecord && _.get(record, "metadata.granularity") === granularity;
             else
                 return !aggregatedRecord
