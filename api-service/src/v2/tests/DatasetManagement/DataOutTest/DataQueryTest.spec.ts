@@ -212,7 +212,7 @@ describe("QUERY API TESTS", () => {
                 res.body.should.be.a("object");
                 res.body.responseCode.should.be.eq("BAD_REQUEST");
                 res.body.params.status.should.be.eq("FAILED");
-                res.body.error.message.should.be.eq("#required should have required property 'query'");
+                res.body.error.message.should.be.eq("#required must have required property 'query'");
                 res.body.error.code.should.be.eq("DATA_OUT_INVALID_INPUT")
                 res.body.id.should.be.eq("api.data.out");
                 done();

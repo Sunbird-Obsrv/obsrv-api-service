@@ -157,7 +157,7 @@ describe("DATASET LIST API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.error.code.should.be.eq("DATASET_LIST_INPUT_INVALID")
-                expect(res.body.error.message).to.match(/^(.+) should be equal to one of the allowed values$/)
+                expect(res.body.error.message).to.match(/^(.+) must be equal to one of the allowed values$/)
                 done();
             });
     });

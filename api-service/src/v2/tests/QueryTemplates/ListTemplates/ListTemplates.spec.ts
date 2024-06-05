@@ -126,7 +126,7 @@ describe("LIST QUERY TEMPLATE API", () => {
                 res.body.params.should.have.property("resmsgid");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("#required should have required property 'id'")
+                res.body.error.message.should.be.eq("#required must have required property 'id'")
                 res.body.error.code.should.be.eq("QUERY_TEMPLATE_INVALID_INPUT")
                 done();
             });

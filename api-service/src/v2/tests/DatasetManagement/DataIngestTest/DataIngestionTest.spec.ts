@@ -157,7 +157,7 @@ describe("DATA INGEST API", () => {
                 res.body.should.be.a("object");
                 res.body.id.should.be.eq("api.data.in");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("#required should have required property 'id'")
+                res.body.error.message.should.be.eq("#required must have required property 'id'")
                 res.body.error.code.should.be.eq("DATA_INGESTION_INVALID_INPUT");
                 done()
             })

@@ -100,7 +100,7 @@ describe("DATASET CREATE API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.params.status.should.be.eq("FAILED")
-                expect(res.body.error.message).to.match(/^(.+)should be string$/)
+                expect(res.body.error.message).to.match(/^(.+)must be string$/)
                 res.body.error.code.should.be.eq("DATASET_INVALID_INPUT")
                 done();
             });

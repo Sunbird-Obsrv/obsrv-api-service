@@ -162,7 +162,7 @@ describe("QUERY TEMPLATE API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.responseCode.should.be.eq("BAD_REQUEST");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("#properties/request/required should have required property 'startdate'");
+                res.body.error.message.should.be.eq("#properties/request/required must have required property 'startdate'");
                 res.body.error.code.should.be.eq("QUERY_TEMPLATE_INVALID_INPUT");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.params.should.have.property("resmsgid");
