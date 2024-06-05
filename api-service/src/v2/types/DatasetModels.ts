@@ -45,7 +45,7 @@ export interface Result {
 }
 
 export enum DatasetStatus {
-    Live = 'Live', Retired = 'Retired', Draft = 'Draft', Publish = 'Publish'
+    Live = 'Live', Retired = 'Retired', Draft = 'Draft', ReadyToPublish = 'ReadyToPublish'
 }
 
 export enum TransformationMode {

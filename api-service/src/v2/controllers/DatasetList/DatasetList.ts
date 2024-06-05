@@ -15,7 +15,7 @@ import { DatasetStatus } from "../../types/DatasetModels";
 export const apiId = "api.datasets.list"
 export const errorCode = "DATASET_LIST_FAILURE"
 const liveDatasetStatus = ["Live", "Retired"]
-const draftDatasetStatus = ["Draft", "Publish"]
+const draftDatasetStatus = ["Draft", "ReadyToPublish"]
 
 const datasetList = async (req: Request, res: Response) => {
     const requestBody = req.body;
@@ -118,7 +118,7 @@ const getDatasetId = (datasets: Record<string, any>) => {
     })
     const draftDatasets = _.filter(datasets, field => {
         const { status } = field || {}
-        return status === DatasetStatus.Draft || status === DatasetStatus.Publish
+        return status === DatasetStatus.Draft || status === DatasetStatus.ReadyToPublish
     })
     const liveDatasetId = _.map(liveDatasets, list => _.get(list, "id"))
     const draftDatasetId = _.map(draftDatasets, list => _.get(list, "id"))
