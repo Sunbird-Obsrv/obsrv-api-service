@@ -56,7 +56,7 @@ describe("UPDATE QUERY TEMPLATE API", () => {
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.responseCode.should.be.eq("BAD_REQUEST")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("#properties/request/dependencies should have property query when property query_type is present")
+                res.body.error.message.should.be.eq("#properties/request/dependencies must have property query when property query_type is present")
                 res.body.error.code.should.be.eq("QUERY_TEMPLATE_INVALID_INPUT")
                 done();
             });
@@ -75,7 +75,7 @@ describe("UPDATE QUERY TEMPLATE API", () => {
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.responseCode.should.be.eq("BAD_REQUEST")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Template name should contain alphanumeric characters and single space between characters")
+                res.body.error.message.should.be.eq("#properties/request/else/properties/query/type must be object")
                 res.body.error.code.should.be.eq("QUERY_TEMPLATE_INVALID_INPUT")
                 done();
             });

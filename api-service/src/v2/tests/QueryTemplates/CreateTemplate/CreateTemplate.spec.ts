@@ -75,7 +75,7 @@ describe("CREATE QUERY TEMPLATE API", () => {
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.params.should.have.property("resmsgid");
-                res.body.error.message.should.be.eq("Template name must contain alphanumeric characters and single space between characters");
+                res.body.error.message.should.be.eq("Template name should contain alphanumeric characters and single space between characters");
                 res.body.error.code.should.be.eq("QUERY_TEMPLATE_INVALID_INPUT")
                 done();
             });
@@ -98,7 +98,7 @@ describe("CREATE QUERY TEMPLATE API", () => {
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.params.should.have.property("resmsgid");
-                res.body.error.message.should.be.eq("Invalid template provided, A template must consist of variables DATASET,STARTDATE,ENDDATE and type of json,sql");
+                res.body.error.message.should.be.eq("Invalid template provided, A template should consist of variables DATASET,STARTDATE,ENDDATE and type of json,sql");
                 res.body.error.code.should.be.eq("QUERY_TEMPLATE_INVALID_INPUT")
                 done();
             });

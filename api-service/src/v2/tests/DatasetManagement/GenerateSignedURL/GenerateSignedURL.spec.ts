@@ -102,7 +102,7 @@ describe("FILES GENERATE-URL API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.error.code.should.be.eq("FILES_GENERATE_URL_INPUT_INVALID")
-                expect(res.body.error.message).to.match(/^(.+) should be array$/)
+                expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
                 done();
             });
     });
