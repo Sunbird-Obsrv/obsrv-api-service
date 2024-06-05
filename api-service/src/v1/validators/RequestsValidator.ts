@@ -7,7 +7,7 @@ import { ValidationStatus } from "../models/ValidationModels";
 import { routesConfig } from "../configs/RoutesConfig";
 
 export class RequestsValidator implements IValidator {
-    private schemaBasePath: string = "/src/resources/";
+    private schemaBasePath: string = "/src/v1/resources/";
     private reqSchemaMap = new Map<string, any>();
     private validator: Ajv;
 

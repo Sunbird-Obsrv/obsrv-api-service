@@ -31,9 +31,9 @@ export const config = {
     connection: {
       host: process.env.postgres_host || 'localhost',
       port: process.env.postgres_port || 5432,
-      database: process.env.postgres_database || 'sb-obsrv',
-      user: process.env.postgres_username || 'obsrv',
-      password: process.env.postgres_password || '5b-0b5rv',
+      database: process.env.postgres_database || 'obsrv',
+      user: process.env.postgres_username || 'postgres',
+      password: process.env.postgres_password || 'postgres',
     }
   },
   "telemetry_service_config": {
