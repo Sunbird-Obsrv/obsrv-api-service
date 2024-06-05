@@ -101,7 +101,7 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                expect(res.body.error.message).to.match(/^#properties(.+)'.dedup_key'$/)
+                expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
                 res.body.error.code.should.be.eq(invalidInputErrCode)
                 done();
             });

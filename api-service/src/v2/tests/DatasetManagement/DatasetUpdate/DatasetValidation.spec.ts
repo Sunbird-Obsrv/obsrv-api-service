@@ -99,7 +99,7 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                expect(res.body.error.message).to.match(/^#properties(.+)'.mode'$/)
+                expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
                 res.body.error.code.should.be.eq(invalidInputErrCode)
                 done();
             });

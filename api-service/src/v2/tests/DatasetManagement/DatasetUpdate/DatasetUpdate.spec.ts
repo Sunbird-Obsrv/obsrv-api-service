@@ -269,7 +269,7 @@ describe("DATASET UPDATE API", () => {
                     res.body.id.should.be.eq(apiId);
                     res.body.params.status.should.be.eq("FAILED")
                     res.body.params.msgid.should.be.eq(msgid)
-                    expect(res.body.error.message).to.match(/^(.+)should be string$/)
+                    expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
                     res.body.error.code.should.be.eq(invalidInputErrCode)
                     done();
                 });
@@ -394,7 +394,7 @@ describe("DATASET UPDATE API", () => {
                     res.body.id.should.be.eq(apiId);
                     res.body.params.status.should.be.eq("FAILED")
                     res.body.params.msgid.should.be.eq(msgid)
-                    expect(res.body.error.message).to.match(/^(.+)should NOT have additional properties$/)
+                    expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
                     res.body.error.code.should.be.eq(invalidInputErrCode)
                     done();
                 });
@@ -453,7 +453,7 @@ describe("DATASET UPDATE API", () => {
                     res.body.id.should.be.eq(apiId);
                     res.body.params.status.should.be.eq("FAILED")
                     res.body.params.msgid.should.be.eq(msgid)
-                    expect(res.body.error.message).to.match(/^(.+)should NOT have additional properties$/)
+                    expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
                     res.body.error.code.should.be.eq(invalidInputErrCode)
                     done();
                 });
