@@ -4,6 +4,7 @@ import { ResponseHandler } from "./v1/helpers/ResponseHandler";
 import { loadExtensions } from "./v1/managers/Extensions";
 import { router } from "./v1/routes/Router";
 import {router as v2Router} from "./v2/routes/Router"
+import {router as metricsRouter} from "./v2/routes/metricRouter"
 import bodyParser from "body-parser";
 import { interceptAuditEvents } from "./v1/services/telemetry";
 import { queryService } from "./v1/routes/Router";
@@ -29,6 +30,7 @@ loadExtensions(app)
     app.use(interceptAuditEvents())
     app.use("/v2/", v2Router);
     app.use("/", router);
+    app.use("/", metricsRouter);
     app.use("*", ResponseHandler.routeNotFound);
     app.use(ResponseHandler.errorResponse);
 

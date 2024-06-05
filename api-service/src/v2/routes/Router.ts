@@ -7,7 +7,7 @@ import DatasetRead from "../controllers/DatasetRead/DatasetRead";
 import DatasetList from "../controllers/DatasetList/DatasetList"
 import { dataExhaust } from "../controllers/DataExhaust/DataExhaustController";
 import { onRequest } from "../metrics/prometheus/helpers";
-import { metricsScrapeHandler } from "../metrics/prometheus";
+
 import { Entity } from "../types/MetricModel";
 import { createQueryTemplate } from "../controllers/CreateQueryTemplate/CreateTemplateController";
 import { setDataToRequestObject } from "../middlewares/setDataToRequestObject";
@@ -41,5 +41,3 @@ router.post('/files/generate-url', setDataToRequestObject("api.files.generate-ur
 //Wrapper Service
 router.post('/obsrv/data/sql-query', setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
 
-//Scrape metrics to prometheus
-router.get('/metrics', metricsScrapeHandler)
