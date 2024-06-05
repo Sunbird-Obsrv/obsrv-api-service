@@ -9,7 +9,7 @@ export const loadExtensions = async (app: Application) => {
 const loadRoutes = async (app: Application) => {
     for (const extension of extensions) {
         try {
-            const extensionPath = path.join(__dirname, "..", "..", "node_modules", extension.id, extension.routePath)
+            const extensionPath = path.join(__dirname, "..", "..", "..", "node_modules", extension.id, extension.routePath)
             let ExtensionRoute: any = await import(extensionPath)
             const extensionRoute: IRouter = new ExtensionRoute.Router()
             extensionRoute.init(app)
