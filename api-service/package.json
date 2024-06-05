@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node ./src/app.ts",
     "test": "source .env.test && nyc mocha ./src/v1/test/*.spec.ts --exit && nyc mocha ./src/v2/tests/**/*.spec.ts --exit",
-    "actions:test": "nyc mocha ./src/v1/test/*.spec.ts --exit && nyc mocha ./src/v2/tests/**/*.spec.ts --exit",
+    "actions:test": "nyc mocha ./src/v1/test/*.spec.ts --exit",
+    "actions:test:v2": "nyc mocha ./src/v2/tests/**/*.spec.ts --exit",
     "build": "rm -rf dist && tsc --declaration -P . && cp package.json ./dist/package.json",
     "package": "npm run build && cd dist && npm pack . && cd ..",
     "lint": "eslint . --ext .ts",
