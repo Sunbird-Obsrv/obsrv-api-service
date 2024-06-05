@@ -33,18 +33,22 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["Draft", "Live", "Publish", "Retired"]
+                    "enum": ["Draft", "Live", "ReadyToPublish", "Retired"]
                   }
                 },
                 {
                   "type": "string",
-                  "enum": ["Draft", "Live", "Retired", "Publish"]
+                  "enum": ["Draft", "Live", "Retired", "ReadyToPublish"]
                 }
               ]
             },
             "type": {
               "type": "string",
               "enum": ["dataset", "master-dataset"]
+            },
+            "dataset_id": {
+              "type": "string",
+              "minLength": 1
             }
           },
           "additionalProperties": false
