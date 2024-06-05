@@ -1,4 +1,4 @@
-import app from "../../../app";
+import app from "../../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import nock from "nock";

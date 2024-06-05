@@ -15,9 +15,8 @@ import { OperationType, telemetryAuditStart } from "../services/telemetry";
 import telemetryActions from "../data/telemetryActions";
 import { ClientCloudService } from "../services/ClientCloudService";
 import { WrapperService } from "../services/WrapperService";
-import { onRequest } from "../helpers/prometheus/helpers";
-import promEntities from "../helpers/prometheus/entities";
-import { metricsScrapeHandler } from "../helpers/prometheus";
+import { onRequest } from "../../v2/metrics/prometheus/helpers"
+import { Entity } from "../../v2/types/MetricModel";
 import { HealthService } from "../services/HealthService";
 import { eventsValidationAgainstSchema } from "../services/EventsValidationAgainstSchema";
 
@@ -38,12 +37,12 @@ export const router = express.Router()
 dbConnector.init()
 /** Query API(s) */
 
-router.post([`${routesConfig.query.native_query.path}`, `${routesConfig.query.native_query_with_params.path}`,], ResponseHandler.setApiId(routesConfig.query.native_query.api_id), telemetryAuditStart({ action: telemetryActions.nativeQuery, operationType: OperationType.GET }), onRequest({ entity: promEntities.data_out }), validationService.validateRequestBody, validationService.validateQuery, queryService.executeNativeQuery);
-router.post([`${routesConfig.query.sql_query.path}`, `${routesConfig.query.sql_query_with_params.path}`,], ResponseHandler.setApiId(routesConfig.query.sql_query.api_id), telemetryAuditStart({ action: telemetryActions.sqlQuery, operationType: OperationType.GET }), onRequest({ entity: promEntities.data_out }), validationService.validateRequestBody, validationService.validateQuery, queryService.executeSqlQuery);
+router.post([`${routesConfig.query.native_query.path}`, `${routesConfig.query.native_query_with_params.path}`,], ResponseHandler.setApiId(routesConfig.query.native_query.api_id), telemetryAuditStart({ action: telemetryActions.nativeQuery, operationType: OperationType.GET }), onRequest({ entity: Entity.Data_out }), validationService.validateRequestBody, validationService.validateQuery, queryService.executeNativeQuery);
+router.post([`${routesConfig.query.sql_query.path}`, `${routesConfig.query.sql_query_with_params.path}`,], ResponseHandler.setApiId(routesConfig.query.sql_query.api_id), telemetryAuditStart({ action: telemetryActions.sqlQuery, operationType: OperationType.GET }), onRequest({ entity: Entity.Data_out }), validationService.validateRequestBody, validationService.validateQuery, queryService.executeSqlQuery);
 
 /** Ingestor API */
-router.post(`${routesConfig.data_ingest.path}`, ResponseHandler.setApiId(routesConfig.data_ingest.api_id), telemetryAuditStart({ action: telemetryActions.ingestEvents, operationType: OperationType.CREATE }), onRequest({ entity: promEntities.data_in }), validationService.validateRequestBody, ingestorService.create);
-router.post(`${routesConfig.tenant_ingest.path}`, ResponseHandler.setApiId(routesConfig.tenant_ingest.api_id), telemetryAuditStart({ action: telemetryActions.ingestEvents, operationType: OperationType.CREATE }), onRequest({ entity: promEntities.data_in }), validationService.validateRequestBody, ingestorService.tenant);
+router.post(`${routesConfig.data_ingest.path}`, ResponseHandler.setApiId(routesConfig.data_ingest.api_id), telemetryAuditStart({ action: telemetryActions.ingestEvents, operationType: OperationType.CREATE }), onRequest({ entity: Entity.Data_in }), validationService.validateRequestBody, ingestorService.create);
+router.post(`${routesConfig.tenant_ingest.path}`, ResponseHandler.setApiId(routesConfig.tenant_ingest.api_id), telemetryAuditStart({ action: telemetryActions.ingestEvents, operationType: OperationType.CREATE }), onRequest({ entity: Entity.Data_in }), validationService.validateRequestBody, ingestorService.tenant);
 
 /** Dataset APIs */
 router.post(`${routesConfig.config.dataset.save.path}`, ResponseHandler.setApiId(routesConfig.config.dataset.save.api_id), telemetryAuditStart({ action: telemetryActions.createDataset, operationType: OperationType.CREATE }), validationService.validateRequestBody, datasetService.save);
@@ -65,16 +64,15 @@ router.post(`${routesConfig.config.datasource.list.path}`, ResponseHandler.setAp
 
 /** Exhaust API(s) */
 router.get(`${routesConfig.exhaust.path}`, ResponseHandler.setApiId(routesConfig.exhaust.api_id), telemetryAuditStart({ action: telemetryActions.datasetExhaust, operationType: OperationType.GET }), validationService.validateRequestParams, exhaustService.getData);
-router.get(`${routesConfig.prometheus.path}`, metricsScrapeHandler);
 
 /*** Submit Ingestion API(s) */
 router.post(`${routesConfig.submit_ingestion.path}`, ResponseHandler.setApiId(routesConfig.submit_ingestion.api_id), telemetryAuditStart({ action: telemetryActions.submitIngestionSpec, operationType: OperationType.CREATE }), validationService.validateRequestBody, ingestorService.submitIngestion)
 
 /** Query Wrapper API(s) */
-router.post(routesConfig.query_wrapper.sql_wrapper.path, ResponseHandler.setApiId(routesConfig.query_wrapper.sql_wrapper.api_id), onRequest({ entity: promEntities.data_out }), wrapperService.forwardSql)
-router.post(routesConfig.query_wrapper.native_post.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_post.api_id), onRequest({ entity: promEntities.data_out }), wrapperService.forwardNative)
-router.get(routesConfig.query_wrapper.native_get.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_get.api_id), onRequest({ entity: promEntities.data_out }), wrapperService.forwardNativeGet)
-router.delete(routesConfig.query_wrapper.native_delete.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_delete.api_id), onRequest({ entity: promEntities.data_out }), wrapperService.forwardNativeDel)
+router.post(routesConfig.query_wrapper.sql_wrapper.path, ResponseHandler.setApiId(routesConfig.query_wrapper.sql_wrapper.api_id), onRequest({ entity: Entity.Data_out }), wrapperService.forwardSql)
+router.post(routesConfig.query_wrapper.native_post.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_post.api_id), onRequest({ entity: Entity.Data_out }), wrapperService.forwardNative)
+router.get(routesConfig.query_wrapper.native_get.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_get.api_id), onRequest({ entity: Entity.Data_out }), wrapperService.forwardNativeGet)
+router.delete(routesConfig.query_wrapper.native_delete.path, ResponseHandler.setApiId(routesConfig.query_wrapper.native_delete.api_id), onRequest({ entity: Entity.Data_out }), wrapperService.forwardNativeDel)
 router.get(routesConfig.query_wrapper.druid_status.path, ResponseHandler.setApiId(routesConfig.query_wrapper.druid_status.api_id), wrapperService.nativeStatus)
 router.get(routesConfig.health.path, ResponseHandler.setApiId(routesConfig.health.api_id), healthService.checkHealth.bind(healthService))
 

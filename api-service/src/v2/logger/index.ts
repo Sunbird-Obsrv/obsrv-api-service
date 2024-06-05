@@ -1,9 +1,17 @@
+import { error } from 'console';
 import winston from 'winston';
 
-const logger = winston.createLogger({
+ winston.configure({
     level: 'info',
-    format: winston.format.json(),
     transports: [new winston.transports.Console()],
 });
+
+const innerLogger = new (winston.Logger)();
+
+const logger = {
+    error: (...data: any) => innerLogger.error("", data),
+    info: (...data: any) => innerLogger.info("", data),
+    warn: (...data: any) => innerLogger.warn("", data),
+}
 
 export default logger;

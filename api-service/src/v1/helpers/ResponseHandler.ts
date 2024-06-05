@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import { IResponse, Result } from "../models/DatasetModels";
 import constants from "../resources/Constants.json";
 import { routesConfig } from "../configs/RoutesConfig";
-import { onFailure, onSuccess } from "./prometheus/helpers";
+import { onFailure, onSuccess } from "./../../v2/metrics/prometheus/helpers";
 type extendedErrorRequestHandler = ErrorRequestHandler & {
   statusCode: number;
   message: string;
