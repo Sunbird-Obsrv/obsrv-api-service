@@ -1,4 +1,3 @@
-import { error } from 'console';
 import winston from 'winston';
 
  winston.configure({
@@ -7,7 +6,6 @@ import winston from 'winston';
 });
 
 const innerLogger = new (winston.Logger)();
-
 const logger = {
     error: (...data: any) => innerLogger.error("", data),
     info: (...data: any) => innerLogger.info("", data),

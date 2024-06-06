@@ -23,7 +23,7 @@ describe("DATASET CREATE API", () => {
         chai.spy.restore();
     });
 
-    for (let fixture of DATASET_CREATE_SUCCESS_FIXTURES) {
+    for (const fixture of DATASET_CREATE_SUCCESS_FIXTURES) {
         it(fixture.title, (done) => {
             chai.spy.on(DatasetDraft, "findOne", () => {
                 return Promise.resolve(null)
@@ -61,7 +61,7 @@ describe("DATASET CREATE API", () => {
         });
     }
 
-    for (let fixture of DATASET_FAILURE_DUPLICATE_DENORM_FIXTURES) {
+    for (const fixture of DATASET_FAILURE_DUPLICATE_DENORM_FIXTURES) {
         it(fixture.title, (done) => {
             chai.spy.on(DatasetDraft, "findOne", () => {
                 return Promise.resolve(null)

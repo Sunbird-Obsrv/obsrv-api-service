@@ -49,8 +49,8 @@ describe("DATA INGEST API", () => {
                 }
             })
         })
-        let connectionStub = sinon.stub(kafkaModule, "connect").returns(true);
-        let sendStub = sinon.stub(kafkaModule, "send").returns(resultResponse);
+        const connectionStub = sinon.stub(kafkaModule, "connect").returns(true);
+        const sendStub = sinon.stub(kafkaModule, "send").returns(resultResponse);
 
         chai
             .request(app)
@@ -79,8 +79,8 @@ describe("DATA INGEST API", () => {
                 }
             })
         })
-        let connectionStub = sinon.stub(kafkaModule, "connect").returns(true);
-        let sendStub = sinon.stub(kafkaModule, "send").returns(resultResponse);
+        const connectionStub = sinon.stub(kafkaModule, "connect").returns(true);
+        const sendStub = sinon.stub(kafkaModule, "send").returns(resultResponse);
         chai
             .request(app)
             .post(apiEndpoint)
@@ -108,7 +108,7 @@ describe("DATA INGEST API", () => {
                 }
             })
         })
-        let connectionStub = sinon.stub(kafkaModule, "connect").resolves(false);
+        const connectionStub = sinon.stub(kafkaModule, "connect").resolves(false);
         chai
             .request(app)
             .post(apiEndpoint)
