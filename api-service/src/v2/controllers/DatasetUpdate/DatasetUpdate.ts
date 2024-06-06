@@ -154,7 +154,7 @@ const checkDatasetExists = async (dataset_id: string, version_key: string): Prom
     const datasetExists: Record<string, any> | null = await getExistingDataset(dataset_id)
     if (datasetExists) {
         const validVersionKey = _.get(datasetExists, "version_key")
-        if (validVersionKey !== version_key) {
+        const apiVersion = _.get(datasetExists, "api_version")
         if (validVersionKey !== version_key && apiVersion != null) {
             return { isDatasetExists: true, datasetStatus: datasetExists.status, invalidVersionKey: true, validVersionKey }
         }
