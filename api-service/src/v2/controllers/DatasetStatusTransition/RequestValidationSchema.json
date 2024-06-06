@@ -1,0 +1,52 @@
+{
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "enum": [
+          "api.datasets.status-transition"
+        ]
+      },
+      "ver": {
+        "type": "string"
+      },
+      "ts": {
+        "type": "string"
+      },
+      "params": {
+        "type": "object",
+        "properties": {
+          "msgid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "msgid"
+        ],
+        "additionalProperties": false
+      },
+      "request": {
+        "type": "object",
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ReadyToPublish",
+              "Retire",
+              "Delete",
+              "Live"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "dataset_id",
+          "status"
+        ]
+      }
+    }
+  }
