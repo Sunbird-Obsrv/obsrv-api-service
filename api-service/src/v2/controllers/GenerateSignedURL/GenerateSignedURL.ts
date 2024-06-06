@@ -9,7 +9,7 @@ import GenerateURL from "./GenerateSignedURLValidationSchema.json"
 import { cloudProvider } from "../../services/CloudServices";
 import { config } from "../../configs/Config";
 import { URLAccess } from "../../types/SampleURLModel";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
 export const apiId = "api.files.generate-url"
@@ -97,7 +97,7 @@ const transformReadFiles = (fileNames: Array<string | any>) => {
 const transformWriteFiles = (fileNames: Array<string | any>) => {
     const fileMap = new Map();
     const updatedFileNames = _.map(fileNames, file => {
-        const uuid = uuidv4().replace(/-/g, '').slice(0, 6);
+        const uuid = uuidv4().replace(/-/g, "").slice(0, 6);
         const ext = path.extname(file)
         const baseName = path.basename(file, ext)
         const updatedFileName = `${baseName}_${uuid}${ext}`

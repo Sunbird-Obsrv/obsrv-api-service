@@ -1,7 +1,7 @@
-import winston from 'winston';
+import winston from "winston";
 
  winston.configure({
-    level: 'info',
+    level: "info",
     transports: [new winston.transports.Console()],
 });
 

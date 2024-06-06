@@ -52,7 +52,7 @@ export const generateIngestionSpec = (payload: Record<string, any>) => {
 const generateIngestionTemplate = (payload: Record<string, any>) => {
     const { type, ...rest } = payload
     switch (type) {
-        case 'druid':
+        case "druid":
             return getDruidIngestionTemplate(rest);
         default:
             return null;
@@ -117,14 +117,14 @@ export const generateFlattenSchema = (sample: Map<string, any>) => {
     const array: any[] = [];
     const flattenValues = (data: any, path: string) => {
         _.map(data, (value, key) => {
-            if (_.isPlainObject(value) && _.has(value, 'properties')) {
+            if (_.isPlainObject(value) && _.has(value, "properties")) {
                 array.push(flattenSchema(key, `${path}.${key}`))
-                flattenValues(value['properties'], `${path}.${key}`);
+                flattenValues(value["properties"], `${path}.${key}`);
             } else if (_.isPlainObject(value)) {
-                if (value.type === 'array') {
+                if (value.type === "array") {
                     array.push(flattenSchema(key, `${path}.${key}`))
-                    if (_.has(value, 'items') && _.has(value["items"], 'properties')) {
-                        flattenValues(value["items"]['properties'], `${path}.${key}`);
+                    if (_.has(value, "items") && _.has(value["items"], "properties")) {
+                        flattenValues(value["items"]["properties"], `${path}.${key}`);
                     }
                 } else {
                     array.push(flattenSchema(key, `${path}.${key}`))
@@ -145,18 +145,18 @@ export const generateExpression = (sample: Map<string, any>, indexCol: string): 
     const flattendedSchema = new Map();
     const flattenExpression = (data: any, path: string) => {
         _.map(data, (value, key) => {
-            if (_.isPlainObject(value) && (_.has(value, 'properties'))) {
-                flattenExpression(value['properties'], `${path}.${key}`);
+            if (_.isPlainObject(value) && (_.has(value, "properties"))) {
+                flattenExpression(value["properties"], `${path}.${key}`);
             } else if (_.isPlainObject(value)) {
-                if (value.type === 'array') {
-                    if (_.has(value, 'items') && _.has(value["items"], 'properties')) {
-                        flattenExpression(value["items"]['properties'], `${path}.${key}[*]`);
+                if (value.type === "array") {
+                    if (_.has(value, "items") && _.has(value["items"], "properties")) {
+                        flattenExpression(value["items"]["properties"], `${path}.${key}[*]`);
                     } else {
                         const objectType = getObjectType(value.type)
                         const specObject = createSpecObj({ expression: `${path}.['${key}'][*]`, objectType, name: `${path}.${key}`, indexCol })
                         flattendedSchema.set(`${path}.${key}`, specObject)
                     }
-                } else if (value.type == 'object' && (!_.has(value, 'properties'))) {
+                } else if (value.type == "object" && (!_.has(value, "properties"))) {
                     const objectType = getObjectType(value.type)
                     const specObject = createSpecObj({ expression: `${path}.['${key}']`, objectType, name: `${path}.${key}`, indexCol })
                     flattendedSchema.set(`${path}.${key}`, specObject)

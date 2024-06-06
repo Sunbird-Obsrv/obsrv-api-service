@@ -1,8 +1,8 @@
 import { sequelize } from "../connections/databaseConnection";
-import { DataTypes } from 'sequelize';
+import { DataTypes } from "sequelize";
 import { DatasetStatus } from "../types/DatasetModels";
 
-export const DatasetDraft = sequelize.define('datasets_draft', {
+export const DatasetDraft = sequelize.define("datasets_draft", {
   id: {
     type: DataTypes.STRING,
     primaryKey: true,
@@ -61,7 +61,7 @@ export const DatasetDraft = sequelize.define('datasets_draft', {
     defaultValue: []
   },
   status: {
-    type: DataTypes.ENUM('Draft'),
+    type: DataTypes.ENUM("Draft"),
     allowNull: true,
     defaultValue: DatasetStatus.Draft
   },
@@ -94,7 +94,7 @@ export const DatasetDraft = sequelize.define('datasets_draft', {
   }
 }, {
   timestamps: true,
-  createdAt: 'created_date',
-  updatedAt: 'updated_date',
+  createdAt: "created_date",
+  updatedAt: "updated_date",
   tableName: "datasets_draft"
 });

@@ -57,6 +57,6 @@ export const DatasourceDraft = sequelize.define("datasources_draft", {
 }, {
     tableName: "datasources_draft",
     timestamps: true,
-    createdAt: 'created_date',
-    updatedAt: 'updated_date',
+    createdAt: "created_date",
+    updatedAt: "updated_date",
 })

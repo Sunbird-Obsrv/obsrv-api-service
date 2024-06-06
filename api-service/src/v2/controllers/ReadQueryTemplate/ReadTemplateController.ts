@@ -6,7 +6,7 @@ import { ResponseHandler } from "../../helpers/ResponseHandler";
 const apiId = "api.query.template.read";
 
 export const readQueryTemplate = async (req: Request, res: Response) => {
-    const template_id = _.get(req, 'params.templateId');
+    const template_id = _.get(req, "params.templateId");
     try {
         const resmsgid = _.get(res, "resmsgid");
 

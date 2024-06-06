@@ -71,7 +71,7 @@ export class AWSStorageService implements ICloudService {
             files.push(fileUrl);
         });
         return {
-            expiresAt: moment().add(globalConfig.cloud_config.storage_url_expiry, 'seconds').toISOString(),
+            expiresAt: moment().add(globalConfig.cloud_config.storage_url_expiry, "seconds").toISOString(),
             files,
             periodWiseFiles,
         };

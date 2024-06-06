@@ -37,6 +37,6 @@ export const DatasetSourceConfig = sequelize.define("dataset_source_config", {
 }, {
     tableName: "dataset_source_config",
     timestamps: true,
-    createdAt: 'created_date',
-    updatedAt: 'updated_date',
+    createdAt: "created_date",
+    updatedAt: "updated_date",
 })

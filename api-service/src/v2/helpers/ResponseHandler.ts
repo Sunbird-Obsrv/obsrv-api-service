@@ -29,7 +29,7 @@ const ResponseHandler = {
     const msgid = _.get(body, ["params", "msgid"])
     const resmsgid = _.get(res, "resmsgid")
     const response = ResponseHandler.refactorResponse({ id, msgid, params: { status: "FAILED" }, responseCode: errCode || httpStatus["500_NAME"], resmsgid })
-    const modifiedErrorResponse = _.omit(response, ['result']);
+    const modifiedErrorResponse = _.omit(response, ["result"]);
     res.status(statusCode || httpStatus.INTERNAL_SERVER_ERROR).json({ ...modifiedErrorResponse, error: { code, message, trace } });
     entity && onFailure(req, res)
   },

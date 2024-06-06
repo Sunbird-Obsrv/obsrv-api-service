@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express"
-import { v4 } from 'uuid';
-import _ from 'lodash';
+import { v4 } from "uuid";
+import _ from "lodash";
 import { config as appConfig } from "../configs/Config";
-import { Kafka } from 'kafkajs';
+import { Kafka } from "kafkajs";
 
-const env = _.get(appConfig, 'env')
-const telemetryTopic = _.get(appConfig, 'telemetry_dataset');
-const brokerServers = _.get(appConfig, 'telemetry_service_config.kafka.config.brokers');
+const env = _.get(appConfig, "env")
+const telemetryTopic = _.get(appConfig, "telemetry_dataset");
+const brokerServers = _.get(appConfig, "telemetry_service_config.kafka.config.brokers");
 
 export enum OperationType { CREATE = 1, UPDATE, PUBLISH, RETIRE, LIST, GET }
 
@@ -16,20 +16,20 @@ telemetryEventsProducer.connect().catch(err => console.error("Unable to connect 
 
 const getDefaults = () => {
     return {
-        eid: 'AUDIT',
+        eid: "AUDIT",
         ets: Date.now(),
-        ver: '1.0.0',
+        ver: "1.0.0",
         mid: v4(),
         actor: {
             id: "SYSTEM",
-            type: 'User'
+            type: "User"
         },
         context: {
             env,
             sid: v4(),
             pdata: {
                 id: `${env}.api.service`,
-                ver: '1.0.0'
+                ver: "1.0.0"
             }
         },
         object: {},
@@ -77,27 +77,27 @@ export const setAuditState = (state: string, req: any) => {
 const setAuditEventType = (operationType: any, request: any) => {
     switch (operationType) {
         case OperationType.CREATE: {
-            _.set(request, 'auditEvent.type', 'create');
+            _.set(request, "auditEvent.type", "create");
             break;
         }
         case OperationType.UPDATE: {
-            _.set(request, 'auditEvent.type', 'update');
+            _.set(request, "auditEvent.type", "update");
             break;
         }
         case OperationType.PUBLISH: {
-            _.set(request, 'auditEvent.type', 'publish');
+            _.set(request, "auditEvent.type", "publish");
             break;
         }
         case OperationType.RETIRE: {
-            _.set(request, 'auditEvent.type', 'retire');
+            _.set(request, "auditEvent.type", "retire");
             break;
         }
         case OperationType.LIST: {
-            _.set(request, 'auditEvent.type', 'list');
+            _.set(request, "auditEvent.type", "list");
             break;
         }
         case OperationType.GET: {
-            _.set(request, 'auditEvent.type', 'get');
+            _.set(request, "auditEvent.type", "get");
             break;
         }
         default:
@@ -111,7 +111,7 @@ export const telemetryAuditStart = ({ operationType, action }: any) => {
             const body = request.body || {};
             request.auditEvent = getDefaultEdata({ action });
             const props = transformProps(body);
-            _.set(request, 'auditEvent.edata.props', props);
+            _.set(request, "auditEvent.edata.props", props);
             setAuditEventType(operationType, request);
         } catch (error) {
             console.log(error);
@@ -122,27 +122,27 @@ export const telemetryAuditStart = ({ operationType, action }: any) => {
 }
 
 export const processAuditEvents = (request: Request) => {
-    const auditEvent: any = _.get(request, 'auditEvent');
+    const auditEvent: any = _.get(request, "auditEvent");
     if (auditEvent) {
         const { startEts, object = {}, edata = {}, toState, fromState }: any = auditEvent;
         const endEts = Date.now();
         const duration = startEts ? (endEts - startEts) : 0;
-        _.set(auditEvent, 'edata.transition.duration', duration);
+        _.set(auditEvent, "edata.transition.duration", duration);
         if (toState && fromState) {
-            _.set(auditEvent, 'edata.transition.toState', toState);
-            _.set(auditEvent, 'edata.transition.fromState', fromState);
+            _.set(auditEvent, "edata.transition.toState", toState);
+            _.set(auditEvent, "edata.transition.fromState", fromState);
         }
         const telemetryEvent = getDefaults();
-        _.set(telemetryEvent, 'edata', edata);
-        _.set(telemetryEvent, 'object', { ...(object.id && object.type && { ...object, ver: '1.0.0' }) });
+        _.set(telemetryEvent, "edata", edata);
+        _.set(telemetryEvent, "object", { ...(object.id && object.type && { ...object, ver: "1.0.0" }) });
         sendTelemetryEvents(telemetryEvent);
     }
 }
 
 export const interceptAuditEvents = () => {
     return (request: Request, response: Response, next: NextFunction) => {
-        response.on('finish', () => {
-            const statusCode = _.get(response, 'statusCode');
+        response.on("finish", () => {
+            const statusCode = _.get(response, "statusCode");
             const isError = statusCode && statusCode >= 400;
             !isError && processAuditEvents(request);
         })
@@ -152,33 +152,33 @@ export const interceptAuditEvents = () => {
 
 export const updateTelemetryAuditEvent = ({ currentRecord, request, object = {} }: Record<string, any>) => {
     const auditEvent = request?.auditEvent;
-    _.set(request, 'auditEvent.object', object);
+    _.set(request, "auditEvent.object", object);
     if (currentRecord) {
-        const props = _.get(auditEvent, 'edata.props');
+        const props = _.get(auditEvent, "edata.props");
         const updatedProps = _.map(props, (prop: Record<string, any>) => {
             const { property, nv } = prop;
             const existingValue = _.get(currentRecord, property);
             return { property, ov: existingValue, nv };
         });
-        _.set(request, 'auditEvent.edata.props', updatedProps);
+        _.set(request, "auditEvent.edata.props", updatedProps);
     }
 }
 
 export const findAndSetExistingRecord = async ({ dbConnector, table, filters, request, object = {} }: Record<string, any>) => {
     const auditEvent = request?.auditEvent;
-    if (dbConnector && table && filters && _.get(auditEvent, 'type') === "update") {
+    if (dbConnector && table && filters && _.get(auditEvent, "type") === "update") {
         try {
-            _.set(request, 'auditEvent.object', object);
+            _.set(request, "auditEvent.object", object);
             const records = await dbConnector.execute("read", { table, fields: { filters } })
             const existingRecord = _.first(records);
             if (existingRecord) {
-                const props = _.get(auditEvent, 'edata.props');
+                const props = _.get(auditEvent, "edata.props");
                 const updatedProps = _.map(props, (prop: Record<string, any>) => {
                     const { property, nv } = prop;
                     const existingValue = _.get(existingRecord, property);
                     return { property, ov: existingValue, nv };
                 });
-                _.set(request, 'auditEvent.edata.props', updatedProps);
+                _.set(request, "auditEvent.edata.props", updatedProps);
             }
         } catch (error) {
             setAuditState("failed", request);

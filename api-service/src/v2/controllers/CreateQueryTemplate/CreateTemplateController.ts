@@ -17,7 +17,7 @@ export const createQueryTemplate = async (req: Request, res: Response) => {
         const msgid = _.get(req, "body.params.msgid");
         const resmsgid = _.get(res, "resmsgid");
         const templateName = _.get(req, "body.request.template_name");
-        const templateId: string = slug(templateName, '_');
+        const templateId: string = slug(templateName, "_");
         const requestBody = req.body;
         const isValidSchema = schemaValidation(requestBody, validationSchema);
 
@@ -61,7 +61,7 @@ const transformRequest = (req: any, templateName: string) => {
     const type: any = _.get(req, "request.query_type");
     const query = _.get(req, "request.query")
     const data = {
-        template_id: slug(templateName, '_'),
+        template_id: slug(templateName, "_"),
         template_name: templateName,
         query_type: type,
         query: query

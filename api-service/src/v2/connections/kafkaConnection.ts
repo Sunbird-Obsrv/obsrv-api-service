@@ -1,5 +1,5 @@
 import { Kafka } from "kafkajs";
-import { connectionConfig } from '../configs/ConnectionsConfig'
+import { connectionConfig } from "../configs/ConnectionsConfig"
 import logger from "../logger";
 import { CompressionTypes, CompressionCodecs } from "kafkajs";
 import { SnappyCodec } from "kafkajs-snappy-typescript";

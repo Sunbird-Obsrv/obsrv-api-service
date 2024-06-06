@@ -18,19 +18,19 @@ export const config = {
     }
   },
   "telemetry_service_config": {
-    level: process.env.telemetry_log_level || 'info',
-    localStorageEnabled: process.env.telemetry_local_storage_enabled || 'true',
-    dispatcher: process.env.telemetry_local_storage_type || 'kafka',
+    level: process.env.telemetry_log_level || "info",
+    localStorageEnabled: process.env.telemetry_local_storage_enabled || "true",
+    dispatcher: process.env.telemetry_local_storage_type || "kafka",
     telemetryProxyEnabled: process.env.telemetry_proxy_enabled,
     proxyURL: process.env.telemetry_proxy_url,
     proxyAuthKey: process.env.telemetry_proxy_auth_key,
-    compression_type: process.env.telemetry_kafka_compression || 'none',
-    filename: process.env.telemetry_file_filename || 'telemetry-%DATE%.log',
+    compression_type: process.env.telemetry_kafka_compression || "none",
+    filename: process.env.telemetry_file_filename || "telemetry-%DATE%.log",
     maxsize: process.env.telemetry_file_maxsize || 10485760,
-    maxFiles: process.env.telemetry_file_maxfiles || '100',
+    maxFiles: process.env.telemetry_file_maxfiles || "100",
     "kafka": {    // The default Kafka configuration includes essential parameters such as broker IP addresses and other configuration options.
       "config": {
-        "brokers": [`${process.env.kafka_host || 'localhost'}:${process.env.kafka_port || 9092}`],
+        "brokers": [`${process.env.kafka_host || "localhost"}:${process.env.kafka_port || 9092}`],
         "clientId": process.env.client_id || "obsrv-apis",
         "retry": {
           "initialRetryTime": process.env.kafka_initial_retry_time ? parseInt(process.env.kafka_initial_retry_time) : 3000,
@@ -39,8 +39,8 @@ export const config = {
         "connectionTimeout": process.env.kafka_connection_timeout ? parseInt(process.env.kafka_connection_timeout) : 5000
       },
       "topics": {  // Default Kafka topics depend on type of dataset.
-        "createDataset": `${process.env.system_env || 'local'}.ingest`,
-        "createMasterDataset": `${process.env.system_env || 'local'}.masterdata.ingest`
+        "createDataset": `${process.env.system_env || "local"}.ingest`,
+        "createMasterDataset": `${process.env.system_env || "local"}.masterdata.ingest`
       }
     }
   },
@@ -49,7 +49,7 @@ export const config = {
     masterDataset: "master-dataset"
   },
   "redis_config": {
-    "redis_host": process.env.redis_host || 'localhost',
+    "redis_host": process.env.redis_host || "localhost",
     "redis_port": process.env.redis_port || 6379
   },
   "exclude_datasource_validation": process.env.exclude_datasource_validation ? process.env.exclude_datasource_validation.split(",") : ["system-stats", "failed-events-summary", "masterdata-system-stats", "system-events"], // list of datasource names to skip validation while calling query API

@@ -1,12 +1,12 @@
-import client from 'prom-client';
-import { queryResponseTimeMetric, totalApiCallsMetric, failedApiCallsMetric, successApiCallsMetric } from './metrics'
+import client from "prom-client";
+import { queryResponseTimeMetric, totalApiCallsMetric, failedApiCallsMetric, successApiCallsMetric } from "./metrics"
 const metrics = [queryResponseTimeMetric, totalApiCallsMetric, failedApiCallsMetric, successApiCallsMetric];
-import { NextFunction } from 'express';
+import { NextFunction } from "express";
 
 const register = new client.Registry();
 
 const configureRegistry = (register: client.Registry) => {
-    register.setDefaultLabels({ release: 'monitoring' });
+    register.setDefaultLabels({ release: "monitoring" });
     metrics.map(metric => {
         register.registerMetric(metric);
     })
@@ -23,7 +23,7 @@ configureRegistry(register);
 
 const metricsScrapeHandler = async (req: any, res: any, next: NextFunction) => {
     try {
-        res.set('Content-Type', register.contentType);
+        res.set("Content-Type", register.contentType);
         const metrics = await register.metrics()
         res.status(200).send(metrics);
     } catch (error) {
