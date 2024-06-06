@@ -26,7 +26,7 @@ export const errorCode = "DATASET_STATUS_TRANSITION_FAILURE"
 
 const allowedTransitions = {
     Delete: [DatasetStatus.Draft, DatasetStatus.ReadyToPublish],
-    ReadyToPublish: [DatasetStatus.Draft,],
+    ReadyToPublish: [DatasetStatus.Draft],
     Live: [DatasetStatus.ReadyToPublish],
     Retire: [DatasetStatus.Live],
 }
