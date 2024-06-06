@@ -61,5 +61,5 @@ export enum DatasetType {
 }
 
 export enum DatasetAction {
-    Retire = 'Retire', Delete = 'Delete', ReadyToPublish = 'ReadyToPublish', Live='Live'
+    Retire = "Retire", Delete = "Delete", ReadyToPublish = "ReadyToPublish", Live="Live"
 }
