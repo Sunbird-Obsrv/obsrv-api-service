@@ -25,10 +25,10 @@ export const apiId = "api.datasets.status-transition";
 export const errorCode = "DATASET_STATUS_TRANSITION_FAILURE"
 
 const allowedTransitions = {
-    Delete: ["Draft", "ReadyToPublish"],
-    ReadyToPublish: ["Draft"],
-    Live: ["ReadyToPublish"],
-    Retire: ["Live"],
+    Delete: [DatasetStatus.Draft, DatasetStatus.ReadyToPublish],
+    ReadyToPublish: [DatasetStatus.Draft,],
+    Live: [DatasetStatus.ReadyToPublish],
+    Retire: [DatasetStatus.Live],
 }
 
 const statusTransitionCommands = {
