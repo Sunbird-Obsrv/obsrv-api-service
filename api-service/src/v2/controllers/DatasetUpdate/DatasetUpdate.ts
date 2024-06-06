@@ -155,6 +155,7 @@ const checkDatasetExists = async (dataset_id: string, version_key: string): Prom
     if (datasetExists) {
         const validVersionKey = _.get(datasetExists, "version_key")
         if (validVersionKey !== version_key) {
+        if (validVersionKey !== version_key && apiVersion != null) {
             return { isDatasetExists: true, datasetStatus: datasetExists.status, invalidVersionKey: true, validVersionKey }
         }
         return { isDatasetExists: true, datasetStatus: datasetExists.status }
@@ -398,6 +399,7 @@ const mergeExistingDataset = async (configs: Record<string, any>): Promise<Recor
             return newValue
         }
     });
+    mergedData.api_version = "v2";
     return _.omit(mergedData, ["dataset_id", "transformation_config", "created_date"])
 }
 
