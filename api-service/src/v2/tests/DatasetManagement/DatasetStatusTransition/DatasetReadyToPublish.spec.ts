@@ -60,9 +60,6 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)
         })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -85,9 +82,6 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -126,7 +120,7 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                expect(res.body.error.message).to.match(/^#properties(.+)should be equal to one of the allowed values$/)
+                expect(res.body.error.message).to.match(/^#required must have(.+)/)
                 res.body.error.code.should.be.eq("DATASET_CONFIGS_INVALID")
                 done();
             });
