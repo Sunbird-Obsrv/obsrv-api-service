@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as _ from 'lodash';
+import * as _ from "lodash";
 import validationSchema from "./validationSchema.json";
 import { schemaValidation } from "../../services/ValidationService";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
@@ -69,17 +69,17 @@ const addMetadataToEvents = (datasetId: string, payload: any) => {
     const obsrvMeta = { syncts: now, flags: {}, timespans: {}, error: {}, source: source };
     if (Array.isArray(validData)) {
         const payloadRef = validData.map((event: any) => {
-            event = _.set(event, 'obsrv_meta', obsrvMeta);
-            event = _.set(event, 'dataset', datasetId);
-            event = _.set(event, 'msgid', mid);
+            event = _.set(event, "obsrv_meta", obsrvMeta);
+            event = _.set(event, "dataset", datasetId);
+            event = _.set(event, "msgid", mid);
             return event
         })
         return payloadRef;
     }
     else {
-        _.set(validData, 'msgid', mid);
-        _.set(validData, 'obsrv_meta', obsrvMeta);
-        _.set(validData, 'dataset', datasetId);
+        _.set(validData, "msgid", mid);
+        _.set(validData, "obsrv_meta", obsrvMeta);
+        _.set(validData, "dataset", datasetId);
         return validData
     }
 }

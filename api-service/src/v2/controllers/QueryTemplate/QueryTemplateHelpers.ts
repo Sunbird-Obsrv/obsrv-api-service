@@ -44,17 +44,17 @@ const replaceVariables = (queryParams: Record<string, any>, templateData: Record
     let query: any = templateData;
     requiredVariables.forEach((variable: string) => {
         if (queryType === "json" && (variable === "STARTDATE" || variable === "ENDDATE")) {
-            const varRegex = new RegExp(`{{${variable}}}`, 'ig');
+            const varRegex = new RegExp(`{{${variable}}}`, "ig");
             return query = query.replace(varRegex, `${queryParams[variable]}`);
         }
 
-        const varRegex = new RegExp(`{{${variable}}}`, 'ig');
+        const varRegex = new RegExp(`{{${variable}}}`, "ig");
         if (queryType === "sql" && (variable === "STARTDATE" || variable === "ENDDATE")) {
             return query = query.replace(varRegex, `'${queryParams[variable]}'`);
         }
 
         if (queryType === "sql" && variable === "DATASET") {
-            query = query.replaceAll('"', "")
+            query = query.replaceAll("\"", "")
             return query = query.replace(varRegex, `"${queryParams[variable]}"`);
         }
 
@@ -64,7 +64,7 @@ const replaceVariables = (queryParams: Record<string, any>, templateData: Record
     });
 
     additionalVariables.forEach((variable: string) => {
-        const varRegex = new RegExp(`{{${variable}}}`, 'ig');
+        const varRegex = new RegExp(`{{${variable}}}`, "ig");
         if ((queryType === "json" || queryType === "sql") && variable === "LIMIT") {
             query = query.replace(varRegex, `${queryParams[variable]}`);
         }

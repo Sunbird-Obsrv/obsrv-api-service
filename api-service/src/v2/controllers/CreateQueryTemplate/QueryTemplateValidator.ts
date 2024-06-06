@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import { config } from "../../configs/Config";
 
 export const validateTemplate = async (req: Request) => {
-    const query = _.get(req, 'request.query');
+    const query = _.get(req, "request.query");
     const templateData: any = _.isObject(query) ? JSON.stringify(query) : query;
     const validTemplate = isValidTemplate(templateData);
     return { validTemplate };

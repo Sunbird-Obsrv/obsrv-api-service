@@ -1,13 +1,11 @@
-import { error } from 'console';
-import winston from 'winston';
+import winston from "winston";
 
  winston.configure({
-    level: 'info',
+    level: "info",
     transports: [new winston.transports.Console()],
 });
 
 const innerLogger = new (winston.Logger)();
-
 const logger = {
     error: (...data: any) => innerLogger.error("", data),
     info: (...data: any) => innerLogger.info("", data),

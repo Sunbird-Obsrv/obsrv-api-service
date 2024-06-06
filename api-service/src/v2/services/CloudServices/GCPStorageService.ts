@@ -37,7 +37,7 @@ export class GCPStorageService implements ICloudService {
         const containerURLExpiry = urlExpiry ? 1000 * urlExpiry : 1000 * 60 * 60
 
         const options = {
-            version: 'v4',
+            version: "v4",
             action,
             expires: Date.now() + containerURLExpiry, // one hour
         };
@@ -91,7 +91,7 @@ export class GCPStorageService implements ICloudService {
                     files.push(fileObject);
                 });
                 return {
-                    expiresAt: moment().add(config.cloud_config.storage_url_expiry, 'seconds').toISOString(),
+                    expiresAt: moment().add(config.cloud_config.storage_url_expiry, "seconds").toISOString(),
                     files: signedUrls,
                     periodWiseFiles,
                 };

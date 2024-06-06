@@ -1,8 +1,8 @@
 import { sequelize } from "../connections/databaseConnection";
-import { DataTypes } from 'sequelize';
+import { DataTypes } from "sequelize";
 import { DatasetStatus, TransformationMode } from "../types/DatasetModels";
 
-export const DatasetTransformations = sequelize.define('dataset_transformations', {
+export const DatasetTransformations = sequelize.define("dataset_transformations", {
     id: {
         type: DataTypes.TEXT,
         primaryKey: true,
@@ -48,7 +48,7 @@ export const DatasetTransformations = sequelize.define('dataset_transformations'
     }
 }, {
     timestamps: true,
-    createdAt: 'created_date',
-    updatedAt: 'updated_date',
-    tableName: 'dataset_transformations'
+    createdAt: "created_date",
+    updatedAt: "updated_date",
+    tableName: "dataset_transformations"
 });

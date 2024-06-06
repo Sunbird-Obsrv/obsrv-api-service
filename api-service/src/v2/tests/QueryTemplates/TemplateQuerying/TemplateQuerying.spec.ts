@@ -3,7 +3,6 @@ import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import { describe, it } from 'mocha';
-import _ from "lodash";
 import { QueryTemplate } from "../../../models/QueryTemplate";
 import { Datasource } from "../../../models/Datasource";
 import nock from "nock";

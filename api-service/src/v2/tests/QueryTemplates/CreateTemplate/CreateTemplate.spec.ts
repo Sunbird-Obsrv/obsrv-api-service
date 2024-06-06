@@ -1,9 +1,8 @@
 import app from "../../../../app";
-import chai, { expect } from "chai";
+import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import { describe, it } from 'mocha';
-import _ from "lodash";
 import { createTemplateFixtures } from "./Fixtures"
 import { QueryTemplate } from "../../../models/QueryTemplate";
 const apiId = 'api.query.template.create'

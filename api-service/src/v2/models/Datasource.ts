@@ -57,6 +57,6 @@ export const Datasource = sequelize.define("datasources", {
 }, {
     tableName: "datasources",
     timestamps: true,
-    createdAt: 'created_date',
-    updatedAt: 'updated_date',
+    createdAt: "created_date",
+    updatedAt: "updated_date",
 })

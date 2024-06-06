@@ -99,7 +99,7 @@ const getDataSourceFromPayload = (queryPayload: any) => {
         return dataset_id
     }
     if (_.isObject(queryPayload.query)) {
-        const dataSourceField: any = _.get(queryPayload, "query.datasetId", '');
+        const dataSourceField: any = _.get(queryPayload, "query.datasetId", "");
         return dataset_id || dataSourceField;
     }
 }
@@ -170,7 +170,7 @@ const getDataSourceRef = async (datasetId: string, granularity?: string) => {
 }
 
 const setDatasourceRef = async (datasetId: string, payload: any): Promise<any> => {
-    const granularity = _.get(payload, 'context.aggregationLevel')
+    const granularity = _.get(payload, "context.aggregationLevel")
     const datasourceRef = await getDataSourceRef(datasetId, granularity);
     const existingDatasources = await getDatasourceListFromDruid();
 

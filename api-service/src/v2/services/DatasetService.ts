@@ -18,7 +18,7 @@ export const getDataset = async (datasetId: string, raw = false): Promise<any> =
 }
 
 export const getDuplicateDenormKey = (denormConfig: Record<string, any>): Array<string> => {
-    if (denormConfig && _.isArray(_.get(denormConfig, 'denorm_fields'))) {
+    if (denormConfig && _.isArray(_.get(denormConfig, "denorm_fields"))) {
         const denormFields = _.get(denormConfig, "denorm_fields")
         const denormOutKeys = _.map(denormFields, field => _.get(field, "denorm_out_field"))
         const duplicateDenormKeys: Array<string> = _.filter(denormOutKeys, (item: string, index: number) => _.indexOf(denormOutKeys, item) !== index);

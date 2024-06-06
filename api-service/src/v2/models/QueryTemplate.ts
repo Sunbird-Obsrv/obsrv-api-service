@@ -1,7 +1,7 @@
 import { sequelize } from "../connections/databaseConnection";
-import { DataTypes } from 'sequelize';
+import { DataTypes } from "sequelize";
 
-export const QueryTemplate = sequelize.define('query_templates', {
+export const QueryTemplate = sequelize.define("query_templates", {
     template_id: {
         type: DataTypes.STRING,
         primaryKey: true,
@@ -31,7 +31,7 @@ export const QueryTemplate = sequelize.define('query_templates', {
     }
 }, {
     timestamps: true,
-    createdAt: 'created_date',
-    updatedAt: 'updated_date',
+    createdAt: "created_date",
+    updatedAt: "updated_date",
     tableName: "query_templates"
 });

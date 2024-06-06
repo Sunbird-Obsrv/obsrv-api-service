@@ -178,7 +178,7 @@ const getDatasetUpdatedConfigs = async (payload: Record<string, any>): Promise<R
 }
 
 const getDuplicateDenormKey = (denormConfig: Record<string, any>): Array<string> => {
-    if (denormConfig && _.isArray(_.get(denormConfig, 'denorm_fields'))) {
+    if (denormConfig && _.isArray(_.get(denormConfig, "denorm_fields"))) {
         const denormFields = _.get(denormConfig, "denorm_fields")
         const denormOutKeys = _.compact(_.map(denormFields, field => _.get(field, "action") == "add" && _.get(field, "values.denorm_out_field")))
         const duplicateDenormKeys: Array<string> = _.filter(denormOutKeys, (item: string, index: number) => _.indexOf(denormOutKeys, item) !== index);

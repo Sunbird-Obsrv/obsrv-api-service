@@ -45,15 +45,15 @@ export interface Result {
 }
 
 export enum DatasetStatus {
-    Live = 'Live', Retired = 'Retired', Draft = 'Draft', ReadyToPublish = 'ReadyToPublish'
+    Live = "Live", Retired = "Retired", Draft = "Draft", ReadyToPublish = "ReadyToPublish"
 }
 
 export enum TransformationMode {
-    Strict = 'Strict', Lenient = 'Lenient',
+    Strict = "Strict", Lenient = "Lenient",
 }
 
 export enum ValidationMode {
-    Strict = 'Strict', IgnoreNewFields = 'IgnoreNewFields', DiscardNewFields = 'DiscardNewFields',
+    Strict = "Strict", IgnoreNewFields = "IgnoreNewFields", DiscardNewFields = "DiscardNewFields",
 }
 
 export enum DatasetType {
