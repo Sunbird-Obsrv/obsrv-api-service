@@ -177,7 +177,7 @@ const checkDatasetDenorm = async (payload: Record<string, any>) => {
         const liveDatasets = await Dataset.findAll({ attributes: ["denorm_config"], raw: true }) || []
         const draftDatasets = await DatasetDraft.findAll({ attributes: ["denorm_config"], raw: true }) || []
         _.forEach([...liveDatasets, ...draftDatasets], datasets => {
-            _.forEach(_.get(datasets, 'denorm_config.denorm_fields'), denorms => {
+            _.forEach(_.get(datasets, "denorm_config.denorm_fields"), denorms => {
                 if (_.get(denorms, "dataset_id") === dataset_id) {
                     logger.error(`Failed to retire dataset as it is used by other datasets:${dataset_id}`)
                     throw {

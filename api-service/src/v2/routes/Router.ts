@@ -38,7 +38,7 @@ router.patch("/template/update/:templateId", setDataToRequestObject("api.query.t
 router.post("/schema/validate", setDataToRequestObject("api.schema.validator"), eventValidation); 
 router.post("/template/query/:templateId", setDataToRequestObject("api.query.template.query"), queryTemplate);
 router.post("/files/generate-url", setDataToRequestObject("api.files.generate-url"), onRequest({ entity: Entity.Management }), GenerateSignedURL);
-router.post('/datasets/status-transition', setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), DatasetStatusTansition);
+router.post("/datasets/status-transition", setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), DatasetStatusTansition);
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
