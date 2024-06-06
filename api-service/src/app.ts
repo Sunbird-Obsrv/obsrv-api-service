@@ -1,13 +1,15 @@
 import express, { Application } from "express";
-import { config } from "./configs/Config";
-import { ResponseHandler } from "./helpers/ResponseHandler";
-import { loadExtensions } from "./managers/Extensions";
-import { router } from "./routes/Router";
+import { config } from "./v1/configs/Config";
+import { ResponseHandler } from "./v1/helpers/ResponseHandler";
+import { loadExtensions } from "./v1/managers/Extensions";
+import { router } from "./v1/routes/Router";
+import {router as v2Router} from "./v2/routes/Router"
+import {router as metricsRouter} from "./v2/routes/metricRouter"
 import bodyParser from "body-parser";
-import { interceptAuditEvents } from "./services/telemetry";
-import { queryService } from "./routes/Router";
-import { routesConfig } from "./configs/RoutesConfig";
-import { QueryValidator } from "./validators/QueryValidator";
+import { interceptAuditEvents } from "./v1/services/telemetry";
+import { queryService } from "./v1/routes/Router";
+import { routesConfig } from "./v1/configs/RoutesConfig";
+import { QueryValidator } from "./v1/validators/QueryValidator";
 const app: Application = express();
 const queryValidator = new QueryValidator();
 
@@ -26,7 +28,9 @@ app.set("queryServices", services);
 loadExtensions(app)
   .finally(() => {
     app.use(interceptAuditEvents())
+    app.use("/v2/", v2Router);
     app.use("/", router);
+    app.use("/", metricsRouter);
     app.use("*", ResponseHandler.routeNotFound);
     app.use(ResponseHandler.errorResponse);
 
