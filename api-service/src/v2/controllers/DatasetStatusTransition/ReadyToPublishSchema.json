@@ -153,6 +153,9 @@
           "type": "object",
           "minProperties": 1
         },
+        "required": {
+          "type": "array"
+        },
         "additionalProperties": {
           "type": "boolean"
         }
@@ -230,12 +233,12 @@
           "type": "string",
           "minLength": 1
         },
-        "exclude_fields": {
-          "type": "array"
-        },
         "redis_db_host": {
           "type": "string",
           "minLength": 1
+        },
+        "exclude_fields": {
+          "type": "array"
         },
         "redis_db_port": {
           "type": "integer"
