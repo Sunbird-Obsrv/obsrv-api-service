@@ -149,7 +149,7 @@ describe("DATASET UPDATE API", () => {
 
     it("Dataset updation failure: When dataset to update is outdated", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ id: "telemetry", status: "Draft", version_key: "1813444815918" })
+            return Promise.resolve({ id: "telemetry", status: "Draft", version_key: "1813444815918", api_version: "v2" })
         })
         chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve({})
