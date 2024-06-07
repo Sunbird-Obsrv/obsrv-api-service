@@ -141,7 +141,7 @@ const getDefaultHandler = (datasetType: string) => {
     }
 }
 
-const getDefaultValue = async (payload: Record<string, any>) => {
+export const getDefaultValue = async (payload: Record<string, any>) => {
     const datasetType = _.get(payload, "type");
     const getDatasetDefaults = getDefaultHandler(datasetType)
     const datasetDefaults = await getDatasetDefaults(payload)

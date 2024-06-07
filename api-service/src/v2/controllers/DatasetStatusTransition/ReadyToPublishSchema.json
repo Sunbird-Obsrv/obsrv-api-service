@@ -193,6 +193,9 @@
               "dataset_id": {
                 "type": "string",
                 "minLength": 1
+              },
+              "redis_db": {
+                "type": "integer"
               }
             },
             "required": [
@@ -258,7 +261,6 @@
         }
       },
       "required": [
-        "data_key",
         "timestamp_key",
         "entry_topic",
         "redis_db_host",
@@ -293,7 +295,8 @@
           "data_key": {
             "minLength": 1
           }
-        }
+        },
+        "required": ["data_key"]
       }
     }
   },
