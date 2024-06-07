@@ -5,7 +5,6 @@ import winston from 'winston';
     transports: [new winston.transports.Console()],
 });
 
-const innerLogger = new (winston.Logger)();
 
 const logger = {
     error: (...data: any) => console.error("error", data),
