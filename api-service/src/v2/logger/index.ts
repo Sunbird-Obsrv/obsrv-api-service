@@ -1,15 +1,6 @@
-import winston from "winston";
+import log4js from "log4js";
 
- winston.configure({
-    level: "info",
-    transports: [new winston.transports.Console()],
-});
-
-
-const logger = {
-    error: (...data: any) => console.error("error", data),
-    info: (...data: any) => console.log("info", data),
-    warn: (...data: any) => console.log("warn", data),
-}
+const logger = log4js.getLogger();
+logger.level = "debug";
 
 export default logger;
