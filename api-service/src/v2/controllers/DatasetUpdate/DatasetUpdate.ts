@@ -99,7 +99,7 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
         const updatedDatasetConfigs = await getDatasetUpdatedConfigs(datasetBody);
         const datasetPayload = await mergeExistingDataset(updatedDatasetConfigs)
-
+        logger.debug({datasetPayload})
         const transformationConfigs = _.get(datasetBody, "transformation_config")
         await manageTransformations(transformationConfigs, dataset_id, transact);
 
@@ -400,7 +400,7 @@ const mergeExistingDataset = async (configs: Record<string, any>): Promise<Recor
         }
     });
     mergedData.api_version = "v2";
-    return _.omit(mergedData, ["dataset_id", "transformation_config", "created_date"])
+    return _.omit(mergedData, ["dataset_id", "transformation_config", "created_date", "published_date"])
 }
 
 export const getExistingDataset = async (id: string) => {
