@@ -5,11 +5,11 @@ import winston from "winston";
     transports: [new winston.transports.Console()],
 });
 
-const innerLogger = new (winston.Logger)();
+
 const logger = {
-    error: (...data: any) => innerLogger.error("", data),
-    info: (...data: any) => innerLogger.info("", data),
-    warn: (...data: any) => innerLogger.warn("", data),
+    error: (...data: any) => console.error("error", data),
+    info: (...data: any) => console.log("info", data),
+    warn: (...data: any) => console.log("warn", data),
 }
 
 export default logger;

@@ -84,6 +84,7 @@ export const defaultDatasetConfig = {
         "file_upload_path": []
     },
     "status": DatasetStatus.Draft,
+    "api_version": "v2",
     "version": 1,
     "created_by": "SYSTEM",
     "updated_by": "SYSTEM"
