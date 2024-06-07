@@ -81,7 +81,7 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     defaultValue: "SYSTEM",
   },
   published_date: {
-    type: DataTypes.STRING,
+    type: DataTypes.JSON,
     allowNull: true
   },
   client_state: {
