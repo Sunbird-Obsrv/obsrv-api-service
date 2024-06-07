@@ -87,5 +87,10 @@ export const config = {
     "read_storage_url_expiry": process.env.read_storage_url_expiry ? parseInt(process.env.read_storage_url_expiry) : 600,
     "write_storage_url_expiry": process.env.write_storage_url_expiry ? parseInt(process.env.write_storage_url_expiry) : 600,
     "service": process.env.service || "api-service"
+  },
+  "command_service_config": {
+    "host": process.env.command_service_host || "http://localhost",
+    "port": parseInt(process.env.command_service_port || "8000"),
+    "path": process.env.command_service_path || "/system/v1/dataset/command"
   }
 }

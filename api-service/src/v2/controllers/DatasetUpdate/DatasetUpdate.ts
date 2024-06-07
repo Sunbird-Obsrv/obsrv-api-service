@@ -63,7 +63,7 @@ const datasetUpdate = async (req: Request, res: Response) => {
             } as ErrorObject, req, res);
         }
 
-        if (isDatasetExists && datasetStatus != DatasetStatus.Draft) {
+        if (isDatasetExists && !_.includes([DatasetStatus.Draft, DatasetStatus.ReadyToPublish], datasetStatus)) {
             const code = "DATASET_NOT_IN_DRAFT_STATE_TO_UPDATE"
             logger.error({ code, apiId, msgid, requestBody, resmsgid, message: `Dataset with id:${dataset_id} cannot be updated as it is not in draft state` })
             return ResponseHandler.errorResponse({

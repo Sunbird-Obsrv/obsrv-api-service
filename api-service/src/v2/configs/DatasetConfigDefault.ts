@@ -1,5 +1,6 @@
 import { config } from "./Config";
 import { DatasetStatus, ValidationMode } from "../types/DatasetModels";
+import { ingestionConfig } from "./IngestionConfig";
 
 export const defaultMasterConfig = {
     "validation_config": {
@@ -31,7 +32,7 @@ export const defaultMasterConfig = {
     "tags": [],
     "dataset_config": {
         "data_key": "",
-        "timestamp_key": "",
+        "timestamp_key": ingestionConfig.indexCol["Event Arrival Time"],
         "entry_topic": config.telemetry_service_config.kafka.topics.createMasterDataset,
         "redis_db_host": config.redis_config.redis_host,
         "redis_db_port": config.redis_config.redis_port,
@@ -75,7 +76,7 @@ export const defaultDatasetConfig = {
     "tags": [],
     "dataset_config": {
         "data_key": "",
-        "timestamp_key": "",
+        "timestamp_key": ingestionConfig.indexCol["Event Arrival Time"],
         "entry_topic": config.telemetry_service_config.kafka.topics.createDataset,
         "redis_db_host": config.redis_config.redis_host,
         "redis_db_port": config.redis_config.redis_port,
