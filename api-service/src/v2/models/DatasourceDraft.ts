@@ -39,6 +39,11 @@ export const DatasourceDraft = sequelize.define("datasources_draft", {
         type: DataTypes.ENUM("Draft", "Live", "Retired", "Publish"),
         defaultValue: "Draft",
     },
+    type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "druid",
+    },
     created_by: {
         type: DataTypes.STRING,
         defaultValue: "SYSTEM",

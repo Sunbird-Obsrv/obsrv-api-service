@@ -165,7 +165,8 @@ const deleteDraftRecords = async (config: Record<string, any>) => {
 
 //PUBLISH_DATASET
 const publishDataset = async (configs: Record<string, any>) => {
-    const { dataset_id } = configs
+    const { dataset } = configs
+    const { dataset_id } = dataset
     await executeCommand(dataset_id, "PUBLISH_DATASET");
 }
 

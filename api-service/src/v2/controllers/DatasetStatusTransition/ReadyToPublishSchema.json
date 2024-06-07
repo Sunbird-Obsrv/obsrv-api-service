@@ -104,7 +104,6 @@
         "required": [
           "is_batch_event",
           "extraction_key",
-          "batch_id",
           "dedup_config"
         ],
         "additionalProperties": false

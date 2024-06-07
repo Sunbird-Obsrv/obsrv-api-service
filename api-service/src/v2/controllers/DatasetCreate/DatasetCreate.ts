@@ -110,7 +110,7 @@ const mergeDatasetConfigs = (defaultConfig: Record<string, any>, requestPayload:
     const recordId = !id && `${dataset_id}.${version}`
     const modifyPayload = { ...requestPayload, ...(recordId && { id: recordId }) }
     const defaults = _.cloneDeep(defaultConfig)
-    const datasetConfigs = _.merge(defaults, modifyPayload)
+    const datasetConfigs = _.merge({ ...defaults, router_config: { topic: recordId } }, modifyPayload)
     return datasetConfigs
 }
 
