@@ -23,7 +23,7 @@ describe("DATASET TAGS UPDATE", () => {
     it("Success: Dataset tags successfully added", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, denorm_config: { denorm_fields: [] }
+                id: "telemetry", status: "Draft", type: "dataset", version_key: validVersionKey, denorm_config: { denorm_fields: [] }
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -55,7 +55,7 @@ describe("DATASET TAGS UPDATE", () => {
     it("Success: Dataset tags successfully removed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, tags: ["tag1", "tag2"]
+                id: "telemetry", status: "Draft", type: "dataset", version_key: validVersionKey, tags: ["tag1", "tag2"]
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -87,7 +87,7 @@ describe("DATASET TAGS UPDATE", () => {
     it("Success: When payload contains same tags to be added or removed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, tags: ["tag1", "tag2"]
+                id: "telemetry", status: "Draft", type: "dataset", version_key: validVersionKey, tags: ["tag1", "tag2"]
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {

@@ -23,7 +23,7 @@ describe("DATASET EXTRACTION CONFIG UPDATE", () => {
     it("Success: Dataset extraction configs updated if it is a batch event", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type: "dataset"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -55,7 +55,7 @@ describe("DATASET EXTRACTION CONFIG UPDATE", () => {
     it("Success: Dataset extraction configs updated with default values if it is not batch event", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {

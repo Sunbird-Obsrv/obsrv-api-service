@@ -23,7 +23,7 @@ describe("DATASET DENORM UPDATE", () => {
     it("Success: Dataset denorms successfully added", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, denorm_config: { denorm_field: [] }
+                id: "telemetry", status: "Draft", type:"dataset", version_key: validVersionKey, denorm_config: { denorm_field: [] }
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -55,7 +55,7 @@ describe("DATASET DENORM UPDATE", () => {
     it("Success: Dataset denorms successfully removed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, denorm_config: { denorm_fields: [{ denorm_out_field: "userdata" }] }
+                id: "telemetry", status: "Draft", type:"dataset", version_key: validVersionKey, denorm_config: { denorm_fields: [{ denorm_out_field: "userdata" }] }
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -87,7 +87,7 @@ describe("DATASET DENORM UPDATE", () => {
     it("Success: When payload contains same denorms to be removed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", version_key: validVersionKey, status: "Draft", denorm_config: {
+                id: "telemetry", version_key: validVersionKey, type:"dataset", status: "Draft", denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
                         "denorm_out_field": "mid"
