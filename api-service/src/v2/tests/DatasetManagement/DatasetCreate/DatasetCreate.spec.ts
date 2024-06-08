@@ -10,6 +10,9 @@ import { sequelize } from "../../../connections/databaseConnection";
 import _ from "lodash";
 import { apiId } from "../../../controllers/DatasetCreate/DatasetCreate"
 import { DatasourceDraft } from "../../../models/DatasourceDraft";
+import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
+import { DatasetTransformations } from "../../../models/Transformation";
+import { Dataset } from "../../../models/Dataset";
 
 chai.use(spies);
 chai.should();
@@ -36,6 +39,21 @@ describe("DATASET CREATE API", () => {
             })
             chai.spy.on(DatasetDraft, "create", () => {
                 return Promise.resolve({ dataValues: { id: "telemetry" } })
+            })
+            chai.spy.on(Dataset, "findOne", () => {
+                return Promise.resolve({ "data_schema": {"$schema": "https://json-schema.org/draft/2020-12/schema","type": "object",
+                    "properties": {
+                        "eid": {"type": "string"},
+                        "ets": {"type": "string"}
+                    },
+                    "additionalProperties": true
+                },})
+            })
+            chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
+                return Promise.resolve()
+            })
+            chai.spy.on(DatasetTransformations, "findAll", () => {
+                return Promise.resolve()
             })
             const t = chai.spy.on(sequelize, "transaction", () => {
                 return Promise.resolve(sequelize.transaction)

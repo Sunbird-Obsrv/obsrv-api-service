@@ -108,8 +108,9 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
         const { data_schema } = datasetBody
         if (data_schema) {
-            const { dataset_config, id, dataset_id } = updatedPayload
-            const datasourcePayload = generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), data_schema, id, dataset_id })
+            const { transformation_config } = datasetBody
+            const { dataset_config, id, dataset_id, denorm_config } = updatedPayload
+            const datasourcePayload = await generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), transformation_config, denorm_config, data_schema, id, dataset_id, action: "edit" })
             await DatasourceDraft.update(datasourcePayload, { where: { id: _.get(datasourcePayload, "id") }, transaction: transact })
         }
 

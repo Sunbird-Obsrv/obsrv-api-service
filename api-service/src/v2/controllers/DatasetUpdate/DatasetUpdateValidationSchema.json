@@ -162,6 +162,9 @@
               "type": "string",
               "minLength": 1
             },
+            "required": {
+              "type": "array"
+            },
             "properties": {
               "type": "object",
               "minProperties": 1

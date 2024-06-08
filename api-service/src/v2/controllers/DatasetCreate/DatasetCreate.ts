@@ -68,8 +68,8 @@ const datasetCreate = async (req: Request, res: Response) => {
 
         const response = await DatasetDraft.create(data, { transaction: transact })
 
-        const { dataset_config, data_schema, id, dataset_id } = data
-        const datasourcePayload = generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), data_schema, id, dataset_id })
+        const { dataset_config, denorm_config, transformation_config, data_schema, id, dataset_id } = data
+        const datasourcePayload = await generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), data_schema, id, dataset_id, denorm_config, transformation_config, action:"create" })
         await DatasourceDraft.create(datasourcePayload, { transaction: transact })
         logger.info({ apiId, message: `Datasource created successsfully for the dataset:${id}` })
 

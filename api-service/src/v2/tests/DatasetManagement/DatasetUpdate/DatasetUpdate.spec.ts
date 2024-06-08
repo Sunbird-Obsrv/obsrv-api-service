@@ -11,6 +11,8 @@ import { DatasetTransformationsDraft } from "../../../models/TransformationDraft
 import { apiId, errorCode, invalidInputErrCode } from "../../../controllers/DatasetUpdate/DatasetUpdate"
 import { sequelize } from "../../../connections/databaseConnection";
 import { DatasourceDraft } from "../../../models/DatasourceDraft";
+import { Dataset } from "../../../models/Dataset";
+import { DatasetTransformations } from "../../../models/Transformation";
 
 chai.use(spies);
 chai.should();
@@ -68,6 +70,18 @@ describe("DATASET UPDATE API", () => {
                     }]
                 }
             })
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ "data_schema": {"$schema": "https://json-schema.org/draft/2020-12/schema","type": "object",
+                "properties": {
+                    "eid": {"type": "string"},
+                    "ets": {"type": "string"}
+                },
+                "additionalProperties": true
+            },})
+        })
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve()
         })
         chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
             return Promise.resolve([{ field_key: "key2" }, { field_key: "key3" }])
