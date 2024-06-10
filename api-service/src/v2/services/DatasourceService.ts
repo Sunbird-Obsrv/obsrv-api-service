@@ -299,7 +299,7 @@ const addRequiredFields = (
     schemaObject: Record<string, any>,
     required: string[],
 ) => {
-    const requiredFields = schemaObject.required || [];
+    const requiredFields = _.get(schemaObject, "required") || [];
     _.map(result, (item) => {
         if (type === "array" || type === "object") {
             if (required && required.includes(item.key.replace("properties.", ""))) item.required = true;
@@ -316,7 +316,7 @@ const flatten = (schemaObject: Record<string, any>, rollup: boolean = false) => 
     const result: Record<string, any> = {};
     const getKeyName = (prefix: string, key: string) => prefix ? `${prefix}.${key}` : key;
     const flattenHelperFn = (propertySchema: Record<string, any>, prefix: string, ref: string, arrayChild = false) => {
-        const { type, properties, items, required, ...rest } = propertySchema;
+        const { type, properties, items, required = false, ...rest } = propertySchema || {};
         if (type === "object" && properties) {
             if (prefix !== "" && !arrayChild) result[prefix] = { type, key: ref, ref, properties, items, parent: true, ...rest };
             for (const [key, value] of Object.entries(properties)) {
