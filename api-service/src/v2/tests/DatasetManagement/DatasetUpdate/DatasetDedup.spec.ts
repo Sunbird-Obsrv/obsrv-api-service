@@ -23,7 +23,7 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
     it("Success: Dataset dedupe configs updated with dedup key if duplicates need to be dropped", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -55,7 +55,7 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
     it("Success: Dataset dedupe configs updated with default values if duplicates need to be dropped", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {

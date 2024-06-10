@@ -6,6 +6,7 @@ import { Request } from "express";
 import { generateIngestionSpec } from "./IngestionService";
 import { ingestionConfig } from "../configs/IngestionConfig";
 import { DatasetTransformations } from "../models/Transformation";
+import { getUpdatedSchema } from "./DatasourceService";
 
 export const getDataset = async (datasetId: string, raw = false): Promise<any> => {
     const dataset = await Dataset.findOne({
@@ -49,9 +50,10 @@ export const getDuplicateConfigs = (configs: Array<string | any>) => {
     return _.filter(configs, (item: string, index: number) => _.indexOf(configs, item) !== index);
 }
 
-export const generateDataSource = (payload: Record<string, any>) => {
+export const generateDataSource = async (payload: Record<string, any>) => {
     const { id } = payload
-    const ingestionSpec = generateIngestionSpec(payload)
+    const updatedSchema = await getUpdatedSchema(payload)
+    const ingestionSpec = generateIngestionSpec({ ...payload, data_schema: updatedSchema })
     const dataSource = getDataSource({ ingestionSpec, id })
     return dataSource
 }

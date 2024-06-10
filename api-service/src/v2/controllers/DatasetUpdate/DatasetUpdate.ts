@@ -13,6 +13,8 @@ import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
 import { generateDataSource, getDraftTransformations, getDuplicateConfigs, setReqDatasetId } from "../../services/DatasetService";
 import { sequelize } from "../../connections/databaseConnection";
 import { DatasourceDraft } from "../../models/DatasourceDraft";
+import { ingestionConfig } from "../../configs/IngestionConfig";
+import { getDefaultValue } from "../DatasetCreate/DatasetCreate";
 
 export const apiId = "api.datasets.update";
 export const invalidInputErrCode = "DATASET_UPDATE_INPUT_INVALID"
@@ -99,18 +101,20 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
         const updatedDatasetConfigs = await getDatasetUpdatedConfigs(datasetBody);
         const datasetPayload = await mergeExistingDataset(updatedDatasetConfigs)
-        logger.debug({datasetPayload})
+        const updatedPayload = await getDefaultValue(datasetPayload)
+        logger.debug({ datasetPayload })
         const transformationConfigs = _.get(datasetBody, "transformation_config")
         await manageTransformations(transformationConfigs, dataset_id, transact);
 
         const { data_schema } = datasetBody
         if (data_schema) {
-            const { dataset_config, id, dataset_id } = datasetPayload
-            const datasourcePayload = generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), data_schema, id, dataset_id })
+            const { transformation_config } = datasetBody
+            const { dataset_config, id, dataset_id, denorm_config } = updatedPayload
+            const datasourcePayload = await generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), transformation_config, denorm_config, data_schema, id, dataset_id, action: "edit" })
             await DatasourceDraft.update(datasourcePayload, { where: { id: _.get(datasourcePayload, "id") }, transaction: transact })
         }
 
-        await DatasetDraft.update(datasetPayload, { where: { id: dataset_id }, transaction: transact })
+        await DatasetDraft.update(updatedPayload, { where: { id: dataset_id }, transaction: transact })
 
         await transact.commit();
         const responsedata = { message: "Dataset is updated successfully", id: dataset_id, version_key: _.get(datasetPayload, "version_key") }
@@ -173,7 +177,8 @@ const getDatasetUpdatedConfigs = async (payload: Record<string, any>): Promise<R
         dedup_config: dedup_config ? setDedupConfigs(dedup_config) : null,
         tags: tags ? getUpdatedTags(tags, _.get(existingDataset, "tags")) : null,
         denorm_config: denorm_config ? setDenormConfigs(denorm_config, _.get(existingDataset, ["denorm_config"])) : null,
-        version_key: Date.now().toString()
+        version_key: Date.now().toString(),
+        status: _.isEmpty(tags) ? DatasetStatus.Draft : null
     }
     return _.pickBy({ ...payload, ...updatedConfigs }, _.identity)
 }
@@ -400,6 +405,9 @@ const mergeExistingDataset = async (configs: Record<string, any>): Promise<Recor
         }
     });
     mergedData.api_version = "v2";
+    if (_.isEmpty(_.get(mergedData, ["dataset_config", "timestamp_key"]))) {
+        _.set(mergedData, "dataset_config", { "timestamp_key": ingestionConfig.indexCol["Event Arrival Time"] })
+    }
     return _.omit(mergedData, ["dataset_id", "transformation_config", "created_date", "published_date"])
 }
 

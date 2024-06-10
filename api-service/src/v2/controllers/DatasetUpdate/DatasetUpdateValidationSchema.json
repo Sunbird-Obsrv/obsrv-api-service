@@ -70,12 +70,10 @@
               "type": "boolean"
             },
             "batch_id": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             },
             "extraction_key": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             },
             "dedup_config": {
               "type": "object",
@@ -115,6 +113,14 @@
             }
           },
           "then": {
+            "properties": {
+              "extraction_key": {
+                "minLength": 1
+              },
+              "batch_id": {
+                "minLength": 1
+              }
+            },
             "required": ["extraction_key", "dedup_config"]
           }
         },
@@ -155,6 +161,9 @@
             "type": {
               "type": "string",
               "minLength": 1
+            },
+            "required": {
+              "type": "array"
             },
             "properties": {
               "type": "object",

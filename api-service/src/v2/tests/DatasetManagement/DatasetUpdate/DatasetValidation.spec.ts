@@ -23,7 +23,7 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
     it("Success: Dataset validation configs updated when validation is true", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -55,7 +55,7 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
     it("Success: Dataset validation configs updated with default values when validation is false", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
