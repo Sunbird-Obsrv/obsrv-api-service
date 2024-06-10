@@ -4,7 +4,12 @@ import { connectionConfig } from "../configs/ConnectionsConfig"
 const { database, host, password, port, username } = connectionConfig.postgres
 
 export const sequelize = new Sequelize({
-    database, password, username: username, dialect: "postgres", host, port: +port
+    database, password, username: username, dialect: "postgres", host, port: +port, pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      }
 })
 
 export const query = async (query: string) => {
