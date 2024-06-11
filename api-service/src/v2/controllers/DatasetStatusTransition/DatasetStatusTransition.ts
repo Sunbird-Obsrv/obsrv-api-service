@@ -8,7 +8,6 @@ import { schemaValidation } from "../../services/ValidationService";
 import StatusTransitionSchema from "./RequestValidationSchema.json";
 import ReadyToPublishSchema from "./ReadyToPublishSchema.json"
 import httpStatus from "http-status";
-import { sequelize } from "../../connections/databaseConnection";
 import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
 import { DatasourceDraft } from "../../models/DatasourceDraft";
 import { DatasetSourceConfigDraft } from "../../models/DatasetSourceConfigDraft";
@@ -42,8 +41,6 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     const requestBody = req.body
     const msgid = _.get(req, ["body", "params", "msgid"]);
     const resmsgid = _.get(res, "resmsgid");
-    try {
-        const transact = await sequelize.transaction()
         try {
             const { dataset_id, status } = _.get(requestBody, "request");
             setReqDatasetId(req, dataset_id)
@@ -88,13 +85,11 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
             }
 
             const transitionCommands = _.get(statusTransitionCommands, status)
-            await executeTransition({ transitionCommands, dataset: datasetRecord, transact })
+            await executeTransition({ transitionCommands, dataset: datasetRecord })
 
-            await transact.commit();
             logger.info({ apiId, msgid, requestBody, resmsgid, message: `Dataset status transition to ${status} successful with id:${dataset_id}` })
             ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: `Dataset status transition to ${status} successful`, dataset_id } });
         } catch (error: any) {
-            await transact.rollback();
             const code = _.get(error, "code") || errorCode
             logger.error(error, apiId, msgid, code, requestBody, resmsgid)
             let errorMessage = error;
@@ -104,11 +99,6 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
             }
             ResponseHandler.errorResponse(errorMessage, req, res);
         }
-    } catch (error: any) {
-        const errMessage = error.message
-        logger.error({ message: errMessage, msgid, resmsgid, apiId })
-        ResponseHandler.errorResponse(errMessage, req, res);
-    }
 }
 
 const fetchDataset = async (configs: Record<string, any>) => {
@@ -125,10 +115,10 @@ const fetchDataset = async (configs: Record<string, any>) => {
 }
 
 const executeTransition = async (configs: Record<string, any>) => {
-    const { transitionCommands, dataset, transact } = configs
+    const { transitionCommands, dataset } = configs
     const transitionPromises = _.map(transitionCommands, async command => {
         const commandWorkflow = _.get(commandExecutors, command)
-        return commandWorkflow({ dataset, transact })
+        return commandWorkflow({ dataset })
     })
     await Promise.all(transitionPromises)
 }
@@ -150,17 +140,17 @@ const validateDataset = async (configs: Record<string, any>) => {
 
 //DELETE_DRAFT_DATASETS
 const deleteDataset = async (configs: Record<string, any>) => {
-    const { dataset, transact } = configs
+    const { dataset } = configs
     const { id } = dataset
-    await deleteDraftRecords({ dataset_id: id, transact })
+    await deleteDraftRecords({ dataset_id: id })
 }
 
 const deleteDraftRecords = async (config: Record<string, any>) => {
     const { dataset_id, transact } = config;
-    await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction: transact })
-    await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction: transact })
-    await DatasourceDraft.destroy({ where: { dataset_id }, transaction: transact })
-    await DatasetDraft.destroy({ where: { id: dataset_id }, transaction: transact })
+    await DatasetTransformationsDraft.destroy({ where: { dataset_id } })
+    await DatasetSourceConfigDraft.destroy({ where: { dataset_id } })
+    await DatasourceDraft.destroy({ where: { dataset_id } })
+    await DatasetDraft.destroy({ where: { id: dataset_id } })
 }
 
 //PUBLISH_DATASET
@@ -195,12 +185,12 @@ const checkDatasetDenorm = async (payload: Record<string, any>) => {
 
 //SET_DATASET_TO_RETIRE
 const setDatasetRetired = async (config: Record<string, any>) => {
-    const { dataset, transact } = config;
+    const { dataset } = config;
     const { dataset_id } = dataset
-    await Dataset.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
-    await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
-    await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
-    await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
+    await Dataset.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
+    await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
+    await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
+    await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
 }
 
 //DELETE_SUPERVISORS

@@ -55,12 +55,7 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(DatasetTransformations, "findAll", () => {
                 return Promise.resolve()
             })
-            const t = chai.spy.on(sequelize, "transaction", () => {
-                return Promise.resolve(sequelize.transaction)
-            })
-            chai.spy.on(t, "commit", () => {
-                return Promise.resolve({})
-            })
+            
 
             chai
                 .request(app)
@@ -84,9 +79,7 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(DatasetDraft, "findOne", () => {
                 return Promise.resolve(null)
             })
-            chai.spy.on(sequelize, "transaction", () => {
-                return Promise.resolve({})
-            })
+            
             chai
                 .request(app)
                 .post("/v2/datasets/create")
@@ -105,9 +98,6 @@ describe("DATASET CREATE API", () => {
     }
 
     it("Dataset creation failure: Invalid request payload provided", (done) => {
-        chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .post("/v2/datasets/create")
@@ -128,9 +118,7 @@ describe("DATASET CREATE API", () => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({ datavalues: [] })
         })
-        chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve({})
-        })
+        
         chai
             .request(app)
             .post("/v2/datasets/create")
@@ -157,12 +145,6 @@ describe("DATASET CREATE API", () => {
         chai.spy.on(DatasetDraft, "create", () => {
             return Promise.resolve({ dataValues: { id: "telemetry" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .post("/v2/datasets/create")
@@ -182,12 +164,6 @@ describe("DATASET CREATE API", () => {
     it("Dataset creation failure: Connection to the database failed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.reject({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)

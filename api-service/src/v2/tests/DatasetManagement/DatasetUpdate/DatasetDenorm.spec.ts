@@ -8,7 +8,6 @@ import { DatasetDraft } from "../../../models/DatasetDraft";
 import _ from "lodash";
 import { TestInputsForDatasetUpdate, msgid, validVersionKey } from "./Fixtures";
 import { apiId } from "../../../controllers/DatasetUpdate/DatasetUpdate"
-import { sequelize } from "../../../connections/databaseConnection";
 
 chai.use(spies);
 chai.should();
@@ -28,12 +27,6 @@ describe("DATASET DENORM UPDATE", () => {
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -60,12 +53,6 @@ describe("DATASET DENORM UPDATE", () => {
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -98,12 +85,6 @@ describe("DATASET DENORM UPDATE", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -125,9 +106,6 @@ describe("DATASET DENORM UPDATE", () => {
     it("Failure: Dataset contains duplicate denorm field", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({ status: "Draft", version_key: validVersionKey })
-        })
-        chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -156,12 +134,6 @@ describe("DATASET DENORM UPDATE", () => {
                 }
             })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -188,12 +160,6 @@ describe("DATASET DENORM UPDATE", () => {
                     }]
                 }
             })
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)

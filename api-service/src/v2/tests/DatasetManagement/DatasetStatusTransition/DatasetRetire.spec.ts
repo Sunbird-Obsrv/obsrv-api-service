@@ -10,7 +10,6 @@ import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { Dataset } from "../../../models/Dataset";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { DatasetTransformations } from "../../../models/Transformation";
-import { sequelize } from "../../../connections/databaseConnection";
 import { DatasetSourceConfig } from "../../../models/DatasetSourceConfig";
 import { Datasource } from "../../../models/Datasource";
 import { commandHttpService } from "../../../connections/commandServiceConnection";
@@ -51,12 +50,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             return Promise.resolve({})
         })
         chai.spy.on(commandHttpService, "post", () => {
-            return Promise.resolve({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
             return Promise.resolve({})
         })
         chai
@@ -101,12 +94,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -149,12 +136,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -176,9 +157,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve()
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -198,9 +176,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
     it("Dataset status transition failure: When dataset is already retired", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ dataset_id: "telemetry", status: "Retired", type: "dataset" })
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
         })
         chai
             .request(app)
@@ -228,12 +203,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         chai.spy.on(DatasetDraft, "findAll", () => {
             return Promise.resolve([{ dataset_id: "telemetry", denorm_config: { denorm_fields: [{ dataset_id: "telemetry" }] } }])
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -256,12 +225,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         })
         chai.spy.on(Dataset, "update", () => {
             return Promise.reject({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -299,12 +262,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         })
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.reject({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)

@@ -8,7 +8,6 @@ import _ from "lodash";
 import { apiId } from "../../../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
-import { sequelize } from "../../../connections/databaseConnection";
 
 
 chai.use(spies);
@@ -28,12 +27,6 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
             return Promise.resolve(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_READY_TO_PUBLISH)
         })
         chai.spy.on(DatasetDraft, "update", () => {
-            return Promise.resolve({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
             return Promise.resolve({})
         })
         chai
@@ -57,9 +50,6 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve()
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -79,9 +69,6 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
     it("Dataset status transition failure: When dataset is already ready to publish", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({dataset_id:"telemetry", status:"ReadyToPublish"})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
         })
         chai
             .request(app)
@@ -103,12 +90,6 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
     it("Dataset status transition failure: Configs invalid to set status to ready to publish", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve(TestInputsForDatasetStatusTransition.INVALID_SCHEMA_FOR_READY_TO_PUBLISH)
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
