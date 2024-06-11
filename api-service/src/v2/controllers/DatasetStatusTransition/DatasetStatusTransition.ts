@@ -146,7 +146,7 @@ const deleteDataset = async (configs: Record<string, any>) => {
 }
 
 const deleteDraftRecords = async (config: Record<string, any>) => {
-    const { dataset_id, transact } = config;
+    const { dataset_id } = config;
     await DatasetTransformationsDraft.destroy({ where: { dataset_id } })
     await DatasetSourceConfigDraft.destroy({ where: { dataset_id } })
     await DatasourceDraft.destroy({ where: { dataset_id } })
