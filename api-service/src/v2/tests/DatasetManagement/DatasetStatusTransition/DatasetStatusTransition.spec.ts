@@ -8,7 +8,6 @@ import _ from "lodash";
 import { apiId, errorCode } from "../../../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
-import { sequelize } from "../../../connections/databaseConnection";
 
 
 chai.use(spies);
@@ -24,9 +23,7 @@ describe("DATASET STATUS TRANSITION API", () => {
     });
 
     it("Dataset status transition failure: Invalid request payload provided", (done) => {
-        chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
+        
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -46,12 +43,6 @@ describe("DATASET STATUS TRANSITION API", () => {
     it("Dataset status transition failure: Connection to the database failed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.reject()
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
