@@ -103,11 +103,10 @@ const checkDatasetExists = async (dataset_id: string): Promise<boolean> => {
 }
 
 const mergeDatasetConfigs = (defaultConfig: Record<string, any>, requestPayload: Record<string, any>): Record<string, any> => {
-    const { id, dataset_id, version = 1 } = requestPayload;
-    const recordId = !id && `${dataset_id}.${version}`
-    const modifyPayload = { ...requestPayload, ...(recordId && { id: recordId }) }
+    const { id, dataset_id } = requestPayload;
+    const modifyPayload = { ...requestPayload, ...(!id && { id: dataset_id }) }
     const defaults = _.cloneDeep(defaultConfig)
-    const datasetConfigs = _.merge({ ...defaults, router_config: { topic: recordId } }, modifyPayload)
+    const datasetConfigs = _.merge({ ...defaults, router_config: { topic: dataset_id } }, modifyPayload)
     return datasetConfigs
 }
 
