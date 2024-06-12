@@ -98,7 +98,8 @@ export const getUpdatedSchema = async (configs: Record<string, any>) => {
             return {
                 ...item,
                 type: _.get(data, "_transformedFieldSchemaType") || "string",
-                ...data,
+                isModified: true,
+                ...data
             };
         }
         return item;
