@@ -386,7 +386,6 @@ export const TestInputsForDatasetCreate = {
             "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
         },
         "request": {
-            "id": "sb-telemetry2",
             "dataset_id": "sb-ddd",
             "type": "master-dataset",
             "name": "sb-telemetry2",
@@ -488,7 +487,6 @@ export const TestInputsForDatasetCreate = {
             "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
         },
         "request": {
-            "id": "sb-telemetry2",
             "dataset_id": "sb-ddd",
             "type": "dataset",
             "name": "sb-telemetry2",
