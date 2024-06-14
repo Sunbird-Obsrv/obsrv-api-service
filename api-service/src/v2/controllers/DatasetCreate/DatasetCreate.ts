@@ -1,15 +1,12 @@
 import { Request, Response } from "express";
 import logger from "../../logger";
-import { generateDataSource, getDraftDataset, getDuplicateConfigs, getDuplicateDenormKey, setReqDatasetId } from "../../services/DatasetService";
+import { generateDataSource, getDefaultValue, getDraftDataset, getDuplicateConfigs, getDuplicateDenormKey, setReqDatasetId } from "../../services/DatasetService";
 import _ from "lodash";
 import DatasetCreate from "./DatasetCreateValidationSchema.json";
 import { schemaValidation } from "../../services/ValidationService";
 import { DatasetDraft } from "../../models/DatasetDraft";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import httpStatus from "http-status";
-import { defaultDatasetConfig, defaultMasterConfig } from "../../configs/DatasetConfigDefault";
-import { DatasetType } from "../../types/DatasetModels";
-import { query } from "../../connections/databaseConnection";
 import { ErrorObject } from "../../types/ResponseModel";
 import { DatasourceDraft } from "../../models/DatasourceDraft";
 import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
@@ -100,49 +97,6 @@ const checkDatasetExists = async (dataset_id: string): Promise<boolean> => {
     } else {
         return false
     }
-}
-
-const mergeDatasetConfigs = (defaultConfig: Record<string, any>, requestPayload: Record<string, any>): Record<string, any> => {
-    const { id, dataset_id, version = 1 } = requestPayload;
-    const recordId = !id && `${dataset_id}.${version}`
-    const modifyPayload = { ...requestPayload, ...(recordId && { id: recordId }) }
-    const defaults = _.cloneDeep(defaultConfig)
-    const datasetConfigs = _.merge({ ...defaults, router_config: { topic: recordId } }, modifyPayload)
-    return datasetConfigs
-}
-
-const getDatasetDefaults = async (payload: Record<string, any>): Promise<Record<string, any>> => {
-    const datasetPayload = mergeDatasetConfigs(defaultDatasetConfig, payload)
-    return datasetPayload
-}
-
-const setRedisDBConfig = async (datasetConfig: Record<string, any>): Promise<Record<string, any>> => {
-    let nextRedisDB = datasetConfig.redis_db;
-    const { results }: any = await query("SELECT nextval('redis_db_index')")
-    if (!_.isEmpty(results)) nextRedisDB = parseInt(_.get(results, "[0].nextval")) || 3;
-    return _.assign(datasetConfig, { "redis_db": nextRedisDB })
-}
-
-const getMasterDatasetDefaults = async (payload: Record<string, any>): Promise<Record<string, any>> => {
-    const masterDatasetPayload = mergeDatasetConfigs(defaultMasterConfig, payload)
-    let datasetConfig = masterDatasetPayload.dataset_config
-    datasetConfig = await setRedisDBConfig(datasetConfig);
-    return _.assign(masterDatasetPayload, datasetConfig);
-}
-
-const getDefaultHandler = (datasetType: string) => {
-    if (datasetType == DatasetType.Dataset) {
-        return getDatasetDefaults;
-    } else {
-        return getMasterDatasetDefaults;
-    }
-}
-
-export const getDefaultValue = async (payload: Record<string, any>) => {
-    const datasetType = _.get(payload, "type");
-    const getDatasetDefaults = getDefaultHandler(datasetType)
-    const datasetDefaults = await getDatasetDefaults(payload)
-    return _.omit(datasetDefaults, ["transformations_config"])
 }
 
 const getTransformationConfig = (configs: Record<string, any>): Record<string, any> => {

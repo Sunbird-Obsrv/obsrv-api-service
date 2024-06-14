@@ -7,6 +7,9 @@ import { generateIngestionSpec } from "./IngestionService";
 import { ingestionConfig } from "../configs/IngestionConfig";
 import { DatasetTransformations } from "../models/Transformation";
 import { getUpdatedSchema } from "./DatasourceService";
+import { DatasetType } from "../types/DatasetModels";
+import { defaultDatasetConfig, defaultMasterConfig } from "../configs/DatasetConfigDefault";
+import { query } from "../connections/databaseConnection";
 
 export const getDataset = async (datasetId: string, raw = false): Promise<any> => {
     const dataset = await Dataset.findOne({
@@ -69,4 +72,47 @@ const getDataSource = (ingestionPayload: Record<string, any>) => {
         ingestion_spec: ingestionSpec,
         datasource_ref: dataSource
     }
+}
+
+const getDatasetDefaults = async (payload: Record<string, any>): Promise<Record<string, any>> => {
+    const datasetPayload = mergeDatasetConfigs(defaultDatasetConfig, payload)
+    return datasetPayload
+}
+
+const setRedisDBConfig = async (datasetConfig: Record<string, any>): Promise<Record<string, any>> => {
+    let nextRedisDB = datasetConfig.redis_db;
+    const { results }: any = await query("SELECT nextval('redis_db_index')")
+    if (!_.isEmpty(results)) nextRedisDB = parseInt(_.get(results, "[0].nextval")) || 3;
+    return _.assign(datasetConfig, { "redis_db": nextRedisDB })
+}
+
+const getMasterDatasetDefaults = async (payload: Record<string, any>): Promise<Record<string, any>> => {
+    const masterDatasetPayload = mergeDatasetConfigs(defaultMasterConfig, payload)
+    let datasetConfig = masterDatasetPayload.dataset_config
+    datasetConfig = await setRedisDBConfig(datasetConfig);
+    return _.assign(masterDatasetPayload, datasetConfig);
+}
+
+const getDefaultHandler = (datasetType: string) => {
+    if (datasetType == DatasetType.Dataset) {
+        return getDatasetDefaults;
+    } else {
+        return getMasterDatasetDefaults;
+    }
+}
+
+export const getDefaultValue = async (payload: Record<string, any>) => {
+    const datasetType = _.get(payload, "type");
+    const getDatasetDefaults = getDefaultHandler(datasetType)
+    const datasetDefaults = await getDatasetDefaults(payload)
+    return _.omit(datasetDefaults, ["transformations_config"])
+}
+
+const mergeDatasetConfigs = (defaultConfig: Record<string, any>, requestPayload: Record<string, any>): Record<string, any> => {
+    const { id, dataset_id } = requestPayload;
+    const datasetId = !id ? dataset_id : id
+    const modifyPayload = { ...requestPayload, id: datasetId, router_config: { topic: datasetId } }
+    const defaults = _.cloneDeep(defaultConfig)
+    const datasetConfigs = _.merge(defaults, modifyPayload)
+    return datasetConfigs
 }
