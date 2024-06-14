@@ -10,10 +10,9 @@ import { DatasetDraft } from "../../models/DatasetDraft";
 import logger from "../../logger";
 import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
 import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
-import { generateDataSource, getDraftTransformations, getDuplicateConfigs, setReqDatasetId } from "../../services/DatasetService";
+import { generateDataSource, getDefaultValue, getDraftTransformations, getDuplicateConfigs, setReqDatasetId } from "../../services/DatasetService";
 import { DatasourceDraft } from "../../models/DatasourceDraft";
 import { ingestionConfig } from "../../configs/IngestionConfig";
-import { getDefaultValue } from "../DatasetCreate/DatasetCreate";
 
 export const apiId = "api.datasets.update";
 export const invalidInputErrCode = "DATASET_UPDATE_INPUT_INVALID"

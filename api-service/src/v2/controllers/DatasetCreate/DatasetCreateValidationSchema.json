@@ -24,10 +24,6 @@
     "request": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "minLength": 1
-        },
         "dataset_id": {
           "type": "string",
           "minLength": 1
