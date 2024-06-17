@@ -11,6 +11,10 @@ import { DatasetTransformations } from "../../../models/Transformation";
 import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
 import { Dataset } from "../../../models/Dataset";
 import { DatasetDraft } from "../../../models/DatasetDraft";
+import { Datasource } from "../../../models/Datasource";
+import { DatasetSourceConfig } from "../../../models/DatasetSourceConfig";
+import { DatasetSourceConfigDraft } from "../../../models/DatasetSourceConfigDraft";
+import { DatasourceDraft } from "../../../models/DatasourceDraft";
 
 chai.use(spies);
 chai.should();
@@ -85,6 +89,106 @@ describe("DATASET READ API", () => {
                 res.body.result.status.should.be.eq('Live')
                 const result = JSON.stringify(res.body.result)
                 result.should.be.eq(JSON.stringify({ ..._.omit({ ...TestInputsForDatasetRead.LIVE_SCHEMA, "transformations_config": TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA }, ["data_version"]), version: 1 }))
+                done();
+            });
+    });
+
+    it("Dataset read success: Creating draft on mode=edit if no draft found", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve()
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetRead.LIVE_SCHEMA)
+        })
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA)
+        })
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve([TestInputsForDatasetRead.DATASOURCE_SCHEMA])
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve([])
+        })
+        chai.spy.on(DatasetDraft, "create", () => {
+            return Promise.resolve({ dataValues: TestInputsForDatasetRead.DRAFT_SCHEMA })
+        })
+        chai.spy.on(DatasetTransformationsDraft, "bulkCreate", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasourceDraft, "bulkCreate", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasetSourceConfigDraft, "bulkCreate", () => {
+            return Promise.resolve({})
+        })
+        chai
+            .request(app)
+            .get("/v2/datasets/read/sb-telemetry?status=Draft&mode=edit")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.result.name.should.be.eq('sb-telemetry')
+                const result = JSON.stringify(res.body.result)
+                result.should.be.eq(JSON.stringify({ ...TestInputsForDatasetRead.DRAFT_SCHEMA, "transformations_config": [] }))
+                done();
+            });
+    });
+
+    it("Dataset read success: Updating dataset status to draft on mode=edit if dataset status is Live", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve({ dataset_id: "sb-telemetry", name: "sb-telemetry", status: "Live", data_schema: {} })
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ dataset_id: "sb-telemetry", name: "sb-telemetry", status: "Live", data_version: 2, data_schema: {} })
+        })
+        chai.spy.on(DatasetTransformationsDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasourceDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasetSourceConfigDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai
+            .request(app)
+            .get("/v2/datasets/read/sb-telemetry?status=Draft&mode=edit")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.result.name.should.be.eq('sb-telemetry')
+                const result = JSON.stringify(_.omit(res.body.result, "version_key"))
+                result.should.be.eq(JSON.stringify({"dataset_id":"sb-telemetry","name":"sb-telemetry","data_schema":{},"version":2,"status":"Draft","api_version":"v2","transformations_config":[]}))
+                done();
+            });
+    });
+
+    it("Dataset read failure: Updating dataset status to draft on mode=edit fails as live record not found", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve({ dataset_id: "sb-telemetry", name: "sb-telemetry", status: "Live", data_schema: {} })
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve()
+        })
+        chai
+            .request(app)
+            .get("/v2/datasets/read/sb-telemetry?status=Draft&mode=edit")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.NOT_FOUND);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.error.message.should.be.eq("Failed to fetch live dataset")
+                res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });
     });

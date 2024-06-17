@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../connections/databaseConnection";
+import { DatasetStatus } from "../types/DatasetModels";
 
 export const DatasetSourceConfigDraft = sequelize.define("dataset_source_config_draft", {
     id: {
@@ -18,6 +19,7 @@ export const DatasetSourceConfigDraft = sequelize.define("dataset_source_config_
     },
     status: {
         type: DataTypes.STRING,
+        defaultValue: DatasetStatus.Draft
     },
     connector_stats: {
         type: DataTypes.JSON,
