@@ -121,6 +121,9 @@ describe("DATASET READ API", () => {
         chai.spy.on(DatasetSourceConfigDraft, "bulkCreate", () => {
             return Promise.resolve({})
         })
+        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
+            return Promise.resolve([])
+        })
         chai
             .request(app)
             .get("/v2/datasets/read/sb-telemetry?status=Draft&mode=edit")
@@ -155,6 +158,9 @@ describe("DATASET READ API", () => {
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({})
+        })
+        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
+            return Promise.resolve([])
         })
         chai
             .request(app)

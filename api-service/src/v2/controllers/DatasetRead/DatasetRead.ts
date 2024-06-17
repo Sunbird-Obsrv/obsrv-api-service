@@ -159,15 +159,15 @@ const getDatasetByLive = async (dataset_id: string) => {
 }
 
 const modifyDatasetConfig = (dataset: Record<string, any>) => {
-    const { data_version, created_date, updated_date, published_date, status, ...rest } = dataset
+    const updatedPyload = _.omit(dataset, ["data_version", "created_date", "updated_date", "published_date", "status"])
     const version_key = Date.now().toString()
-    return { ...rest, version_key, version: data_version, status: DatasetStatus.Draft, api_version: "v2" }
+    return { ...updatedPyload, version_key, version: _.get(dataset, "data_version"), status: DatasetStatus.Draft, api_version: "v2" }
 }
 
 const updateConfigs = (configs: Record<string, any>) => {
     return _.map(configs, fields => {
-        const { created_date, updated_date, published_date, status, ...rest } = fields
-        return rest
+        const updatedPayload = _.omit(fields, ["created_date", "updated_date", "published_date", "status"])
+        return updatedPayload
     })
 }
 
