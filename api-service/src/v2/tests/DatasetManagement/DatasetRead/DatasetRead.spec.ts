@@ -147,6 +147,15 @@ describe("DATASET READ API", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ dataset_id: "sb-telemetry", name: "sb-telemetry", status: "Live", data_version: 2, data_schema: {} })
         })
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA)
+        })
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve([TestInputsForDatasetRead.DATASOURCE_SCHEMA])
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve([])
+        })
         chai.spy.on(DatasetTransformationsDraft, "update", () => {
             return Promise.resolve({})
         })

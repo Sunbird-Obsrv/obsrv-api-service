@@ -148,9 +148,8 @@ const getDatasetByLive = async (dataset_id: string) => {
         return _.get(response, "dataValues")
     }
     if (_.includes([DatasetStatus.Live], _.get(draftRecord, "status"))) {
-        await DatasetTransformationsDraft.update({ status: DatasetStatus.Draft }, { where: { dataset_id: _.get(draftRecord, "id") } })
-        await DatasetSourceConfigDraft.update({ status: DatasetStatus.Draft }, { where: { dataset_id: _.get(draftRecord, "id") } })
-        await DatasourceDraft.update({ status: DatasetStatus.Draft }, { where: { dataset_id: _.get(draftRecord, "id") } })
+        const [liveTransformation, liveDatasource, liveSourceConfigs] = await Promise.all([getLiveTransformations(dataset_id), getLiveDatasources(dataset_id), getLiveSourceConfigs(dataset_id)])
+        await Promise.all([updateLiveConfigs(liveTransformation, DatasetTransformationsDraft), updateLiveConfigs(liveDatasource, DatasourceDraft), updateLiveConfigs(liveSourceConfigs, DatasetSourceConfigDraft)])
         const updatedPayload = modifyDatasetConfig(liveDataset)
         await DatasetDraft.update(updatedPayload, { where: { id: _.get(draftRecord, "id") } })
         return updatedPayload
@@ -181,6 +180,13 @@ const getLiveSourceConfigs = async (dataset_id: string) => {
 
 const getLiveDatasources = async (dataset_id: string) => {
     return Datasource.findAll({ where: { dataset_id }, raw: true })
+}
+
+const updateLiveConfigs = async (configs: Record<string, any>, model: any) => {
+    return _.map(configs, async fields => {
+        const updatedPayload = _.omit(fields, ["created_date", "updated_date", "published_date", "status"])
+        await model.update({ ...updatedPayload, status: DatasetStatus.Draft }, { where: { id: _.get(updatedPayload, "id") } })
+    })
 }
 
 export default datasetRead;
