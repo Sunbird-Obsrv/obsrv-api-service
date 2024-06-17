@@ -10,7 +10,11 @@ import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
 import { DatasetTransformations } from "../../models/Transformation";
 import { DatasetDraft } from "../../models/DatasetDraft";
 import { Dataset } from "../../models/Dataset";
-import { setReqDatasetId } from "../../services/DatasetService";
+import { getDataset, setReqDatasetId } from "../../services/DatasetService";
+import { Datasource } from "../../models/Datasource";
+import { DatasetSourceConfig } from "../../models/DatasetSourceConfig";
+import { DatasourceDraft } from "../../models/DatasourceDraft";
+import { DatasetSourceConfigDraft } from "../../models/DatasetSourceConfigDraft";
 
 export const apiId = "api.datasets.read";
 export const errorCode = "DATASET_READ_FAILURE"
@@ -19,7 +23,7 @@ const datasetRead = async (req: Request, res: Response) => {
     const { dataset_id } = req.params;
     const resmsgid = _.get(res, "resmsgid");
     try {
-        const { fields, status = DatasetStatus.Live } = req.query;
+        const { fields, status = DatasetStatus.Live, mode } = req.query;
 
         setReqDatasetId(req, dataset_id)
 
@@ -38,7 +42,7 @@ const datasetRead = async (req: Request, res: Response) => {
         const datasetModel = getDatasetModel(status);
         const fieldValue = !_.isEmpty(fields) ? transformFieldValues({ fields, status }) : "*"
         let data: any = {}
-        if (!_.isEmpty(fieldValue)) {
+        if (!_.isEmpty(fieldValue) && mode !== "edit") {
             const results = await datasetModel.findAll({ where: { id: dataset_id }, ...(fieldValue !== "*" && { attributes: fieldValue }), raw: true })
             if (_.isEmpty(results)) {
                 const code = "DATASET_NOT_FOUND"
@@ -51,6 +55,10 @@ const datasetRead = async (req: Request, res: Response) => {
                 } as ErrorObject, req, res);
             }
             data = _.first(results)
+        }
+
+        if (mode === "edit") {
+            data = await getDatasetByLive(dataset_id)
         }
 
         const responseData = await transformResponseData({ status, dataset_id, data, fields });
@@ -114,6 +122,71 @@ const getTransfomationModel = (status: string) => {
         return DatasetTransformationsDraft
     }
     return DatasetTransformations
+}
+
+const getDatasetByLive = async (dataset_id: string) => {
+    const draftRecord = await DatasetDraft.findOne({ where: { id: dataset_id }, raw: true })
+    const liveDataset = await getDataset(dataset_id, true)
+    if (_.isEmpty(liveDataset)) {
+        throw {
+            code: "DATASET_NOT_FOUND",
+            message: "Failed to fetch live dataset",
+            statusCode: 404,
+            errCode: "NOT_FOUND"
+        } as ErrorObject
+    }
+    if (_.isEmpty(draftRecord)) {
+        const datasetConfig = modifyDatasetConfig(liveDataset)
+        const [liveTransformation, liveDatasource, liveSourceConfigs] = await Promise.all([getLiveTransformations(dataset_id), getLiveDatasources(dataset_id), getLiveSourceConfigs(dataset_id)])
+        const transformationConfig = updateConfigs(liveTransformation)
+        const datasourceConfig = updateConfigs(liveDatasource)
+        const sourceConfigs = updateConfigs(liveSourceConfigs)
+        const response = await DatasetDraft.create(datasetConfig)
+        await DatasetTransformationsDraft.bulkCreate(transformationConfig)
+        await DatasourceDraft.bulkCreate(datasourceConfig)
+        await DatasetSourceConfigDraft.bulkCreate(sourceConfigs)
+        return _.get(response, "dataValues")
+    }
+    if (_.includes([DatasetStatus.Live], _.get(draftRecord, "status"))) {
+        const [liveTransformation, liveDatasource, liveSourceConfigs] = await Promise.all([getLiveTransformations(dataset_id), getLiveDatasources(dataset_id), getLiveSourceConfigs(dataset_id)])
+        await Promise.all([updateLiveConfigs(liveTransformation, DatasetTransformationsDraft), updateLiveConfigs(liveDatasource, DatasourceDraft), updateLiveConfigs(liveSourceConfigs, DatasetSourceConfigDraft)])
+        const updatedPayload = modifyDatasetConfig(liveDataset)
+        await DatasetDraft.update(updatedPayload, { where: { id: _.get(draftRecord, "id") } })
+        return updatedPayload
+    }
+    return draftRecord
+}
+
+const modifyDatasetConfig = (dataset: Record<string, any>) => {
+    const updatedPyload = _.omit(dataset, ["data_version", "created_date", "updated_date", "published_date", "status"])
+    const version_key = Date.now().toString()
+    return { ...updatedPyload, version_key, version: _.get(dataset, "data_version"), status: DatasetStatus.Draft, api_version: "v2" }
+}
+
+const updateConfigs = (configs: Record<string, any>) => {
+    return _.map(configs, fields => {
+        const updatedPayload = _.omit(fields, ["created_date", "updated_date", "published_date", "status"])
+        return updatedPayload
+    })
+}
+
+const getLiveTransformations = async (dataset_id: string) => {
+    return DatasetTransformations.findAll({ where: { dataset_id }, raw: true })
+}
+
+const getLiveSourceConfigs = async (dataset_id: string) => {
+    return DatasetSourceConfig.findAll({ where: { dataset_id }, raw: true })
+}
+
+const getLiveDatasources = async (dataset_id: string) => {
+    return Datasource.findAll({ where: { dataset_id }, raw: true })
+}
+
+const updateLiveConfigs = async (configs: Record<string, any>, model: any) => {
+    return _.map(configs, async fields => {
+        const updatedPayload = _.omit(fields, ["created_date", "updated_date", "published_date", "status"])
+        await model.update({ ...updatedPayload, status: DatasetStatus.Draft }, { where: { id: _.get(updatedPayload, "id") } })
+    })
 }
 
 export default datasetRead;
