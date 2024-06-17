@@ -231,9 +231,6 @@
         "configurations": {
           "type": "object"
         },
-        "dataMappings": {
-          "type": "object"
-        },
         "data_key": {
           "type": "string"
         },

@@ -192,9 +192,6 @@
             "configurations": {
               "type": "object"
             },
-            "dataMappings": {
-              "type": "object"
-            },
             "file_upload_path": {
               "type": "array",
               "items": {
