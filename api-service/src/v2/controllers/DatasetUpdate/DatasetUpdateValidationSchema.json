@@ -186,6 +186,12 @@
             "timestamp_key": {
               "type": "string"
             },
+            "mergedEvent": {
+              "type": "object"
+            },
+            "configurations": {
+              "type": "object"
+            },
             "file_upload_path": {
               "type": "array",
               "items": {

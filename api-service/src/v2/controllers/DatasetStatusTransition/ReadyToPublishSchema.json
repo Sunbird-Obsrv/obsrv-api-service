@@ -225,6 +225,12 @@
     "dataset_config": {
       "type": "object",
       "properties": {
+        "mergedEvent": {
+          "type": "object"
+        },
+        "configurations": {
+          "type": "object"
+        },
         "data_key": {
           "type": "string"
         },
