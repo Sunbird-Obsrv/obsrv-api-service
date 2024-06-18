@@ -5,8 +5,8 @@ import { config as globalConfig } from "../../configs/Config";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import { getFileKey } from "../../utils/common"
 import { FilterDataByDateRange, ICloudService } from "./types";
-import { logger } from "@azure/storage-blob";
 import { URLAccess } from "../../types/SampleURLModel";
+import logger from "../../logger";
 
 export class AWSStorageService implements ICloudService {
     client: any;
@@ -15,8 +15,13 @@ export class AWSStorageService implements ICloudService {
             const region = _.get(config, "region")
             const accessKeyId = _.get(config, "identity")
             const secretAccessKey = _.get(config, "credential")
-            const secret = { region, credentials: { accessKeyId, secretAccessKey }}
-            this.client = new S3Client(secret);
+            const configuration = { region, credentials: { accessKeyId, secretAccessKey } }
+            try {
+                this.client = new S3Client(configuration);
+            }
+            catch (err) {
+                logger.error(err)
+            }
         }
     }
 
@@ -36,12 +41,18 @@ export class AWSStorageService implements ICloudService {
         const AWSCommand = access === URLAccess.Read ? this.getAWSCommand : this.putAWSCommand
         const containerURLExpiry = urlExpiry ? urlExpiry : globalConfig.cloud_config.storage_url_expiry
         const signedURLs = filesList.map((fileNameWithPrefix: any) => {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const generateSignedUrl = async () => {
-                    const command = AWSCommand(container, fileNameWithPrefix);
-                    const fileName = fileNameWithPrefix.split("/").pop();
-                    const presignedURL = await getSignedUrl(this.client, command, { expiresIn: containerURLExpiry });
-                    resolve({ [fileName]: presignedURL });
+                    try {
+                        const command = AWSCommand(container, fileNameWithPrefix);
+                        const fileName = fileNameWithPrefix.split("/").pop();
+                        const presignedURL = await getSignedUrl(this.client, command, { expiresIn: containerURLExpiry });
+                        resolve({ [fileName]: presignedURL });
+                    }
+                    catch (err: any) {
+                        logger.error({ error: err?.message })
+                        reject({ error: err?.message });
+                    }
                 }
                 generateSignedUrl();
             });
