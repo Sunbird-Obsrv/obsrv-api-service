@@ -12,14 +12,11 @@ export class AWSStorageService implements ICloudService {
     client: any;
     constructor(config: any) {
         if (_.get(config, "identity") && _.get(config, "credential") && _.get(config, "region")) {
-            const region = _.get(config, "region").toString();
-            this.client = new S3Client({ region });
-        } else {
-            const region = globalConfig.cloud_config.cloud_storage_region || "us-east-2";
-            const s3Client = new S3Client({
-                region,
-            });
-            this.client = s3Client;
+            const region = _.get(config, "region")
+            const accessKeyId = _.get(config, "identity")
+            const secretAccessKey = _.get(config, "credential")
+            const secret = { region, credentials: { accessKeyId, secretAccessKey }}
+            this.client = new S3Client(secret);
         }
     }
 
