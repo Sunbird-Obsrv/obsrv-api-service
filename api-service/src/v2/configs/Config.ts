@@ -4,7 +4,7 @@ const env = process.env.system_env || "local"
 
 export const config = {
   "env": env,
-  "api_port": process.env.api_port || 3000,
+  "api_port": process.env.api_port || 3005,
   "body_parser_limit": process.env.body_parser_limit || "100mb",
   "version": "1.0",
   "query_api": {
@@ -49,10 +49,10 @@ export const config = {
     masterDataset: "master-dataset"
   },
   "redis_config": {
-    "denorm_redis_host": process.env.denorm_redis_host || "localhost",
-    "denorm_redis_port": parseInt(process.env.denorm_redis_port || "6379"),
-    "dedup_redis_host": process.env.dedup_redis_host || "localhost",
-    "dedup_redis_port": parseInt(process.env.dedup_redis_port || "6379")
+    "denorm_redis_host": process.env.denorm_redis_host,
+    "denorm_redis_port": parseInt(process.env.denorm_redis_port ? process.env.denorm_redis_port : ""),
+    "dedup_redis_host": process.env.dedup_redis_host,
+    "dedup_redis_port": parseInt(process.env.dedup_redis_port ? process.env.dedup_redis_port : "")
   },
   "exclude_datasource_validation": process.env.exclude_datasource_validation ? process.env.exclude_datasource_validation.split(",") : ["system-stats", "failed-events-summary", "masterdata-system-stats", "system-events"], // list of datasource names to skip validation while calling query API
   "telemetry_dataset": process.env.telemetry_dataset || `${env}.system.telemetry.events`,
