@@ -345,6 +345,10 @@ const setDenormConfigs = (newDenormPayload: Record<string, any>, datasetDenormCo
     const { denorm_fields } = newDenormPayload;
     const existingDenormFields = _.get(datasetDenormConfigs, "denorm_fields") || []
 
+    if (_.isEmpty(denorm_fields)) {
+        return { denorm_fields }
+    }
+    
     const getDenormPayload = (action: string) => {
         return _.compact(_.flatten(_.map(denorm_fields, payload => {
             if (payload.action == action) return payload.values
