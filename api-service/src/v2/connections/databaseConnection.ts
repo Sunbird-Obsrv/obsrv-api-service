@@ -12,6 +12,10 @@ export const sequelize = new Sequelize({
       }
 })
 
+ export const health = async () => {
+    return sequelize.query("select 1")
+}
+
 export const query = async (query: string) => {
     const [results, metadata] = await sequelize.query(query)
     return {

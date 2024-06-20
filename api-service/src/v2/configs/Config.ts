@@ -15,6 +15,9 @@ export const config = {
       "native_query_path": "/druid/v2",
       "list_datasources_path": "/druid/v2/datasources",
       "submit_ingestion": "druid/indexer/v1/supervisor"
+    },
+    "prometheus": {
+      "url": process.env.prometheus_url || "http://localhost:9090"
     }
   },
   "telemetry_service_config": {

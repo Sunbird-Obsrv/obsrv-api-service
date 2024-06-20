@@ -1,45 +1,47 @@
-import { AxiosInstance } from "axios";
-import { NextFunction, Request, Response } from "express";
-import { ResponseHandler } from "../helpers/ResponseHandler";
-import { ErrorResponseHandler } from "../helpers/ErrorResponseHandler";
-import { IConnector } from "../types/DatasetModels";
-// import { DbConnector } from "../connections/databaseConnection";
-// import { KafkaConnector } from "../connections/kafkaConnection";
+import axios from "axios";
+import { config } from "../configs/Config";
+import { logger } from "@project-sunbird/logger";
+import { health as postgresHealth } from "../connections/databaseConnection";
+import { HealthStatus } from "../types/DatasetModels";
+import { createClient } from 'redis';
 
-
-
-
-export class HealthService {
-  // private dbConnector: DbConnector;
-  // private kafkaConnector: KafkaConnector;
-  private httpDruidConnector: AxiosInstance;
-  private errorHandler: ErrorResponseHandler;
-  constructor(dbConnector: any, kafkaConnector:any, httpDruidConnector: IConnector) {
-    this.errorHandler = new ErrorResponseHandler("HealthService");
-    this.httpDruidConnector = httpDruidConnector.connect()
-    // this.dbConnector = dbConnector;
-    // this.kafkaConnector = kafkaConnector;
-  }
-
-  checkHealth(req: Request, res: Response, next: NextFunction) {
-    Promise.all([this.checkDruidHealth(), this.checkKafkaHealth(), this.checkPostgresHealth()])
-    .then(() => {
-      ResponseHandler.successResponse(req, res, { status: 200, data: {} })
-    }).catch(error => {
-      this.errorHandler.handleError(req, res, next, error)
-    })
-  }
-
-  private async checkDruidHealth() {
-    await this.httpDruidConnector.get("/status/health")
-  }
-
-  private async checkKafkaHealth() {
-    // await this.kafkaConnector.connect()
-  }
-
-  private async checkPostgresHealth() {
-    // await this.dbConnector.health()
-  }
-  
+const prometheusInstance = axios.create({ baseURL: config?.query_api?.prometheus?.url, headers: { "Content-Type": "application/json" } });
+let redisDenormClient: any;
+let redisDedupClient: any;
+const init = async () => {
+  redisDenormClient = await createClient({
+    url: `redis://${config.redis_config.denorm_redis_host}:${config.redis_config.denorm_redis_port}`
+  })
+  .on('error', err => logger.error('unable to connect to denorm redis client', err))
+  .connect();
+  redisDedupClient = await createClient({
+    url: `redis://${config.redis_config.dedup_redis_host}:${config.redis_config.dedup_redis_port}`
+  })
+  .on('error', err => logger.error('unable to connect to dedup redis client', err))
+  .connect();
 }
+
+
+const queryMetrics = (params: Record<string, any> | string) => {
+  return prometheusInstance.get("/api/v1/query", { params })
+}
+export const getPostgresStatus = async (): Promise<HealthStatus> => {
+  try {
+    const postgresStatus = await postgresHealth()
+    logger.debug(postgresStatus)
+  } catch (error) {
+    return HealthStatus.UnHealthy
+  }
+  return HealthStatus.Healthy
+}
+
+export const getRedisStatus = async () => {
+  try {
+    await Promise.all([redisDenormClient.ping(), redisDedupClient.ping()])  
+  } catch (error) {
+    return HealthStatus.UnHealthy
+  }
+  return HealthStatus.Healthy
+}
+
+init().catch(err => logger.error(err))
