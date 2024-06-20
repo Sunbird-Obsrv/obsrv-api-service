@@ -20,8 +20,6 @@ tags:
   - name: Query Templates
   - name: Dataset copy
   - name: Schema validator
-  - name: Data source
-  - name: List datasources
 paths:
   /v2/datasets/create:
     post:
@@ -39,12 +37,12 @@ paths:
               type: object
               example:
                 id: api.datasets.create
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                 request:
-                  dataset_id: sb-telemetry
+                  dataset_id: telemetry_record
                   type: dataset
                   name: sb-telemetry
                   validation_config:
@@ -63,19 +61,35 @@ paths:
                     $schema: https://json-schema.org/draft/2020-12/schema
                     type: object
                     properties:
+                      mid:
+                        type: string
+                        arrival_format: text
+                        data_type: string
+                      ets:
+                        type: integer
+                        arrival_format: number
+                        data_type: epoch
                       eid:
                         type: string
-                      ver:
-                        type: string
-                      required:
-                        - eid
+                        arrival_format: text
+                        data_type: string
                     additionalProperties: true
                   denorm_config:
                     denorm_fields:
-                      - denorm_key: actor.id
+                      - denorm_key: eid
                         denorm_out_field: userdata
-                      - denorm_key: actor.id
-                        denorm_out_field: mid
+                  transformations_config:
+                    - field_key: eid
+                      transformation_function:
+                        type: mask
+                        expr: eid
+                        condition: null
+                      mode: Strict
+                      metadata:
+                        _transformationType: mask
+                        _transformedFieldDataType: string
+                        _transformedFieldSchemaType: string
+                        section: transformation
                   dataset_config:
                     data_key: mid
                     timestamp_key: ets
@@ -94,7 +108,7 @@ paths:
                   summary: Dataset Success
                   value:
                     id: api.datasets.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-16T17:56:06+05:30'
                     params:
                       status: SUCCESS
@@ -108,7 +122,7 @@ paths:
                   summary: Master Dataset Success
                   value:
                     id: api.datasets.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-16T17:56:06+05:30'
                     params:
                       status: SUCCESS
@@ -129,7 +143,7 @@ paths:
                   summary: 'Failure: Dataset contains duplicate denorm out field'
                   value:
                     id: api.datasets.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-16T17:59:06+05:30'
                     params:
                       status: FAILED
@@ -145,7 +159,7 @@ paths:
                   summary: 'Failure: Invalid request payload provided'
                   value:
                     id: api.datasets.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-16T18:00:34+05:30'
                     params:
                       status: FAILED
@@ -166,7 +180,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.create
-                ver: v1
+                ver: v2
                 ts: '2024-04-16T17:56:06+05:30'
                 params:
                   status: FAILED
@@ -186,7 +200,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.create
-                ver: v1
+                ver: v2
                 ts: '2024-04-16T18:02:44+05:30'
                 params:
                   status: FAILED
@@ -215,7 +229,7 @@ paths:
               type: object
               example:
                 id: api.datasets.update
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
@@ -232,7 +246,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.update
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T00:16:13+05:30'
                 params:
                   status: SUCCESS
@@ -254,7 +268,7 @@ paths:
                   summary: 'Failure: Invalid payload provided'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:22:12+05:30'
                     params:
                       status: FAILED
@@ -272,7 +286,7 @@ paths:
                   summary: 'Failure: No field provided along with dataset_id'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:23:06+05:30'
                     params:
                       status: FAILED
@@ -290,7 +304,7 @@ paths:
                   summary: 'Failure: Cannot update as dataset not in draft state'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:25:57+05:30'
                     params:
                       status: FAILED
@@ -306,7 +320,7 @@ paths:
                   summary: 'Failure:  Dataset contains duplicate denorm out field'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:29:25+05:30'
                     params:
                       status: FAILED
@@ -322,7 +336,7 @@ paths:
                   summary: 'Failure: Dataset tags to add already exists'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:32:05+05:30'
                     params:
                       status: FAILED
@@ -338,7 +352,7 @@ paths:
                   summary: 'Failure: Dataset transformations to add already exists'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:34:46+05:30'
                     params:
                       status: FAILED
@@ -354,7 +368,7 @@ paths:
                   summary: 'Failure: Dataset denorm fields to add already exists'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:38:57+05:30'
                     params:
                       status: FAILED
@@ -377,7 +391,7 @@ paths:
                   summary: 'Failure: Dataset does not exists to update'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:20:39+05:30'
                     params:
                       status: FAILED
@@ -393,7 +407,7 @@ paths:
                   summary: 'Failure: Dataset tags to remove do not exist'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:33:33+05:30'
                     params:
                       status: FAILED
@@ -409,7 +423,7 @@ paths:
                   summary: 'Failure: Dataset transformations to update do not exists'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:36:04+05:30'
                     params:
                       status: FAILED
@@ -425,7 +439,7 @@ paths:
                   summary: 'Failure: Dataset transformations to remove do not exist'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:37:20+05:30'
                     params:
                       status: FAILED
@@ -441,7 +455,7 @@ paths:
                   summary: 'Failure: Dataset denorm to remove does not exist'
                   value:
                     id: api.datasets.update
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:40:07+05:30'
                     params:
                       status: FAILED
@@ -461,7 +475,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.update
-                ver: v1
+                ver: v2
                 ts: '2024-04-24T12:30:18+05:30'
                 params:
                   status: FAILED
@@ -483,7 +497,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.update
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:41:33+05:30'
                 params:
                   status: FAILED
@@ -540,7 +554,7 @@ paths:
                   summary: Read Draft dataset
                   value:
                     id: api.datasets.read
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:43:58+05:30'
                     params:
                       status: SUCCESS
@@ -617,7 +631,7 @@ paths:
                   summary: Read Live dataset
                   value:
                     id: api.datasets.read
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:44:54+05:30'
                     params:
                       status: SUCCESS
@@ -698,7 +712,7 @@ paths:
                   summary: Read specific fields from the dataset
                   value:
                     id: api.datasets.read
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:45:44+05:30'
                     params:
                       status: SUCCESS
@@ -712,7 +726,7 @@ paths:
                   summary: Read version_key from the dataset
                   value:
                     id: api.datasets.read
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:47:48+05:30'
                     params:
                       status: SUCCESS
@@ -724,7 +738,7 @@ paths:
                   summary: 'Read Dataset: Create a draft dataset on edit live'
                   value:
                     id: api.datasets.read
-                    ver: v1
+                    ver: v2
                     ts: '2024-06-18T14:44:54+05:30'
                     params:
                       status: SUCCESS
@@ -1055,7 +1069,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.read
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:46:03+05:30'
                 params:
                   status: FAILED
@@ -1076,7 +1090,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.read
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:46:14+05:30'
                 params:
                   status: FAILED
@@ -1095,7 +1109,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.read
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:46:34+05:30'
                 params:
                   status: FAILED
@@ -1122,7 +1136,7 @@ paths:
               type: object
               example:
                 id: api.datasets.list
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
@@ -1141,7 +1155,7 @@ paths:
                   summary: Dataset list success when no filters provided
                   value:
                     id: api.datasets.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:54:56+05:30'
                     params:
                       status: SUCCESS
@@ -1571,7 +1585,7 @@ paths:
                   summary: Dataset list success when status filter provided as array
                   value:
                     id: api.datasets.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:55:39+05:30'
                     params:
                       status: SUCCESS
@@ -1712,7 +1726,7 @@ paths:
                   summary: Dataset list success when status filter provided as string
                   value:
                     id: api.datasets.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:56:13+05:30'
                     params:
                       status: SUCCESS
@@ -1867,7 +1881,7 @@ paths:
                   summary: Dataset list success when type filter provided
                   value:
                     id: api.datasets.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:57:28+05:30'
                     params:
                       status: SUCCESS
@@ -1951,7 +1965,7 @@ paths:
                   summary: Dataset list success based on sortBy values
                   value:
                     id: api.datasets.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-19T12:58:27+05:30'
                     params:
                       status: SUCCESS
@@ -2096,7 +2110,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.list
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:58:47+05:30'
                 params:
                   status: FAILED
@@ -2117,7 +2131,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.list
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:59:15+05:30'
                 params:
                   status: FAILED
@@ -2129,7 +2143,7 @@ paths:
                   code: DATASET_LIST_FAILURE
                   message: Failed to list dataset
                   trace: ''
-  /v2/datasets/diff/telemetry0990:
+  /v2/datasets/diff/{dataset_id}:
     get:
       tags:
         - Dataset CRUD APIs
@@ -2138,6 +2152,13 @@ paths:
         This API allows you to return the difference between the live and draft
         dataset by returning additions, deletions and modifications in the
         dataset.
+      parameters:
+        - name: dataset_id
+          example: telemetry
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -2150,7 +2171,7 @@ paths:
                   summary: Data Format Diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T16:55:25+05:30'
                     params:
                       status: SUCCESS
@@ -2178,7 +2199,7 @@ paths:
                   summary: Timestamp and data key diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T17:00:44+05:30'
                     params:
                       status: SUCCESS
@@ -2200,7 +2221,7 @@ paths:
                   summary: Data Schema Diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-28T15:40:48+05:30'
                     params:
                       status: SUCCESS
@@ -2242,7 +2263,7 @@ paths:
                   summary: Data Validation Diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T17:05:28+05:30'
                     params:
                       status: SUCCESS
@@ -2262,7 +2283,7 @@ paths:
                   summary: Dataset Dedup diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T17:07:58+05:30'
                     params:
                       status: SUCCESS
@@ -2286,7 +2307,7 @@ paths:
                   summary: Dataset Denorm Diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T17:17:35+05:30'
                     params:
                       status: SUCCESS
@@ -2312,7 +2333,7 @@ paths:
                   summary: Dataset transformation diff
                   value:
                     id: api.datasets.diff
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T17:25:12+05:30'
                     params:
                       status: SUCCESS
@@ -2356,7 +2377,7 @@ paths:
                               value:
                                 metadata:
                                   section: additionalFields
-  /000/v2/files/generate-url:
+  /v2/files/generate-url:
     post:
       tags:
         - Dataset CRUD APIs
@@ -2371,7 +2392,7 @@ paths:
               type: object
               example:
                 id: api.files.generate-url
-                ver: v1
+                ver: v2
                 ts: '2024-04-19T12:58:47+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
@@ -2392,7 +2413,7 @@ paths:
                   summary: 'Success: Generate Put URL'
                   value:
                     id: api.files.generate-url
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:04:15+05:30'
                     params:
                       status: SUCCESS
@@ -2414,7 +2435,7 @@ paths:
                   summary: 'Success: Generate Get URL'
                   value:
                     id: api.files.generate-url
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:05:47+05:30'
                     params:
                       status: SUCCESS
@@ -2441,7 +2462,7 @@ paths:
                   summary: 'Failure: Invalid access value requested'
                   value:
                     id: api.files.generate-url
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:08:23+05:30'
                     params:
                       status: FAILED
@@ -2460,7 +2481,7 @@ paths:
                     configured
                   value:
                     id: api.files.generate-url
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:10:29+05:30'
                     params:
                       status: FAILED
@@ -2553,7 +2574,7 @@ paths:
                 type: object
               example:
                 id: api.obsrv.data.sql-query
-                ver: v1
+                ver: v2
                 ts: '2024-05-30T16:31:57+05:30'
                 params:
                   status: FAILED
@@ -2571,7 +2592,7 @@ paths:
                 type: object
               example:
                 id: api.obsrv.data.sql-query
-                ver: v1
+                ver: v2
                 ts: '2024-05-29T13:03:44+05:30'
                 params:
                   status: FAILED
@@ -2581,7 +2602,7 @@ paths:
                   code: ERR_BAD_RESPONSE
                   message: Request failed with status code 500
                   trace: ''
-  /v2/datasets/status:
+  /v2/datasets/status-transition:
     post:
       tags:
         - Dataset CRUD APIs
@@ -2596,14 +2617,14 @@ paths:
             schema:
               type: object
               example:
-                id: api.datasets.status
+                id: api.datasets.status-transition
                 ver: v2
                 ts: '2024-04-19T12:58:47+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
                 request:
-                  dataset_id: master.1
-                  status: Delete
+                  dataset_id: telemetry-events
+                  status: ReadyToPublish
       responses:
         '200':
           description: OK
@@ -2616,7 +2637,7 @@ paths:
                   summary: 'Delete success: Deleted dataset successfully'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:18:54+05:30'
                     params:
                       status: SUCCESS
@@ -2627,10 +2648,10 @@ paths:
                       message: Dataset deleted successfully
                       dataset_id: master.1
                 example-1:
-                  summary: 'Publish success: Dataset published successfully'
+                  summary: 'Live success: Dataset published successfully'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:21:42+05:30'
                     params:
                       status: SUCCESS
@@ -2641,10 +2662,24 @@ paths:
                       message: Dataset published successfully
                       dataset_id: telemetry
                 example-2:
+                  summary: 'ReadyToPublish success: Dataset is ready to publish'
+                  value:
+                    id: api.datasets.status-transition
+                    ver: v2
+                    ts: '2024-06-18T15:30:04+05:30'
+                    params:
+                      status: SUCCESS
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      resmsgid: 84858e85-6a97-43cb-b8e9-17a7e0a43365
+                    responseCode: OK
+                    result:
+                      message: Dataset status transition to ReadyToPublish successful
+                      dataset_id: telemetry-events
+                example-3:
                   summary: 'Retire success: Dataset retired successfully'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:22:58+05:30'
                     params:
                       status: SUCCESS
@@ -2662,10 +2697,10 @@ paths:
                 type: object
               examples:
                 example-0:
-                  summary: 'Publish failure: Dataset in draft state'
+                  summary: 'Live failure: Dataset in draft state'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T15:37:43+05:30'
                     params:
                       status: FAILED
@@ -2677,10 +2712,44 @@ paths:
                       message: Failed to publish dataset as it is in draft state
                       trace: ''
                 example-1:
+                  summary: 'ReadyToPublish failure: Incomplete dataset configs'
+                  value:
+                    id: api.datasets.status-transition
+                    ver: v2
+                    ts: '2024-06-18T15:36:16+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      resmsgid: a504565b-41ff-4c0f-9d64-f96df9ed89bb
+                    responseCode: BAD_REQUEST
+                    error:
+                      code: DATASET_CONFIGS_INVALID
+                      message: >-
+                        #properties/denorm_config/properties/denorm_fields/items/required
+                        must have required property 'dataset_name'
+                      trace: ''
+                example-2:
+                  summary: 'ReadyToPublish failure: Dataset not in draft state'
+                  value:
+                    id: api.datasets.status-transition
+                    ver: v2
+                    ts: '2024-06-18T15:38:14+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      resmsgid: 351f5a37-87f0-47cd-bebe-e3c001256d0a
+                    responseCode: BAD_REQUEST
+                    error:
+                      code: DATASET_READYTOPUBLISH_FAILURE
+                      message: >-
+                        Failed to mark dataset Ready to publish as it not in
+                        draft state
+                      trace: ''
+                example-3:
                   summary: 'Retire Failure: Dataset is already retired'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T15:42:18+05:30'
                     params:
                       status: FAILED
@@ -2691,13 +2760,13 @@ paths:
                       code: DATASET_ALREADY_RETIRED
                       message: Dataset is already retired
                       trace: ''
-                example-2:
+                example-4:
                   summary: >-
                     Retire failure: Cannot retire master dataset as it is used
                     by other datasets
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T16:01:41+05:30'
                     params:
                       status: FAILED
@@ -2708,11 +2777,11 @@ paths:
                       code: DATASET_IN_USE
                       message: Failed to retire dataset as it is used by other datasets
                       trace: ''
-                example-3:
+                example-5:
                   summary: 'Failure: Invalid request payload provided'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T16:03:56+05:30'
                     params:
                       status: FAILED
@@ -2736,7 +2805,7 @@ paths:
                   summary: 'Delete failure: Dataset not found to delete'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T12:25:36+05:30'
                     params:
                       status: FAILED
@@ -2748,10 +2817,10 @@ paths:
                       message: Dataset not found to delete
                       trace: ''
                 example-1:
-                  summary: 'Publish failure: Dataset not found to publish'
+                  summary: 'Live failure: Dataset not found to publish'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T15:35:59+05:30'
                     params:
                       status: FAILED
@@ -2766,7 +2835,7 @@ paths:
                   summary: 'Retire Failure: Dataset not found to retire'
                   value:
                     id: api.datasets.status
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-30T15:40:31+05:30'
                     params:
                       status: FAILED
@@ -2785,7 +2854,7 @@ paths:
                 type: object
               example:
                 id: api.datasets.status
-                ver: v1
+                ver: v2
                 ts: '2024-05-30T16:24:12+05:30'
                 params:
                   status: FAILED
@@ -2796,574 +2865,403 @@ paths:
                   code: DATASET_STATUS_FAILURE
                   message: Failed to perform status transition on datasets
                   trace: ''
-  /v2/data/in/sb-telemetry-imported:
-    post:
-      tags:
-        - Data Ingest
-      summary: Data ingest
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                data:
-                  event:
-                    eid: INTERACT
-                    date: '2022-01-01'
-                    ver: '3.0'
-                    syncts: 1668591949682
-                    ets: 1668591949682
-      parameters:
-        - name: Content-Type
-          in: header
+  /v2/data/in/{datasetId}:
+      post:
+        tags:
+          - Data Ingest
+        parameters:
+        - required: true
           schema:
+            title: datasetId
             type: string
-          example: application/json
-      responses:
-        '200':
-          description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '261'
-            ETag:
-              schema:
-                type: string
-                example: W/"105-UtaCmh0qZMBRBdniNq74Gr+4YAo"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:05:48 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
+          name: datasetId
+          in: path
+        summary: Data ingest
+        description: >-
+          This API allows you to ingest events to a data streaming platform in individual or batch format.
+        requestBody:
           content:
             application/json:
-              schema:
-                type: object
               examples:
-                example-0:
-                  summary: 'Success: Data ingested successfully'
-                  value:
-                    id: api.data.in
-                    ver: v1
-                    ts: '2024-05-30T23:35:48+05:30'
-                    params:
-                      status: SUCCESS
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 9a44ac5b-ef82-46f7-92c5-c5b39ef88764
-                    responseCode: OK
-                    result:
-                      message: Data ingested successfully
-                example-1:
-                  summary: 'Success: Data ingested successfully (batch)'
-                  value:
-                    id: api.data.in
-                    ver: v1
-                    ts: '2024-05-30T23:36:49+05:30'
-                    params:
-                      status: SUCCESS
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: a220041c-0c28-415a-9687-9fb2e211f8c4
-                    responseCode: OK
-                    result:
-                      message: Data ingested successfully
-        '400':
-          description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '300'
-            ETag:
-              schema:
-                type: string
-                example: W/"12c-GNCIUUDxOZD3UfM311sjnmFIgPc"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:03:32 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                id: api.data.in
-                ver: v1
-                ts: '2024-05-30T23:33:32+05:30'
-                params:
-                  status: FAILED
-                  resmsgid: acf07609-77de-4ab5-81ea-42e41b8b95ff
-                responseCode: BAD_REQUEST
-                result: {}
-                error:
-                  code: DATA_INGESTION_INVALID_INPUT
-                  message: '#required should have required property ''id'''
-                  trace: ''
-        '404':
-          description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '316'
-            ETag:
-              schema:
-                type: string
-                example: W/"13c-O9iirC/EyneYXQzth7iwEEy1UV4"
-            Date:
-              schema:
-                type: string
-                example: Thu, 18 Apr 2024 10:17:00 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                example-0:
-                  summary: Entry topic not found
-                  value:
-                    id: api.data.in
-                    ver: v1
-                    ts: '2024-04-18T15:47:00+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 11c32a3a-fdeb-4e00-a9cf-f6433ade5608
-                    responseCode: BAD_REQUEST
-                    result: {}
-                    error:
-                      code: TOPIC_NOT_FOUND
-                      message: Entry topic is not defined
-                      trace: ''
-                example-1:
-                  summary: 'Failure: Dataset not found'
-                  value:
-                    id: api.data.in
-                    ver: v1
-                    ts: '2024-05-30T23:37:29+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: d4db36b4-37b0-4170-a4cf-9d2ae8fa0416
-                    responseCode: BAD_REQUEST
-                    result: {}
-                    error:
-                      code: DATASET_NOT_FOUND
-                      message: Dataset with id not found
-                      trace: ''
-                example-2:
-                  summary: 'Failure: Entry topic not found'
-                  value:
-                    id: api.data.in
-                    ver: v1
-                    ts: '2024-05-30T23:39:26+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 62309380-3e83-442f-877e-359ed2774bbf
-                    responseCode: BAD_REQUEST
-                    result: {}
-                    error:
-                      code: TOPIC_NOT_FOUND
-                      message: Entry topic is not defined
-                      trace: ''
-  /444/v2/data/query:
-    post:
-      tags:
-        - Data query
-      summary: Data query
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                context:
-                  granularity: day
-                query: >-
-                  SELECT * FROM "rollups-configured" WHERE __time >= TIMESTAMP
-                  '2020-12-31' AND __time < TIMESTAMP '2024-01-21' LIMIT 1
-      responses:
-        '200':
-          description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '313'
-            ETag:
-              schema:
-                type: string
-                example: W/"139-De+IthAwrGNR+J11CwlNf5RSMmw"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:17:45 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                example-0:
-                  summary: 'Success: native query (interval as array type)'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:47:45+05:30'
-                    params:
-                      status: SUCCESS
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 134efe35-c096-4cab-ad14-db6a8952f264
-                    responseCode: OK
-                    result:
-                      - timestamp: '2023-09-11T00:00:00.000Z'
-                        result:
-                          a1: 1694390400000
-                          a0: 1694390400000
-                example-1:
-                  summary: 'Success: native query (queryType: scan)'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:51:14+05:30'
-                    params:
-                      status: SUCCESS
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 4fc6e3c1-4715-47b7-9137-7713fb2fbe72
-                    responseCode: OK
-                    result:
-                      - timestamp: '2023-09-11T00:00:00.000Z'
-                        result:
-                          a1: 1694390400000
-                          a0: 1694390400000
-                example-2:
-                  summary: >-
-                    Success: native query (normal intervals & queryType :
-                    timeseries)
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:51:49+05:30'
-                    params:
-                      status: SUCCESS
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 75d7ae48-a3db-4367-b50f-34eb99ac3480
-                    responseCode: OK
-                    result:
-                      - timestamp: '2023-09-11T00:00:00.000Z'
-                        result:
-                          school_id: 0
-                example-3:
-                  summary: 'Success: sql query'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:42:12+05:30'
-                    params:
-                      status: SUCCESS
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 2c981011-76da-4444-97f3-eafac939e59f
-                    responseCode: OK
-                    result:
-                      - __time: '2023-09-11T00:00:00.000Z'
-                        school_category: secondary
-                        gender: others
-                        state_id: '15'
-                        district_id: '2002'
-                        block_id: '70'
-                        cluster_id: '485'
-                        obsrv.meta.source.connector: null
-                        obsrv.meta.source.id: null
-                        grade_sum: 18
-                        school_id_sum: 180378
-                        students_marked_sum: 12492
-                        students_present_sum: 2466
-                        total_count: 18
-                        total_students_sum: 12492
-        '400':
-          description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '371'
-            ETag:
-              schema:
-                type: string
-                example: W/"173-OP8NcbSqLKFO92PIyUmMk0lNsXs"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:16:29 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                id: api.data.out
-                ver: v1
-                ts: '2024-05-30T23:46:29+05:30'
-                params:
-                  status: FAILED
-                  msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                  resmsgid: b6434700-dd92-4f64-9250-a22939e753b9
-                responseCode: BAD_REQUEST
-                result: {}
-                error:
-                  code: DATA_OUT_INVALID_DATE_RANGE
-                  message: >-
-                    Invalid date range! make sure your range cannot be more than
-                    30 days
-                  trace: ''
-        '404':
-          description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '356'
-            ETag:
-              schema:
-                type: string
-                example: W/"164-DSmPP0WJI5ISEqIw3U3B1NFXxVE"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:13:12 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                example-0:
-                  summary: 'Failure: Datasource not found in live table'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:43:12+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: f922f120-2aea-49af-9a76-7312fe2eb266
-                    responseCode: NOT_FOUND
-                    result: {}
-                    error:
-                      code: DATA_OUT_SOURCE_NOT_FOUND
-                      message: >-
-                        Datasource telemetry-eventssss not available for
-                        querying
-                      trace: ''
-                example-1:
-                  summary: 'Failure: Datasource not found in druid'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:50:27+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 75bd4313-d504-4fd3-92ab-ee2a685beb83
-                    responseCode: NOT_FOUND
-                    result: {}
-                    error:
-                      code: DATA_OUT_SOURCE_NOT_FOUND
-                      message: >-
-                        Dataset test with table day is not available for
-                        querying
-                      trace: ''
-                example-2:
-                  summary: 'SQL Failure: dataset not found in druid'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:52:26+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 19849769-c290-4599-a79e-862dcbce1124
-                    responseCode: NOT_FOUND
-                    result: {}
-                    error:
-                      code: DATA_OUT_SOURCE_NOT_FOUND
-                      message: >-
-                        Dataset test with table day is not available for
-                        querying
-                      trace: ''
-                example-3:
-                  summary: 'SQL Failure: Datasource not found in live table'
-                  value:
-                    id: api.data.out
-                    ver: v1
-                    ts: '2024-05-30T23:53:02+05:30'
-                    params:
-                      status: FAILED
-                      msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
-                      resmsgid: 530a12f9-04f3-4986-8f52-b3184b9194bd
-                    responseCode: NOT_FOUND
-                    result: {}
-                    error:
-                      code: DATA_OUT_SOURCE_NOT_FOUND
-                      message: Datasource undefined not available for querying
-                      trace: ''
-  /444/v2/data/exhaust/beckn-test-data:
-    get:
-      tags:
-        - Data exhaust
-      summary: Data exhaust
-      parameters:
-        - name: from
-          in: query
+                example1:
+                    summary: Ingest individual event
+                    value:
+                      id: api.data.in
+                      ver: v2
+                      ts: "1711966306164"
+                      params:
+                        msgid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                      data:
+                        eid: INTERACT
+                        date: '2022-01-01'
+                        ver: '3.0'
+                        syncts: 1668591949682
+                        ets: 1668591949682
+                example2:
+                    summary: Ingest batch event
+                    value:
+                      id: api.data.in
+                      ver: v2
+                      ts: "1711966306164"
+                      params:
+                        msgid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                      data: [{ "eid": "INTERACT","date": "2022-01-01","ver": "3.0","syncts": 1668591949682}]
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                examples:
+                  example-0:
+                    summary: Data ingest successful(individual)
+                    value:
+                      id: api.data.in
+                      ver: v2
+                      ts: 1711966306164
+                      params:
+                        status: "SUCCESS"
+                        msgid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                        resmsgid: "ba6391e2-8c35-4c3f-8883-f503b4ffd6a5"
+                      responseCode: OK
+                      result:
+                        message: Data ingested successfully
+                  example-1:
+                    summary: Data ingest successfully(batch)
+                    value:
+                      id: api.data.in
+                      ver: v2
+                      ts: 1711966352987
+                      params:
+                        status: "SUCCESS"
+                        msgid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                        resmsgid: "ba6391e2-8c35-4c3f-8883-f503b4ffd6a5"
+                      responseCode: OK
+                      result:
+                        message: Data ingested successfully
+          '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                example:
+                  id: api.data.in
+                  ver: v2
+                  ts: 1711966410766
+                  params:
+                    status: FAILED
+                    resmsgid: 98020cf9-4239-4b6e-beea-c687d21fafa3
+                  responseCode: BAD_REQUEST
+                  error:
+                    code: DATA_INGESTION_INVALID_INPUT
+                    message: "#required should have required property 'id'"
+                    trace: ''
+          '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                examples:
+                  example-0:
+                    summary: Dataset not found
+                    value:
+                      id: api.data.in
+                      ver: v2
+                      ts: 1711966446364
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 98020cf9-4239-4b6e-beea-c687d21fafa3
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: DATASET_NOT_FOUND
+                        message: Dataset with id not found
+                        trace: ''
+                  example-1:
+                    summary: Entry topic not found
+                    value:
+                      id: api.data.in
+                      ver: v2
+                      ts: 1711975482739
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 98020cf9-4239-4b6e-beea-c687d21fafa3
+                      responseCode: BAD_REQUEST
+                      result: {}
+                      error:
+                        code: ENTRY_TOPIC_NOT_FOUND
+                        message: Entry topic is not defined
+                        trace: ''
+  /v2/data/query/{datasetId}:
+      post:
+        tags:
+          - Data query
+        summary: Data query
+        parameters:
+        - required: true
           schema:
+            title: datasetId
             type: string
-          example: '2024-02-01'
-        - name: to
-          in: query
-          schema:
-            type: string
-          example: '2024-02-22'
-        - name: type
-          in: query
-          schema:
-            type: string
-          example: raw
-      responses:
-        '200':
-          description: Successful response
+          name: datasetId
+          in: path
+        description: >-
+          This API allows you to query your datasource.
+        requestBody:
           content:
-            application/json: {}
-  /444/v2/template/read/sql_template_11:
+            application/json:
+              examples:
+                example1:
+                    summary: SQL query
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: "1711966306164"
+                      params:
+                        msgid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                      context:
+                        datasetId: rollups-configured
+                        table: day
+                      query: >-
+                        SELECT * FROM "rollups-configured" WHERE __time >= TIMESTAMP
+                        '2020-12-31' AND __time < TIMESTAMP '2024-01-21' LIMIT 1
+                example2:
+                    summary: Native query
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: "1711966306164"
+                      params:
+                        mid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                      context:
+                        datasetId: rollups-configured
+                        table: day
+                      query:
+                        quertType: scan
+                        dataSource: rollups-configured
+                        intervals:
+                          type: intervals
+                          intervals: ["2022-01-01/2022-02-01"]
+                        granularity: day
+                        columns: ["eid","__time"]
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                examples:
+                  example-0:
+                    summary: 'Success: sql query'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711971972855
+                      params:
+                        status: "SUCCESS"
+                        msgid: "e180ecac-8f41-4f21-9a21-0b3a1a368917"
+                        resmsgid: "ba6391e2-8c35-4c3f-8883-f503b4ffd6a5"
+                      responseCode: OK
+                      result:
+                        - __time: '2022-01-01T00:00:00.000Z'
+                          eid: '1'
+                          ver: '3.0'
+                          flags_ex_processed: 'true'
+                          flags_pp_validation_processed: 'true'
+                          flags_pp_duplicate_skipped: 'true'
+                          flags_device_denorm: 'true'
+                          flags_user_denorm: 'true'
+                          flags_loc_denorm: 'true'
+                          derivedlocationdata_district: AGRA
+                          derivedlocationdata_from: user-profile
+                          derivedlocationdata_state: Uttar Pradesh
+                          mid: 6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0
+                          type: events
+                          actor_type: User
+                          actor_id: 311663b2-d7de-4d46-8803-20407eaa3403
+                          edata_type: session
+                          userdata_subject: null
+                          userdata_district: AGRA
+                          userdata_usersubtype: hm
+                          userdata_grade: null
+                          userdata_usersignintype: Self-Signed-In
+                          userdata_usertype: administrator
+                          userdata_userlogintype: administrator
+                          userdata_state: Uttar Pradesh
+                          devicedata_statecustomcode: '29'
+                          devicedata_country: India
+                          devicedata_iso3166statecode: IN-KA
+                          devicedata_city: Bengaluru
+                          devicedata_countrycode: IN
+                          devicedata_state: Karnataka
+                          devicedata_devicespec_idisk: '106.47'
+                          devicedata_devicespec_webview: 107.0.5304.105
+                          devicedata_devicespec_os: Android 12
+                          devicedata_devicespec_scrn: '6.53'
+                          devicedata_devicespec_sims: '-1'
+                          devicedata_devicespec_cpu: "abi: arm64-v8a processor\t: 0 "
+                          devicedata_devicespec_id: ac4ad4ac3feda0f2b17835b81e736c88c194dc89
+                          devicedata_devicespec_camera: ''
+                          devicedata_devicespec_edisk: '106.27'
+                          devicedata_devicespec_make: vivo 1915
+                          devicedata_statecode: KA
+                          devicedata_districtcustom: BENGALURU URBAN SOUTH
+                          devicedata_statecustomname: Karnataka
+                          devicedata_userdeclared_district: AGRA
+                          devicedata_userdeclared_state: Uttar Pradesh
+                          context_cdata_id: a3c784f0-61d8-43e4-a92a-373fd4338c1d
+                          context_cdata_type: UserSession
+                          context_env: sdk
+                          context_channel: '0126796199493140480'
+                          context_pdata_id: preprod.diksha.app
+                          context_pdata_pid: sunbird.app
+                          context_pdata_ver: 4.10.1023preproduction
+                          context_sid: a3c784f0-61d8-43e4-a92a-373fd4338c1d
+                          context_did: ac4ad4ac3feda0f2b17835b81e736c88c194dc89
+                          context_rollup_l1: '0126796199493140480'
+                          object_id: ''
+                          object_type: ''
+                          object_version: ''
+                          object_rollup: '{}'
+                          count: 3
+                          edata_duration_sum: null
+                  example-1:
+                    summary: 'Success: native query'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711973520793
+                      params:
+                        status: SUCCESS
+                        errmsg: ''
+                      responseCode: OK
+                      result:
+                        - timestamp: '2022-01-01T00:00:00.000Z'
+                          result:
+                            mid: 1
+          '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                examples:
+                  example-0:
+                    summary: 'Failure: invalid date range (sql)'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711972193426
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 5aaf81d1-675d-4071-883a-f92d96656aa4
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: INVALID_DATE_RANGE
+                        message: Invalid date range! make sure your range cannot be more than 30 days
+                        trace: ""
+                  example-1:
+                    summary: 'Failure: Invalid date range (native)'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711972501847
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 5aaf81d1-675d-4071-883a-f92d96656aa4
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: INVALID_DATE_RANGE
+                        message: Invalid date range! make sure your range cannot be more than 30 days
+                        trace: ""
+          '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                examples:
+                  example-0:
+                    summary: 'Failure: Datasource not found in druid'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711972085550
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 5aaf81d1-675d-4071-883a-f92d96656aa4
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: DATASOURCE_NOT_FOUND
+                        message: Datasource taxt_trip not found
+                        trace: ""
+                  example-1:
+                    summary: 'Failure: Datasource not found in live table'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711975034302
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 5aaf81d1-675d-4071-883a-f92d96656aa4
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: DATASOURCE_NOT_FOUND
+                        message: Datasource taxt_trip not found
+                        trace: ""
+                  example-2:
+                    summary: 'Failure: Datasource not found in live table (native)'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711974978635
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 5aaf81d1-675d-4071-883a-f92d96656aa4
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: DATASOURCE_NOT_FOUND
+                        message: Datasource taxt_trip.1_day not available for querying
+                        trace: ""
+                  example-3:
+                    summary: 'Failure: Datasource not found in druid(native)'
+                    value:
+                      id: api.data.out
+                      ver: v2
+                      ts: 1711972569115
+                      params:
+                        status: FAILED
+                        msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
+                        resmsgid: 5aaf81d1-675d-4071-883a-f92d96656aa4
+                      responseCode: BAD_REQUEST
+                      error:
+                        code: DATASOURCE_NOT_FOUND
+                        message: Datasource taxt_trip.1_day not available for querying
+                        trace: ""
+  /v2/template/read/{template_id}:
     get:
       tags:
         - Query Templates
       summary: Read template
+      parameters:
+      - required: true
+        schema:
+          title: template_id
+          type: string
+        name: template_id
+        in: path
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '537'
-            ETag:
-              schema:
-                type: string
-                example: W/"219-BOO8L4HgRkX4zEKoNwUwfDQA+uU"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:24:14 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -3373,11 +3271,11 @@ paths:
                   summary: 'Success: JSON template'
                   value:
                     id: api.query.template.read
-                    ver: v1
-                    ts: '2024-05-30T23:54:14+05:30'
+                    ver: v2
+                    ts: '2024-04-30T12:09:55+05:30'
                     params:
                       status: SUCCESS
-                      resmsgid: ad1c0a98-1ba3-4203-9fac-59ccaf442347
+                      resmsgid: 8ef3a9d0-8658-47dd-b6cb-a4b1777a1ea4
                     responseCode: OK
                     result:
                       template_id: jsontemplate111
@@ -3393,116 +3291,63 @@ paths:
                   summary: 'Success: SQL template'
                   value:
                     id: api.query.template.read
-                    ver: v1
-                    ts: '2024-05-30T23:54:38+05:30'
+                    ver: v2
+                    ts: '2024-04-30T12:10:54+05:30'
                     params:
                       status: SUCCESS
-                      resmsgid: 70047866-a4b4-4fce-b9c4-4699fcab2dc6
+                      resmsgid: 656185ef-527d-4b60-ac19-263da85142b8
                     responseCode: OK
                     result:
                       template_id: sql1
                       template_name: sql1
                       query: >-
-                        "SELECT COUNT(*) FROM \"{{DATASET}}\" WHERE \"__time\"
-                        BETWEEN TIMESTAMP {{STARTDATE}} AND TIMESTAMP
-                        {{ENDDATE}} lIMIT {{LIMIT}}"
+                        "SELECT * FROM {{DATASET}} WHERE __time BETWEEN
+                        TIMESTAMP {{STARTDATE}} AND TIMESTAMP {{ENDDATE}}"
                       query_type: sql
                       created_by: SYSTEM
                       updated_by: SYSTEM
-                      created_date: '2024-05-13T07:29:04.117Z'
-                      updated_date: '2024-05-13T07:29:04.117Z'
+                      created_date: '2024-04-29T11:29:58.759Z'
+                      updated_date: '2024-04-29T11:29:58.759Z'
         '404':
           description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '294'
-            ETag:
-              schema:
-                type: string
-                example: W/"126-zq5j1yor+xr1XFEEbP09fQTDI/k"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:25:16 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.query.template.read
-                ver: v1
-                ts: '2024-05-30T23:55:16+05:30'
+                ver: v2
+                ts: '2024-04-30T12:11:45+05:30'
                 params:
                   status: FAILED
-                  resmsgid: 958bf0e7-bdb8-4153-abdc-ab84e8004a0e
+                  resmsgid: bc6a4621-4ac5-4959-b467-1134ea874960
                 responseCode: NOT_FOUND
-                result: {}
                 error:
                   code: QUERY_TEMPLATE_NOT_EXISTS
                   message: Template sql100 does not exists
                   trace: ''
-  /444/v2/template/delete/yashash-k:
+  /v2/template/delete/{template_id}:
     delete:
       tags:
         - Query Templates
       summary: Delete template
+      parameters:
+      - required: true
+        schema:
+          title: template_id
+          type: string
+        name: template_id
+        in: path
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '241'
-            ETag:
-              schema:
-                type: string
-                example: W/"f1-FblV17jkZ3FSGFt5MHx6s6dlMuo"
-            Date:
-              schema:
-                type: string
-                example: Tue, 30 Apr 2024 06:28:27 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.query.template.delete
-                ver: v1
+                ver: v2
                 ts: '2024-04-30T11:58:27+05:30'
                 params:
                   status: SUCCESS
@@ -3512,57 +3357,35 @@ paths:
                   message: Template yashash-k deleted successfully
         '404':
           description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '303'
-            ETag:
-              schema:
-                type: string
-                example: W/"12f-99pWw8VTwuVfDAhinC55JXfNyyg"
-            Date:
-              schema:
-                type: string
-                example: Thu, 30 May 2024 18:28:41 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.query.template.delete
-                ver: v1
-                ts: '2024-05-30T23:58:41+05:30'
+                ver: v2
+                ts: '2024-04-29T18:29:09+05:30'
                 params:
                   status: FAILED
-                  resmsgid: 9b7f81fb-6705-4d32-9bd3-139cd5a211b9
+                  resmsgid: 6c62ff4d-0a63-4384-a365-7bbef951f288
                 responseCode: NOT_FOUND
                 result: {}
                 error:
                   code: QUERY_TEMPLATE_NOT_EXISTS
                   message: Template json_template does not exists
                   trace: ''
-  /444/v2/template/create/json_template_111:
+  /v2/template/create/{template_id}:
     post:
       tags:
         - Query Templates
       summary: Create query template
+      parameters:
+      - required: true
+        schema:
+          title: template_id
+          type: string
+        name: template_id
+        in: path
       requestBody:
         content:
           application/json:
@@ -3570,7 +3393,7 @@ paths:
               type: object
               example:
                 id: query.template.create
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
@@ -3581,44 +3404,9 @@ paths:
                     datasetId: '{{DATASET}}'
                     intervals: '{{STARTDATE}}/{{ENDDATE}}'
                     limit: '{{LIMITS}}'
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '359'
-            ETag:
-              schema:
-                type: string
-                example: W/"167-HIMd6+dVF/Wyu6lcmb/+68O4AY4"
-            Date:
-              schema:
-                type: string
-                example: Mon, 29 Apr 2024 16:59:01 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -3628,7 +3416,7 @@ paths:
                   summary: 'Success : Create query template success (json)'
                   value:
                     id: api.query.template.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-29T22:29:01+05:30'
                     params:
                       status: SUCCESS
@@ -3643,7 +3431,7 @@ paths:
                   summary: 'Success: Create query template success (SQL)'
                   value:
                     id: api.query.template.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-29T22:29:58+05:30'
                     params:
                       status: SUCCESS
@@ -3656,35 +3444,6 @@ paths:
                       message: The query template has been saved successfully
         '400':
           description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '407'
-            ETag:
-              schema:
-                type: string
-                example: W/"197-y0n7/XzKhcV9HKqgPNj2eo8bzh8"
-            Date:
-              schema:
-                type: string
-                example: Mon, 29 Apr 2024 17:05:10 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -3694,14 +3453,13 @@ paths:
                   summary: 'Failure: Missing required variables'
                   value:
                     id: api.query.template.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-29T22:35:10+05:30'
                     params:
                       status: FAILED
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 62e18342-7e25-4122-8fca-6fb12fac3ff0
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: QUERY_TEMPLATE_INVALID
                       message: >-
@@ -3712,14 +3470,13 @@ paths:
                   summary: 'Failure: Schema validation failure'
                   value:
                     id: api.query.template.create
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-29T22:43:57+05:30'
                     params:
                       status: FAILED
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: d2b598b5-62c1-4c5d-b0b3-5d7d109a2bc2
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: QUERY_TEMPLATE_INVALID_INPUT
                       message: >-
@@ -3728,54 +3485,24 @@ paths:
                       trace: ''
         '409':
           description: Conflict
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '350'
-            ETag:
-              schema:
-                type: string
-                example: W/"15e-FDXFj2WIyZ1MVllwsiSJoBKU4GQ"
-            Date:
-              schema:
-                type: string
-                example: Mon, 29 Apr 2024 17:03:28 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.query.template.create
-                ver: v1
+                ver: v2
                 ts: '2024-04-29T22:33:28+05:30'
                 params:
                   status: FAILED
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                   resmsgid: 18b6b123-4df5-4124-b6ec-73b667250e1c
                 responseCode: CONFLICT
-                result: {}
                 error:
                   code: QUERY_TEMPLATE_ALREADY_EXISTS
                   message: Template josnaks-aaa already exists
                   trace: ''
-  /444/v2/template/list:
+  /v2/template/list:
     post:
       tags:
         - Query Templates
@@ -3787,7 +3514,7 @@ paths:
               type: object
               example:
                 id: api.query.template.list
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
@@ -3800,35 +3527,6 @@ paths:
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '6864'
-            ETag:
-              schema:
-                type: string
-                example: W/"1ad0-xp24UiXXXiFWplmv5Acja7prSYM"
-            Date:
-              schema:
-                type: string
-                example: Mon, 29 Apr 2024 13:46:03 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -3838,7 +3536,7 @@ paths:
                   summary: empty request body
                   value:
                     id: api.query.template.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-29T19:16:03+05:30'
                     params:
                       status: SUCCESS
@@ -4033,7 +3731,7 @@ paths:
                   summary: 'Success : order by'
                   value:
                     id: api.query.template.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-30T11:36:09+05:30'
                     params:
                       status: SUCCESS
@@ -4247,7 +3945,7 @@ paths:
                   summary: 'Success : Filters'
                   value:
                     id: api.query.template.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-30T11:38:55+05:30'
                     params:
                       status: SUCCESS
@@ -4335,7 +4033,7 @@ paths:
                   summary: 'Success : limit and offset'
                   value:
                     id: api.query.template.list
-                    ver: v1
+                    ver: v2
                     ts: '2024-04-30T11:41:36+05:30'
                     params:
                       status: SUCCESS
@@ -4388,11 +4086,18 @@ paths:
                         updated_by: SYSTEM
                         created_date: '2024-04-25T06:31:20.819Z'
                         updated_date: '2024-04-25T06:31:20.819Z'
-  /444/v2/template/update/sql11template1:
+  /v2/template/update/{template_id}:
     patch:
       tags:
         - Query Templates
       summary: update template
+      parameters:
+      - required: true
+        schema:
+          title: template_id
+          type: string
+        name: template_id
+        in: path
       requestBody:
         content:
           application/json:
@@ -4400,7 +4105,7 @@ paths:
               type: object
               example:
                 id: api.query.template.update
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
@@ -4413,164 +4118,126 @@ paths:
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '314'
-            ETag:
-              schema:
-                type: string
-                example: W/"13a-jsb3kdb5RR9P3vnOhZWsAWEr37k"
-            Date:
-              schema:
-                type: string
-                example: Fri, 10 May 2024 05:51:47 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.query.template.update
-                ver: v1
-                ts: '2024-05-10T11:21:47+05:30'
+                ver: v2
+                ts: '2024-05-02T13:16:31+05:30'
                 params:
                   status: SUCCESS
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                  resmsgid: 9e4a6959-0eb9-4fc4-8e6f-2eea534d1384
+                  resmsgid: ab869754-d2f0-4b9a-b38b-04d9e5901b5d
                 responseCode: OK
                 result:
                   message: Query template updated successfully
                   templateId: sql11template1
         '400':
           description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '429'
-            ETag:
-              schema:
-                type: string
-                example: W/"1ad-5sb8WUekFL8s4c1Ink6bUByoHho"
-            Date:
-              schema:
-                type: string
-                example: Fri, 10 May 2024 05:53:54 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               examples:
                 example-0:
-                  summary: 'Failure: required variables not exists to update'
+                  summary: 'Failure: query should present when query_type provided'
                   value:
                     id: api.query.template.update
-                    ver: v1
-                    ts: '2024-05-10T11:23:54+05:30'
+                    ver: v2
+                    ts: '2024-05-02T11:30:36+05:30'
                     params:
                       status: FAILED
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                      resmsgid: 66b95cb3-2ef2-4735-9045-2674da552dbd
+                      resmsgid: f11f5287-77cd-43f0-b7f6-6d6b94b9cea2
                     responseCode: BAD_REQUEST
-                    result: {}
-                    error:
-                      code: QUERY_TEMPLATE_INVALID_INPUT
-                      message: >-
-                        Invalid template provided, A template should consist of
-                        variables DATASET,STARTDATE,ENDDATE and type of json,sql
-                      trace: ''
-                example-1:
-                  summary: 'Failure: Template name validation failure'
-                  value:
-                    id: api.query.template.update
-                    ver: v1
-                    ts: '2024-05-10T11:26:59+05:30'
-                    params:
-                      status: FAILED
-                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                      resmsgid: d6428fcf-53c9-465d-9431-769218f775b8
-                    responseCode: BAD_REQUEST
-                    result: {}
-                    error:
-                      code: QUERY_TEMPLATE_INVALID_INPUT
-                      message: >-
-                        Template name should contain alphanumeric characters and
-                        single space between characters
-                      trace: ''
-                example-2:
-                  summary: 'Failure: query_type should when updating query'
-                  value:
-                    id: api.query.template.update
-                    ver: v1
-                    ts: '2024-05-10T12:32:57+05:30'
-                    params:
-                      status: FAILED
-                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                      resmsgid: c7a8675a-73f2-4764-abba-bfdf9f8b4621
-                    responseCode: BAD_REQUEST
-                    result: {}
-                    error:
-                      code: QUERY_TEMPLATE_INVALID_INPUT
-                      message: >-
-                        #properties/request/dependencies should have property
-                        query_type when property query is present
-                      trace: ''
-                example-3:
-                  summary: 'Failure: query should present when updating query_type'
-                  value:
-                    id: api.query.template.update
-                    ver: v1
-                    ts: '2024-05-10T12:34:55+05:30'
-                    params:
-                      status: FAILED
-                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                      resmsgid: 2c1098b2-d7b3-4d39-98ee-e3e790fd23b4
-                    responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: QUERY_TEMPLATE_INVALID_INPUT
                       message: >-
                         #properties/request/dependencies should have property
                         query when property query_type is present
                       trace: ''
-  /444/v2/template/query/sql_test_1:
+                example-1:
+                  summary: 'Failure: query_type should present when query is given'
+                  value:
+                    id: api.query.template.update
+                    ver: v2
+                    ts: '2024-05-02T11:33:23+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                      resmsgid: 937cf790-867b-450b-afc9-86a96d02f636
+                    responseCode: BAD_REQUEST
+                    error:
+                      code: QUERY_TEMPLATE_INVALID_INPUT
+                      message: >-
+                        #properties/request/dependencies should have property
+                        query_type when property query is present
+                      trace: ''
+                example-2:
+                  summary: 'Failure: template name validation failure'
+                  value:
+                    id: api.query.template.update
+                    ver: v2
+                    ts: '2024-05-02T11:34:18+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                      resmsgid: 9f3ae5aa-2e98-4204-8f87-b11e5bb3865a
+                    responseCode: BAD_REQUEST
+                    error:
+                      code: QUERY_TEMPLATE_INVALID_INPUT
+                      message: >-
+                        Template name should contain alphanumeric characters and
+                        single space between characters
+                      trace: ''
+                example-3:
+                  summary: 'Failure: required template_id'
+                  value:
+                    id: api.query.template.update
+                    ver: v2
+                    ts: '2024-05-02T11:38:16+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                      resmsgid: 94b71f80-bd1e-4283-8f3d-83833b60d08c
+                    responseCode: BAD_REQUEST
+                    error:
+                      code: QUERY_TEMPLATE_INVALID_INPUT
+                      message: >-
+                        #properties/request/required should have required
+                        property 'template_id'
+                      trace: ''
+                example-4:
+                  summary: 'Failure: required variables not exists'
+                  value:
+                    id: api.query.template.update
+                    ver: v2
+                    ts: '2024-05-02T13:13:22+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                      resmsgid: dff3c22a-c198-4d1c-b87a-07d725f868f7
+                    responseCode: BAD_REQUEST
+                    error:
+                      code: QUERY_TEMPLATE_INVALID
+                      message: >-
+                        Invalid template provided, A template should consist of
+                        variables DATASET,STARTDATE,ENDDATE and type of json,sql
+                      trace: ''
+  /v2/template/query/{template_id}:
     post:
       tags:
         - Query Templates
       summary: query template
+      parameters:
+      - required: true
+        schema:
+          title: template_id
+          type: string
+        name: template_id
+        in: path
       requestBody:
         content:
           application/json:
@@ -4578,7 +4245,7 @@ paths:
               type: object
               example:
                 id: api.query.template.query
-                ver: v1
+                ver: v2
                 ts: '2024-04-10T16:10:50+05:30'
                 params:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
@@ -4591,35 +4258,6 @@ paths:
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '301'
-            ETag:
-              schema:
-                type: string
-                example: W/"12d-9hKB38iHEwYPT2MgF8puXcq05Ew"
-            Date:
-              schema:
-                type: string
-                example: Tue, 14 May 2024 06:22:24 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -4629,7 +4267,7 @@ paths:
                   summary: 'Success: JSON template with request body'
                   value:
                     id: api.query.template.query
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-14T11:52:24+05:30'
                     params:
                       status: SUCCESS
@@ -4644,7 +4282,7 @@ paths:
                   summary: 'Success: SQL template query with request body'
                   value:
                     id: api.query.template.query
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-14T11:33:06+05:30'
                     params:
                       status: SUCCESS
@@ -4669,35 +4307,6 @@ paths:
                         total_students_sum: 12492
         '400':
           description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '336'
-            ETag:
-              schema:
-                type: string
-                example: W/"150-T/XeSIt7PR7GcGEbET1e8n9zX7k"
-            Date:
-              schema:
-                type: string
-                example: Thu, 02 May 2024 07:29:14 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -4707,7 +4316,7 @@ paths:
                   summary: 'Failure: invalid date range (native template)'
                   value:
                     id: api.query.template.query
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-02T12:59:14+05:30'
                     params:
                       status: FAILED
@@ -4724,7 +4333,7 @@ paths:
                   summary: 'Failure: invalid date range'
                   value:
                     id: api.query.template.query
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-13T13:28:18+05:30'
                     params:
                       status: FAILED
@@ -4739,35 +4348,6 @@ paths:
                       trace: ''
         '404':
           description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '357'
-            ETag:
-              schema:
-                type: string
-                example: W/"165-Q7Qi9SUmHUwU75fy/RFrXL9Pp3U"
-            Date:
-              schema:
-                type: string
-                example: Mon, 13 May 2024 07:51:46 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -4777,7 +4357,7 @@ paths:
                   summary: 'Failure: Datasource not found in druid'
                   value:
                     id: api.query.template.query
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-13T13:21:46+05:30'
                     params:
                       status: FAILED
@@ -4794,7 +4374,7 @@ paths:
                   summary: 'Failure: Datasource not found in live table'
                   value:
                     id: api.query.template.query
-                    ver: v1
+                    ver: v2
                     ts: '2024-05-13T13:23:47+05:30'
                     params:
                       status: FAILED
@@ -4805,7 +4385,7 @@ paths:
                       code: DATA_OUT_SOURCE_NOT_FOUND
                       message: Datasource test11 not available for querying
                       trace: ''
-  /333/v2/dataset/copy:
+  /v2/dataset/copy:
     post:
       tags:
         - Dataset copy
@@ -4830,42 +4410,13 @@ paths:
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '295'
-            ETag:
-              schema:
-                type: string
-                example: W/"127-QAvRYMqkH2SOGCkKgtUqoIYFyyE"
-            Date:
-              schema:
-                type: string
-                example: Fri, 31 May 2024 05:27:11 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.dataset.copy
-                ver: v1
+                ver: v2
                 ts: '2024-05-31T10:57:11+05:30'
                 params:
                   status: SUCCESS
@@ -4877,42 +4428,13 @@ paths:
                   message: Dataset clone successful
         '400':
           description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '293'
-            ETag:
-              schema:
-                type: string
-                example: W/"125-QFLpBxRJsDL3O7tlT7wI/GIzUCM"
-            Date:
-              schema:
-                type: string
-                example: Fri, 31 May 2024 05:26:26 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.dataset.copy
-                ver: v1
+                ver: v2
                 ts: '2024-05-31T10:56:26+05:30'
                 params:
                   status: FAILED
@@ -4925,42 +4447,13 @@ paths:
                   trace: ''
         '404':
           description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '279'
-            ETag:
-              schema:
-                type: string
-                example: W/"117-dYU9/y40IHpp3GrhchRKyGIls3o"
-            Date:
-              schema:
-                type: string
-                example: Fri, 31 May 2024 05:29:59 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
               example:
                 id: api.dataset.copy
-                ver: v1
+                ver: v2
                 ts: '2024-05-31T10:59:59+05:30'
                 params:
                   status: FAILED
@@ -4970,210 +4463,4 @@ paths:
                 error:
                   code: DATASET_NOT_EXISTS
                   message: Dataset sample does not exists
-                  trace: ''
-  /data/v2/schema/validate:
-    post:
-      tags:
-        - Schema validator
-      summary: Schema validator
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                id: api.schema.validator
-                ver: v1
-                ts: '2024-04-10T16:10:50+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                request:
-                  datasetId: test_dataset
-                  isLive: true
-                  event:
-                    eid: '1'
-                    date: '2022-01-01'
-                    ver: '3.0'
-                    syncts: 1668591949682
-                    ets: 1668591794034
-                    flags:
-                      ex_processed: true
-                      pp_validation_processed: true
-                      pp_duplicate_skipped: true
-                      device_denorm: true
-                      user_denorm: true
-                      loc_denorm: true
-                    derivedlocationdata:
-                      district: AGRA
-                      from: user-profile
-                      state: Uttar Pradesh
-                    mid: 6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0
-                    type: events
-                    actor:
-                      type: User
-                      id: 311663b2-d7de-4d46-8803-20407eaa3403
-                    edata:
-                      type: session
-                    userdata:
-                      subject: []
-                      district: AGRA
-                      usersubtype: hm
-                      grade: []
-                      usersignintype: Self-Signed-In
-                      usertype: administrator
-                      userlogintype: administrator
-                      state: Uttar Pradesh
-                    '@timestamp': '2022-11-16T09:45:49.682Z'
-                    devicedata:
-                      statecustomcode: '29'
-                      country: India
-                      iso3166statecode: IN-KA
-                      city: Bengaluru
-                      countrycode: IN
-                      state: Karnataka
-                      devicespec:
-                        idisk: '106.47'
-                        webview: 107.0.5304.105
-                        os: Android 12
-                        scrn: '6.53'
-                        sims: '-1'
-                        cpu: "abi: arm64-v8a processor\t: 0 "
-                        id: ac4ad4ac3feda0f2b17835b81e736c88c194dc89
-                        camera: ''
-                        edisk: '106.27'
-                        make: vivo 1915
-                      statecode: KA
-                      firstaccess: 1660038763481
-                      districtcustom: BENGALURU URBAN SOUTH
-                      statecustomname: Karnataka
-                      userdeclared:
-                        district: AGRA
-                        state: Uttar Pradesh
-                    context:
-                      cdata:
-                        - id: a3c784f0-61d8-43e4-a92a-373fd4338c1d
-                          type: UserSession
-                      env: sdk
-                      channel: '0126796199493140480'
-                      pdata:
-                        id: preprod.diksha.app
-                        pid: sunbird.app
-                        ver: 4.10.1023preproduction
-                      sid: a3c784f0-61d8-43e4-a92a-373fd4338c1d
-                      did: ac4ad4ac3feda0f2b17835b81e736c88c194dc89
-                      rollup:
-                        l1: '0126796199493140480'
-                    object:
-                      id: ''
-                      type: ''
-                      version: ''
-                      rollup: {}
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /v2/datasource/delete/test1.1_test1.1_rollup_month:
-    delete:
-      tags:
-        - Data source
-      summary: Delete datasource
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-          example: Draft
-      responses:
-        '200':
-          description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '258'
-            ETag:
-              schema:
-                type: string
-                example: W/"102-ga19n8NhsWv8dty/OfvOKp4XFSg"
-            Date:
-              schema:
-                type: string
-                example: Sun, 02 Jun 2024 19:05:46 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                id: api.datasource.delete
-                ver: v1
-                ts: '2024-06-03T00:35:46+05:30'
-                params:
-                  status: SUCCESS
-                  resmsgid: 1d48037f-74b1-46ce-9095-8ba2123ca6cf
-                responseCode: OK
-                result:
-                  message: Datasource test1.1_test1.1_rollup_month deleted successfully
-        '404':
-          description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '257'
-            ETag:
-              schema:
-                type: string
-                example: W/"101-vH4Pbrd2R7bhGvJe0jZieR4kOMA"
-            Date:
-              schema:
-                type: string
-                example: Sun, 02 Jun 2024 19:06:11 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                id: api.datasource.delete
-                ver: v1
-                ts: '2024-06-03T00:36:11+05:30'
-                params:
-                  status: FAILED
-                  resmsgid: ''
-                responseCode: NOT_FOUND
-                error:
-                  code: DATASOURCE_NOT_EXISTS
-                  message: Datasource test1.1_test1.1_month does not exists
                   trace: ''
