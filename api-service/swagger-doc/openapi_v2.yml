@@ -237,6 +237,65 @@ paths:
                   dataset_id: telemetry_record
                   version_key: '1717073955640'
                   name: sb-telemetry
+                  validation_config:
+                    validate: true
+                    mode: Strict
+                  extraction_config:
+                    is_batch_event: true
+                    extraction_key: events
+                    dedup_config:
+                      drop_duplicates: true
+                      dedup_key: id
+                  dedup_config:
+                    drop_duplicates: true
+                    dedup_key: eid
+                  data_schema:
+                    $schema: https://json-schema.org/draft/2020-12/schema
+                    type: object
+                    properties:
+                      eid:
+                        type: string
+                      ets:
+                        type: string
+                      required:
+                        - eid
+                    additionalProperties: true
+                  denorm_config:
+                    denorm_fields:
+                      - values:
+                          denorm_key: eid
+                          denorm_out_field: userdata
+                        action: remove
+                      - values:
+                          denorm_key: eid
+                          denorm_out_field: edata
+                        action: add
+                  transformation_config:
+                    - values:
+                        field_key: eid
+                        transformation_function:
+                          type: mask
+                          expr: eid
+                          condition: null
+                        mode: Strict
+                        metadata:
+                          _transformationType: mask
+                          _transformedFieldDataType: string
+                          _transformedFieldSchemaType: string
+                          section: transformation
+                      action: add
+                  dataset_config:
+                    data_key: eid
+                    timestamp_key: ets
+                  tags:
+                    - values:
+                        - tag1
+                        - tag2
+                      action: remove
+                    - values:
+                        - tag3
+                        - tag4
+                      action: add
       responses:
         '200':
           description: OK
@@ -518,7 +577,7 @@ paths:
         This API allows you to read dataset from the requested dataset_id. User
         can request for the specific fields and status of the dataset through
         the request params. By default, the API returns the dataset of status
-        "Live".  
+        "Live". This API accepts the param mode=edit for reading live dataset.
         <br>
         <br>
         Valid fields that user can request are
@@ -538,6 +597,12 @@ paths:
             type: string
         - name: fields
           example: name
+          in: query
+          required: false 
+          schema:
+            type: string
+        - name: mode
+          example: edit
           in: query
           required: false 
           schema:
@@ -2492,12 +2557,6 @@ paths:
                       code: FILES_URL_GENERATION_LIMIT_EXCEED
                       message: 'Pre-signed URL generation failed: limit exceeded.'
                       trace: ''
-        undefined:
-          content:
-            text/plain:
-              schema:
-                type: string
-              example: null
   /v2/obsrv/data/sql-query:
     post:
       tags:
