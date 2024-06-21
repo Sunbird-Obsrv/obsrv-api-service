@@ -24,6 +24,8 @@ export class Datasets {
     private created_by: string
     private updated_by: string
     private published_date: Date
+    private api_version: string
+    private version_key: string
     constructor(payload: any) {
         if (payload.id) {
             this.id = payload.id
@@ -46,11 +48,13 @@ export class Datasets {
         this.created_by = payload.created_by
         this.updated_by = payload.updated_by
         this.published_date = payload.published_date
+        this.api_version = "v1"
+        this.version_key = payload.version_key || "1"
     }
 
     public getValues() {
         this.validateDenormConfig();
-        return Object.assign(this.removeNullValues({ id: this.id, dataset_id: this.dataset_id, type: this.type, name: this.name, validation_config: this.validation_config, extraction_config: this.extraction_config, dedup_config: this.dedup_config, data_schema: this.data_schema, router_config: this.router_config, denorm_config: this.denorm_config, dataset_config: this.dataset_config, tags: this.tags, status: this.status, created_by: this.created_by, updated_by: this.updated_by, published_date: this.published_date }), { "updated_date": new Date })
+        return Object.assign(this.removeNullValues({ id: this.id, dataset_id: this.dataset_id, type: this.type, name: this.name, validation_config: this.validation_config, extraction_config: this.extraction_config, dedup_config: this.dedup_config, data_schema: this.data_schema, router_config: this.router_config, denorm_config: this.denorm_config, dataset_config: this.dataset_config, tags: this.tags, status: this.status, api_version: this.api_version, version_key: this.version_key, created_by: this.created_by, updated_by: this.updated_by, published_date: this.published_date }), { "updated_date": new Date })
     }
 
     public setValues() {
