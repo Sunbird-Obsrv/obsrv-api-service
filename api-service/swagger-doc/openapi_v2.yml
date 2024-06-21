@@ -150,7 +150,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 54c5b692-dc37-432e-b556-7f396d7c9e07
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_DUPLICATE_DENORM_KEY
                       message: Duplicate denorm key found
@@ -165,7 +164,6 @@ paths:
                       status: FAILED
                       resmsgid: 615c1e4c-8c19-44fd-b29c-c235e7cbb5f0
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_INVALID_INPUT
                       message: >-
@@ -187,7 +185,6 @@ paths:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                   resmsgid: 76612ad1-241b-4ce3-8af4-88db860697f4
                 responseCode: CONFLICT
-                result: {}
                 error:
                   code: DATASET_EXISTS
                   message: Dataset already exists
@@ -207,7 +204,6 @@ paths:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                   resmsgid: dd1c0e11-fb4c-484c-81fe-82c9e2eee053
                 responseCode: INTERNAL_SERVER_ERROR
-                result: {}
                 error:
                   code: DATASET_CREATION_FAILURE
                   message: Failed to create dataset
@@ -334,7 +330,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 9408e137-ada8-48b8-99e9-90d5cdd35e35
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_UPDATE_INPUT_INVALID
                       message: >-
@@ -352,7 +347,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 347f465f-f100-4095-9801-38c4943380c0
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_UPDATE_NO_FIELDS
                       message: >-
@@ -370,7 +364,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: a9dfc926-c893-4ec3-82b8-bc8601d928a9
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_NOT_IN_DRAFT_STATE_TO_UPDATE
                       message: Dataset cannot be updated as it is not in draft state
@@ -386,7 +379,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 865b9bef-9b6d-467c-9065-6689126b0f42
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_DUPLICATE_DENORM_KEY
                       message: Dataset contains duplicate denorm out keys:[userdata]
@@ -402,7 +394,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 9e9ff0bc-d660-4c4e-a2b0-cb11246a6961
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_TAGS_EXISTS
                       message: Dataset tags already exist
@@ -418,7 +409,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: e0a5cc26-032e-4be8-81ef-c7e76867c9c1
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_TRANSFORMATIONS_EXIST
                       message: Dataset transformations already exists
@@ -434,7 +424,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 0b807580-a2b5-4a44-adc4-80b35b4b6529
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATASET_DENORM_EXISTS
                       message: Denorm fields already exist
@@ -457,7 +446,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: ebcf0a62-7c95-40f5-adf2-87ab90a40a80
                     responseCode: NOT_FOUND
-                    result: {}
                     error:
                       code: DATASET_NOT_EXISTS
                       message: Dataset does not exists to update
@@ -473,7 +461,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: c29e7d0f-3eaf-4972-8804-c172db7b6f13
                     responseCode: NOT_FOUND
-                    result: {}
                     error:
                       code: DATASET_TAGS_DO_NOT_EXIST
                       message: Dataset tags do not exist to remove
@@ -489,7 +476,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 0b5f515b-1958-4597-b603-b4038d4e5846
                     responseCode: NOT_FOUND
-                    result: {}
                     error:
                       code: DATASET_TRANSFORMATIONS_DO_NOT_EXIST
                       message: Dataset transformations do not exist to update
@@ -505,7 +491,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: 69d32411-4252-4b7f-8afa-6d436928c3d3
                     responseCode: NOT_FOUND
-                    result: {}
                     error:
                       code: DATASET_TRANSFORMATIONS_DO_NOT_EXIST
                       message: Dataset transformations do not exist to remove
@@ -521,7 +506,6 @@ paths:
                       msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                       resmsgid: ce78e393-2b74-46da-a70b-2abd06ad3270
                     responseCode: NOT_FOUND
-                    result: {}
                     error:
                       code: DATASET_DENORM_DO_NOT_EXIST
                       message: Denorm fields do not exist to remove
@@ -541,7 +525,6 @@ paths:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                   resmsgid: fe4a438d-441c-4497-a3ec-a0cee2058b48
                 responseCode: CONFLICT
-                result: {}
                 error:
                   code: DATASET_OUTDATED
                   message: >-
@@ -563,7 +546,6 @@ paths:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                   resmsgid: 451daa85-9cb8-459a-b681-a256c6e912f0
                 responseCode: INTERNAL_SERVER_ERROR
-                result: {}
                 error:
                   code: DATASET_UPDATE_FAILURE
                   message: Failed to update dataset
@@ -577,7 +559,9 @@ paths:
         This API allows you to read dataset from the requested dataset_id. User
         can request for the specific fields and status of the dataset through
         the request params. By default, the API returns the dataset of status
-        "Live". This API accepts the param mode=edit for reading live dataset.
+        "Live". 
+        This API accepts the parameter mode=edit to read the draft dataset. If a draft dataset is not found,
+        it creates one using the live dataset and returns the dataset details.
         <br>
         <br>
         Valid fields that user can request are
@@ -1140,7 +1124,6 @@ paths:
                   status: FAILED
                   resmsgid: 302fec39-5070-4464-b02f-56b1d0418147
                 responseCode: BAD_REQUEST
-                result: {}
                 error:
                   code: DATASET_INVALID_FIELDS
                   message: >-
@@ -1161,7 +1144,6 @@ paths:
                   status: FAILED
                   resmsgid: cd71f8c7-6aa9-4b3a-9825-b2caab67fe8c
                 responseCode: NOT_FOUND
-                result: {}
                 error:
                   code: DATASET_NOT_FOUND
                   message: Dataset with the given dataset_id not found
@@ -1180,7 +1162,6 @@ paths:
                   status: FAILED
                   resmsgid: 29d82020-101d-4506-8fb8-6f3603057064
                 responseCode: INTERNAL_SERVER_ERROR
-                result: {}
                 error:
                   code: DATASET_READ_FAILURE
                   message: Failed to read dataset
@@ -2181,7 +2162,6 @@ paths:
                   status: FAILED
                   resmsgid: f9e1fae9-4660-409d-bb4d-e29888983d4b
                 responseCode: BAD_REQUEST
-                result: {}
                 error:
                   code: DATASET_LIST_INPUT_INVALID
                   message: >-
@@ -2203,7 +2183,6 @@ paths:
                   msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
                   resmsgid: 81c3a4a5-e8ac-41de-be00-6d0300ecb106
                 responseCode: INTERNAL_SERVER_ERROR
-                result: {}
                 error:
                   code: DATASET_LIST_FAILURE
                   message: Failed to list dataset
@@ -2449,23 +2428,37 @@ paths:
       summary: Files generate URL
       description: >-
         This API allows you to generate pre signed urls from cloud providers for
-        getting and putting files.
+        getting and putting files. On access: write, upload urls are generated to put files and on access: read, download urls are generated to get files.
       requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                id: api.files.generate-url
-                ver: v2
-                ts: '2024-04-19T12:58:47+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
-                request:
-                  files:
-                    - telemetry.json
-                    - school_data.json
-                  access: write
+          content:
+            application/json:
+              examples:
+                example1:
+                    summary: Generate upload URL
+                    value:
+                      id: api.files.generate-url
+                      ver: v2
+                      ts: '2024-04-19T12:58:47+05:30'
+                      params:
+                        msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      request:
+                        files:
+                          - telemetry.json
+                          - school_data.json
+                        access: write
+                example2:
+                  summary: Generate download URL
+                  value:
+                    id: api.files.generate-url
+                    ver: v2
+                    ts: '2024-04-19T12:58:47+05:30'
+                    params:
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                    request:
+                      files:
+                        - telemetry.json
+                        - school_data.json
+                      access: read
       responses:
         '200':
           description: OK
@@ -2562,7 +2555,7 @@ paths:
       tags:
         - Dataset CRUD APIs
       summary: SQL Wrapper
-      description: This api is a wrapper api, used to query to druid.
+      description: This api is a wrapper api, used to query the data.
       requestBody:
         content:
           application/json:
@@ -2668,22 +2661,58 @@ paths:
       summary: Dataset Status Transition
       description: >-
         This API allows you to perform status transition between 2 states.
-        Allowed status transition are Draft to ReadyToPublish, ReadyToPublish to
-        Live, Live to Retired and even Delete a dataset.
+        Allowed status transition are:
+        <br>
+  
+         Draft to ReadyToPublish when the dataset configuration is complete and configuration is validated, ReadyToPublish to Live to make dataset live and make it actively running within the pipeline, Live to Retired when dataset is needed to be stopped and retired.User can even Delete the dataset of Draft and ReadyToPublish status.
       requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                id: api.datasets.status-transition
-                ver: v2
-                ts: '2024-04-19T12:58:47+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
-                request:
-                  dataset_id: telemetry-events
-                  status: ReadyToPublish
+          content:
+            application/json:
+              examples:
+                example1:
+                    summary: Transition to ReadyToPublish
+                    value:
+                      id: api.datasets.status-transition
+                      ver: v2
+                      ts: '2024-04-19T12:58:47+05:30'
+                      params:
+                        msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      request:
+                        dataset_id: telemetry-events
+                        status: ReadyToPublish
+                example2:
+                    summary: Transition to Live
+                    value:
+                      id: api.datasets.status-transition
+                      ver: v2
+                      ts: '2024-04-19T12:58:47+05:30'
+                      params:
+                        msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      request:
+                        dataset_id: telemetry-events
+                        status: Live
+                example3:
+                    summary: Transition to Retired
+                    value:
+                      id: api.datasets.status-transition
+                      ver: v2
+                      ts: '2024-04-19T12:58:47+05:30'
+                      params:
+                        msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      request:
+                        dataset_id: telemetry-events
+                        status: Retire
+                example4:
+                    summary: Delete a draft dataset
+                    value:
+                      id: api.datasets.status-transition
+                      ver: v2
+                      ts: '2024-04-19T12:58:47+05:30'
+                      params:
+                        msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                      request:
+                        dataset_id: telemetry-events
+                        status: Delete
       responses:
         '200':
           description: OK
@@ -3050,7 +3079,6 @@ paths:
                         msgid: e180ecac-8f41-4f21-9a21-0b3a1a368917
                         resmsgid: 98020cf9-4239-4b6e-beea-c687d21fafa3
                       responseCode: BAD_REQUEST
-                      result: {}
                       error:
                         code: ENTRY_TOPIC_NOT_FOUND
                         message: Entry topic is not defined
@@ -3428,7 +3456,6 @@ paths:
                   status: FAILED
                   resmsgid: 6c62ff4d-0a63-4384-a365-7bbef951f288
                 responseCode: NOT_FOUND
-                result: {}
                 error:
                   code: QUERY_TEMPLATE_NOT_EXISTS
                   message: Template json_template does not exists
@@ -4381,7 +4408,6 @@ paths:
                       status: FAILED
                       resmsgid: 4379e16b-2fa3-46a8-8ded-bc53f56283e9
                     responseCode: BAD_REQUEST
-                    result: {}
                     error:
                       code: DATA_OUT_INVALID_DATE_RANGE
                       message: >-
