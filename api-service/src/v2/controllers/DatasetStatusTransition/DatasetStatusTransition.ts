@@ -19,6 +19,7 @@ import { Datasource } from "../../models/Datasource";
 import { DatasetTransformations } from "../../models/Transformation";
 import { executeCommand } from "../../connections/commandServiceConnection";
 import { druidHttpService } from "../../connections/druidConnection";
+import { sequelize } from "../../connections/databaseConnection";
 
 export const apiId = "api.datasets.status-transition";
 export const errorCode = "DATASET_STATUS_TRANSITION_FAILURE"
@@ -41,64 +42,68 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     const requestBody = req.body
     const msgid = _.get(req, ["body", "params", "msgid"]);
     const resmsgid = _.get(res, "resmsgid");
-        try {
-            const { dataset_id, status } = _.get(requestBody, "request");
-            setReqDatasetId(req, dataset_id)
+    let transact;
+    try {
+        const { dataset_id, status } = _.get(requestBody, "request");
+        setReqDatasetId(req, dataset_id)
 
-            const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
-            if (!isRequestValid.isValid) {
-                const code = "DATASET_STATUS_TRANSITION_INVALID_INPUT"
-                logger.error({ code, apiId, msgid, requestBody, resmsgid, message: isRequestValid.message })
-                return ResponseHandler.errorResponse({
-                    code,
-                    message: isRequestValid.message,
-                    statusCode: 400,
-                    errCode: "BAD_REQUEST"
-                } as ErrorObject, req, res);
-            }
-
-            const datasetRecord = await fetchDataset({ status, dataset_id })
-            if (_.isEmpty(datasetRecord)) {
-                const code = "DATASET_NOT_FOUND"
-                const errorMessage = getErrorMessage(status, code)
-                logger.error({ code, apiId, msgid, requestBody, resmsgid, message: `${errorMessage} for dataset:${dataset_id}` })
-                return ResponseHandler.errorResponse({
-                    code,
-                    message: errorMessage,
-                    statusCode: 404,
-                    errCode: "NOT_FOUND"
-                } as ErrorObject, req, res);
-            }
-
-            const allowedStatus = _.get(allowedTransitions, status)
-            const datasetStatus = _.get(datasetRecord, "status")
-            if (!_.includes(allowedStatus, datasetStatus)) {
-                const code = `DATASET_${_.toUpper(status)}_FAILURE`
-                const errorMessage = getErrorMessage(status, "STATUS_INVALID")
-                logger.error({ code, apiId, msgid, requestBody, resmsgid, message: `${errorMessage} for dataset:${dataset_id} status:${datasetStatus} with status transition to ${status}` })
-                return ResponseHandler.errorResponse({
-                    code,
-                    message: errorMessage,
-                    statusCode: 400,
-                    errCode: "BAD_REQUEST"
-                } as ErrorObject, req, res);
-            }
-
-            const transitionCommands = _.get(statusTransitionCommands, status)
-            await executeTransition({ transitionCommands, dataset: datasetRecord })
-
-            logger.info({ apiId, msgid, requestBody, resmsgid, message: `Dataset status transition to ${status} successful with id:${dataset_id}` })
-            ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: `Dataset status transition to ${status} successful`, dataset_id } });
-        } catch (error: any) {
-            const code = _.get(error, "code") || errorCode
-            logger.error(error, apiId, msgid, code, requestBody, resmsgid)
-            let errorMessage = error;
-            const statusCode = _.get(error, "statusCode")
-            if (!statusCode || statusCode == 500) {
-                errorMessage = { code, message: "Failed to perform status transition on datasets" }
-            }
-            ResponseHandler.errorResponse(errorMessage, req, res);
+        const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
+        if (!isRequestValid.isValid) {
+            const code = "DATASET_STATUS_TRANSITION_INVALID_INPUT"
+            logger.error({ code, apiId, msgid, requestBody, resmsgid, message: isRequestValid.message })
+            return ResponseHandler.errorResponse({
+                code,
+                message: isRequestValid.message,
+                statusCode: 400,
+                errCode: "BAD_REQUEST"
+            } as ErrorObject, req, res);
         }
+
+        const datasetRecord = await fetchDataset({ status, dataset_id })
+        if (_.isEmpty(datasetRecord)) {
+            const code = "DATASET_NOT_FOUND"
+            const errorMessage = getErrorMessage(status, code)
+            logger.error({ code, apiId, msgid, requestBody, resmsgid, message: `${errorMessage} for dataset:${dataset_id}` })
+            return ResponseHandler.errorResponse({
+                code,
+                message: errorMessage,
+                statusCode: 404,
+                errCode: "NOT_FOUND"
+            } as ErrorObject, req, res);
+        }
+
+        const allowedStatus = _.get(allowedTransitions, status)
+        const datasetStatus = _.get(datasetRecord, "status")
+        if (!_.includes(allowedStatus, datasetStatus)) {
+            const code = `DATASET_${_.toUpper(status)}_FAILURE`
+            const errorMessage = getErrorMessage(status, "STATUS_INVALID")
+            logger.error({ code, apiId, msgid, requestBody, resmsgid, message: `${errorMessage} for dataset:${dataset_id} status:${datasetStatus} with status transition to ${status}` })
+            return ResponseHandler.errorResponse({
+                code,
+                message: errorMessage,
+                statusCode: 400,
+                errCode: "BAD_REQUEST"
+            } as ErrorObject, req, res);
+        }
+
+        const transitionCommands = _.get(statusTransitionCommands, status)
+        transact = await sequelize.transaction()
+        await executeTransition({ transitionCommands, dataset: datasetRecord, transact })
+
+        await transact.commit();
+        logger.info({ apiId, msgid, requestBody, resmsgid, message: `Dataset status transition to ${status} successful with id:${dataset_id}` })
+        ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: `Dataset status transition to ${status} successful`, dataset_id } });
+    } catch (error: any) {
+        transact && await transact.rollback();
+        const code = _.get(error, "code") || errorCode
+        logger.error(error, apiId, msgid, code, requestBody, resmsgid)
+        let errorMessage = error;
+        const statusCode = _.get(error, "statusCode")
+        if (!statusCode || statusCode == 500) {
+            errorMessage = { code, message: "Failed to perform status transition on datasets" }
+        }
+        ResponseHandler.errorResponse(errorMessage, req, res);
+    }
 }
 
 const fetchDataset = async (configs: Record<string, any>) => {
@@ -115,10 +120,10 @@ const fetchDataset = async (configs: Record<string, any>) => {
 }
 
 const executeTransition = async (configs: Record<string, any>) => {
-    const { transitionCommands, dataset } = configs
+    const { transitionCommands, dataset, transact } = configs
     const transitionPromises = _.map(transitionCommands, async command => {
         const commandWorkflow = _.get(commandExecutors, command)
-        return commandWorkflow({ dataset })
+        return commandWorkflow({ dataset, transact })
     })
     await Promise.all(transitionPromises)
 }
@@ -140,17 +145,17 @@ const validateDataset = async (configs: Record<string, any>) => {
 
 //DELETE_DRAFT_DATASETS
 const deleteDataset = async (configs: Record<string, any>) => {
-    const { dataset } = configs
+    const { dataset, transact } = configs
     const { id } = dataset
-    await deleteDraftRecords({ dataset_id: id })
+    await deleteDraftRecords({ dataset_id: id, transact })
 }
 
 const deleteDraftRecords = async (config: Record<string, any>) => {
-    const { dataset_id } = config;
-    await DatasetTransformationsDraft.destroy({ where: { dataset_id } })
-    await DatasetSourceConfigDraft.destroy({ where: { dataset_id } })
-    await DatasourceDraft.destroy({ where: { dataset_id } })
-    await DatasetDraft.destroy({ where: { id: dataset_id } })
+    const { dataset_id, transact } = config;
+    await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction: transact })
+    await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction: transact })
+    await DatasourceDraft.destroy({ where: { dataset_id }, transaction: transact })
+    await DatasetDraft.destroy({ where: { id: dataset_id }, transaction: transact })
 }
 
 //PUBLISH_DATASET
@@ -185,12 +190,12 @@ const checkDatasetDenorm = async (payload: Record<string, any>) => {
 
 //SET_DATASET_TO_RETIRE
 const setDatasetRetired = async (config: Record<string, any>) => {
-    const { dataset } = config;
+    const { dataset, transact } = config;
     const { dataset_id } = dataset
-    await Dataset.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-    await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-    await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-    await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
+    await Dataset.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
+    await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
+    await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
+    await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id }, transaction: transact })
 }
 
 //DELETE_SUPERVISORS
