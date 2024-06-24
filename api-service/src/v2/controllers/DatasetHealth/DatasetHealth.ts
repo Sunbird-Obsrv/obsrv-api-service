@@ -1,13 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response, response } from "express";
 import _ from "lodash";
 import { schemaValidation } from "../../services/ValidationService";
-import DatasetHealthRequestSchema  from "./DatasetHealthValidationSchema.json"
+import DatasetHealthRequestSchema from "./DatasetHealthValidationSchema.json"
 import { ErrorObject } from "../../types/ResponseModel";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetStatus } from "../../types/DatasetModels";
 import { Dataset } from "../../models/Dataset";
 import logger from "../../logger";
-import { getPostgresStatus } from "../../services/HealthService";
+import { getDruidHealthStatus, getFlinkHealthStaus, getInfraHealth, getKafkaHealthStatus, getPostgresStatus, getRedisStatus } from "../../services/HealthService";
 
 
 export const apiId = "api.dataset.health";
@@ -31,27 +31,42 @@ const datasetHealth = async (req: Request, res: Response) => {
                 errCode: "BAD_REQUEST"
             } as ErrorObject, req, res);
         }
-
-        const liveDatasets = await getLiveDatasets(requestBody?.request?.datasets)
-        if(_.isEmpty(liveDatasets)) {
-            const code = "DATASET_HEALTH_NO_DATASETS"
-            const message = `There are no live datasets exists with given dataset_ids: ${requestBody?.request?.datasets}`
-            logger.error({ code, apiId, msgid, requestBody, resmsgid, message: message })
-            return ResponseHandler.errorResponse({
-                code,
-                message,
-                statusCode: 400,
-                errCode: "BAD_REQUEST"
-            } as ErrorObject, req, res);
+        if (requestBody?.request?.datasets === "*") {
+            const {components, status} = await getInfraHealth()
+            return ResponseHandler.successResponse(req, res, {
+                status: 200, data: {
+                    "details": [
+                        {
+                            "category": "infra",
+                            "status": status,
+                            "components": components
+                        }]
+                }
+            });
         }
-        logger.debug(apiId, msgid, resmsgid, "live datasets", liveDatasets)
+
+        // const liveDatasets = await getLiveDatasets(requestBody?.request?.datasets)
+        // if(_.isEmpty(liveDatasets)) {
+        //     const code = "DATASET_HEALTH_NO_DATASETS"
+        //     const message = `There are no live datasets exists with given dataset_ids: ${requestBody?.request?.datasets}`
+        //     logger.error({ code, apiId, msgid, requestBody, resmsgid, message: message })
+        //     return ResponseHandler.errorResponse({
+        //         code,
+        //         message,
+        //         statusCode: 400,
+        //         errCode: "BAD_REQUEST"
+        //     } as ErrorObject, req, res);
+        // }
+        // logger.debug(apiId, msgid, resmsgid, "live datasets", liveDatasets)
 
         const categories = requestBody?.request?.categories;
 
-        const postgres = await getPostgresStatus() 
-        logger.info({postgres})
 
 
+        // logger.info({postgres, redis, kafka, druid, flink})
+
+        // res.send({postgres, redis, kafka, druid, flink})
+        res.send({})
 
     } catch (error: any) {
         logger.error({ ...error, apiId, code: errorCode, msgid, requestBody, resmsgid });
@@ -61,13 +76,13 @@ const datasetHealth = async (req: Request, res: Response) => {
             errorMessage = { code: errorCode, message: "Failed to check dataset health" }
         }
         ResponseHandler.errorResponse(errorMessage, req, res);
-    }        
+    }
 
-    
-        
+
+
 }
 const getLiveDatasets = async (ids: Record<string, any>): Promise<Record<string, any>> => {
-    return Dataset.findAll({attributes: ['dataset_id', 'status'], where: { dataset_id: ids, status: DatasetStatus.Live}, raw: true });
+    return Dataset.findAll({ attributes: ['dataset_id', 'status', 'type'], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
 }
 
 export default datasetHealth;

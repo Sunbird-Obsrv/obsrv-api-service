@@ -26,11 +26,19 @@
       "type": "object",
       "properties": {
         "datasets": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": ["*"]
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          ]
         },
         "categories": {
           "type": "array",

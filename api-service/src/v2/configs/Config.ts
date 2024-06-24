@@ -97,5 +97,9 @@ export const config = {
     "host": process.env.command_service_host || "http://localhost",
     "port": parseInt(process.env.command_service_port || "8000"),
     "path": process.env.command_service_path || "/system/v1/dataset/command"
+  },
+  "flink_job_configs": {
+    "pipeline_merged_job_manager_url": process.env.pipeline_merged_job_manager_url || "http://localhost:8081",
+    "masterdata_processor_job_manager_url": process.env.pipeline_merged_job_manager_url || "http://localhost:8081"
   }
 }
