@@ -2,12 +2,14 @@ import axios from "axios";
 import { config } from "../configs/Config";
 import { logger } from "@project-sunbird/logger";
 import { health as postgresHealth } from "../connections/databaseConnection";
-import { HealthStatus } from "../types/DatasetModels";
+import { DatasetType, HealthStatus } from "../types/DatasetModels";
 import { createClient } from 'redis';
 import { isHealthy as isKafkaHealthy } from "../connections/kafkaConnection";
 import { druidHttpService, executeNativeQuery } from "../connections/druidConnection";
 import _ from "lodash";
 import moment from "moment";
+import { SystemConfig } from "./SystemConfig";
+
 
 const dateFormat = 'YYYY-MM-DDT00:00:00+05:30'
 
@@ -40,27 +42,96 @@ const init = async () => {
     .connect();
 }
 
+const getDatasetIdForMetrics = (datasetId: string) => {
+  datasetId = datasetId.replace(/-/g, '_')
+      .replace(/\./g, '_')
+      .replace(/\n/g, '')
+      .replace(/[\n\r]/g, '')
+  return datasetId;
+}
 
 const queryMetrics = (params: Record<string, any> | string) => {
   return prometheusInstance.get("/api/v1/query", { params })
 }
 
-export const getInfraHealth = async (): Promise<{components: any, status: string}> => {
-  const postgres = await getPostgresStatus() 
+export const getInfraHealth = async (): Promise<{ components: any, status: string }> => {
+  const postgres = await getPostgresStatus()
   const redis = await getRedisStatus()
   const kafka = await getKafkaHealthStatus()
   const druid = await getDruidHealthStatus()
   const flink = await getFlinkHealthStaus()
-  const components =  [{"type": "postgres", "status": postgres},
-    {"type": "redis", "status": redis},
-    {"type": "kafka", "status": kafka},
-    {"type": "druid", "status": druid},
-    {"type": "flink", "status": flink},
+  const components = [{ "type": "postgres", "status": postgres },
+  { "type": "redis", "status": redis },
+  { "type": "kafka", "status": kafka },
+  { "type": "druid", "status": druid },
+  { "type": "flink", "status": flink },
   ]
   const status = [postgres, redis, kafka, druid, flink].includes(HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy
-  return {components, status};
+  return { components, status };
 }
-export const getPostgresStatus = async (): Promise<HealthStatus> => {
+
+export const getProcessingHealth = async (dataset: any): Promise<{ components: any, status: string }> => {
+  
+  const dataset_id = _.get(dataset, "dataset_id")
+  const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
+  const flink = await getFlinkHealthStaus()
+  const {count, health} = await getEventsProcessedToday(dataset_id, isMasterDataset)
+  const {count: avgCount, health: avgHealth} = await getAvgProcessingSpeedInSec(dataset_id, isMasterDataset)
+  const failure = await getValidationFailure(dataset_id, isMasterDataset)
+  const dedupFailure = await getDedupFailure(dataset_id)
+  const denormFailure = await getDenormFailure(dataset_id)
+  const transformFailure = await getTransformFailure(dataset_id)
+  const components = [
+      {
+        "type": "pipeline",
+        "status": flink
+      },
+      {
+        "type": "eventsProcessedCount",
+        "count": count,
+        "status": health
+      },
+      {
+        "type": "avgProcessingSpeedInSec",
+        "count": avgCount,
+        "status": avgHealth
+      },
+      {
+        "type": "validationFailuresCount",
+        "count": failure?.count,
+        "status": failure?.health
+      },
+      {
+        "type": "dedupFailuresCount",
+        "count": dedupFailure?.count,
+        "status": dedupFailure?.health
+      },
+      {
+        "type": "denormFailureCount",
+        "count": denormFailure?.count,
+        "status": denormFailure?.health
+      },
+      {
+        "type": "transformFailureCount",
+        "count": transformFailure?.count,
+        "status": transformFailure?.health
+      }
+  ]
+  
+  
+  const defaultThresholds = await SystemConfig.getThresholds()
+  const processingDefaultThreshold: any = _.get(defaultThresholds, "processing")
+  let status = HealthStatus.Healthy;
+  _.forEach(components, (component: any) => {
+    const threshold = processingDefaultThreshold[_.get(component, 'type')]
+    if(threshold && threshold < _.get(component, 'count')){
+      status = HealthStatus.UnHealthy
+    }
+  })
+  return { components, status };
+}
+
+const getPostgresStatus = async (): Promise<HealthStatus> => {
   try {
     const postgresStatus = await postgresHealth()
     logger.debug(postgresStatus)
@@ -71,11 +142,11 @@ export const getPostgresStatus = async (): Promise<HealthStatus> => {
   return HealthStatus.Healthy
 }
 
-export const getRedisStatus = async () => {
+const getRedisStatus = async () => {
   return isRedisDenormHealthy && isRedisDedupHealthy ? HealthStatus.Healthy : HealthStatus.UnHealthy
 }
 
-export const getKafkaHealthStatus = async () => {
+const getKafkaHealthStatus = async () => {
   try {
     const status = await isKafkaHealthy()
     return status ? HealthStatus.Healthy : HealthStatus.UnHealthy
@@ -85,7 +156,7 @@ export const getKafkaHealthStatus = async () => {
 
 }
 
-export const getFlinkHealthStaus = async () => {
+const getFlinkHealthStaus = async () => {
   try {
     const responses = await Promise.all(
       [axios.get(config?.flink_job_configs?.masterdata_processor_job_manager_url as string + "/jobs"),
@@ -102,7 +173,7 @@ export const getFlinkHealthStaus = async () => {
   return HealthStatus.UnHealthy;
 }
 
-export const getDruidHealthStatus = async () => {
+const getDruidHealthStatus = async () => {
   try {
     const { data = false } = await druidHttpService.get("/status/health")
     return data ? HealthStatus.Healthy : HealthStatus.UnHealthy
@@ -112,53 +183,175 @@ export const getDruidHealthStatus = async () => {
   }
 }
 
-export const getEventsProcessedToday = async (datasetId: string, isMaster: boolean) => {
+const getEventsProcessedToday = async (datasetId: string, isMasterDataset: boolean) => {
   const startDate = moment().format(dateFormat);
   const endDate = moment().add(1, 'd').format(dateFormat);
-
   const intervals = `${startDate}/${endDate}`
-  const { data } = await executeNativeQuery({
-    "queryType": "timeseries",
-    "dataSource": "system-events",
-    "intervals": intervals,
-    "granularity": {
-      "type": "all",
-      "timeZone": "Asia/Kolkata"
-    },
-    "filter": {
-      "type": "and",
-      "fields": [
+  logger.debug({ datasetId, isMasterDataset })
+  try {
+    const { data } = await executeNativeQuery({
+      "queryType": "timeseries",
+      "dataSource": "system-events",
+      "intervals": intervals,
+      "granularity": {
+        "type": "all",
+        "timeZone": "Asia/Kolkata"
+      },
+      "filter": {
+        "type": "and",
+        "fields": [
+          {
+            "type": "selector",
+            "dimension": "ctx_module",
+            "value": "processing"
+          },
+          {
+            "type": "selector",
+            "dimension": "ctx_dataset",
+            "value": datasetId
+          },
+          {
+            "type": "selector",
+            "dimension": "ctx_pdata_id",
+            "value": isMasterDataset ? "MasterDataProcessorJob" : "DruidRouterJob"
+          },
+          {
+            "type": "selector",
+            "dimension": "error_code",
+            "value": null
+          }
+        ]
+      },
+      "aggregations": [
         {
-          "type": "selector",
-          "dimension": "ctx_module",
-          "value": "processing"
-        },
-        {
-          "type": "selector",
-          "dimension": "ctx_dataset",
-          "value": datasetId
-        },
-        {
-          "type": "selector",
-          "dimension": "ctx_pdata_id",
-          "value": isMaster ? "MasterDataProcessorJob" : "DruidRouterJob"
-        },
-        {
-          "type": "selector",
-          "dimension": "error_code",
-          "value": null
+          "type": "longSum",
+          "name": "count",
+          "fieldName": "count"
         }
       ]
-    },
-    "aggregations": [
-      {
-        "type": "longSum",
-        "name": "count",
-        "fieldName": "count"
-      }
-    ]
+    })
+    return { health: HealthStatus.Healthy, count: _.get(data, "[0].result.count", 0) || 0 }
+  } catch (error) {
+    logger.error(error)
+    return {count: 0, health: HealthStatus.UnHealthy }
+  }
+}
+
+const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: boolean) => {
+  const startDate = moment().format(dateFormat);
+  const endDate = moment().add(1, 'd').format(dateFormat);
+  // const intervals = `${startDate}/${endDate}`
+  const intervals = "2024-06-21T00:00:00+05:30/2024-06-22T00:00:00+05:30"
+  logger.debug({ datasetId, isMasterDataset })
+  try {
+    const { data } = await executeNativeQuery({
+      "queryType": "groupBy",
+      "dataSource": "system-events",
+      "intervals": intervals,
+      "granularity": {
+          "type": "all",
+          "timeZone": "Asia/Kolkata"
+      },
+      "filter": {
+          "type": "and",
+          "fields": [
+              {
+                  "type": "selector",
+                  "dimension": "ctx_module",
+                  "value": "processing"
+              },
+              {
+                  "type": "selector",
+                  "dimension": "ctx_dataset",
+                  "value": datasetId
+              },
+              {
+                  "type": "selector",
+                  "dimension": "ctx_pdata_id",
+                  "value": isMasterDataset ? "MasterDataProcessorJob" : "DruidRouterJob"
+              },
+              {
+                  "type": "selector",
+                  "dimension": "error_code",
+                  "value": null
+              }
+          ]
+      },
+      "aggregations": [
+          {
+              "type": "longSum",
+              "name": "processing_time",
+              "fieldName": "total_processing_time"
+          },
+          {
+              "type": "longSum",
+              "name": "count",
+              "fieldName": "count"
+          }
+      ],
+      "postAggregations": [
+          {
+              "type": "expression",
+              "name": "average_processing_time",
+              "expression": "case_searched((count > 0),(processing_time/count),0",
+          }
+      ]
   })
-  console.log()
+    return { health: HealthStatus.Healthy, count: _.get(data, "[0].event.average_processing_time", 0) }
+  } catch (error) {
+    logger.error(error)
+    return {count: 0, health: HealthStatus.UnHealthy }
+  }
+}
+
+const getValidationFailure = async (datasetId: string, isMasterDataset: boolean) => {
+  let query = ""
+  if(isMasterDataset) {
+    query =  `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
+  }
+  else {
+    query =`sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
+  }
+  try {
+    const {data} = await queryMetrics({query})
+    return {count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")), health: HealthStatus.Healthy}  
+  } catch (error) {
+    logger.error(error)
+    return {count: 0, health: HealthStatus.UnHealthy}
+  }
+}
+
+const getDedupFailure = async (datasetId: string) => {
+  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_dedup_failed_count[1d]))`;
+  try {
+    const {data} = await queryMetrics({query})
+    return {count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")), health: HealthStatus.Healthy}  
+  } catch (error) {
+    logger.error(error)
+    return {count: 0, health: HealthStatus.UnHealthy}
+  }
+}
+
+const getDenormFailure = async (datasetId: string) => {
+  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_DenormalizerJob_${getDatasetIdForMetrics(datasetId)}_denorm_failed[1d]))`;
+  try {
+    const {data} = await queryMetrics({query})
+    return {count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")), health: HealthStatus.Healthy}  
+  } catch (error) {
+    logger.error(error)
+    return {count: 0, health: HealthStatus.UnHealthy}
+  }
+}
+
+const getTransformFailure = async (datasetId: string) => {
+  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_TransformerJob_${getDatasetIdForMetrics(datasetId)}_transform_failed_count[1d]))`;
+  try {
+    const {data} = await queryMetrics({query})
+    return {count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")), health: HealthStatus.Healthy}  
+  } catch (error) {
+    logger.error(error)
+    return {count: 0, health: HealthStatus.UnHealthy}
+  }
 }
 
 init().catch(err => logger.error(err))

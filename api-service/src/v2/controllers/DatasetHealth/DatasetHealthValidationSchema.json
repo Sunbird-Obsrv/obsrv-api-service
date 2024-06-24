@@ -26,19 +26,8 @@
       "type": "object",
       "properties": {
         "datasets": {
-          "oneOf": [
-            {
               "type": "string",
-              "enum": ["*"]
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "minItems": 1
-            }
-          ]
+              "minLength": 1
         },
         "categories": {
           "type": "array",

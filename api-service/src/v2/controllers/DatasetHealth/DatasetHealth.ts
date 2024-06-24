@@ -4,11 +4,10 @@ import { schemaValidation } from "../../services/ValidationService";
 import DatasetHealthRequestSchema from "./DatasetHealthValidationSchema.json"
 import { ErrorObject } from "../../types/ResponseModel";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
-import { DatasetStatus } from "../../types/DatasetModels";
+import { DatasetStatus, HealthStatus } from "../../types/DatasetModels";
 import { Dataset } from "../../models/Dataset";
 import logger from "../../logger";
-import { getDruidHealthStatus, getFlinkHealthStaus, getInfraHealth, getKafkaHealthStatus, getPostgresStatus, getRedisStatus } from "../../services/HealthService";
-
+import {  getInfraHealth,  getProcessingHealth } from "../../services/HealthService";
 
 export const apiId = "api.dataset.health";
 export const errorCode = "DATASET_HEALTH_FAILURE"
@@ -35,6 +34,7 @@ const datasetHealth = async (req: Request, res: Response) => {
             const {components, status} = await getInfraHealth()
             return ResponseHandler.successResponse(req, res, {
                 status: 200, data: {
+                    "status": status,
                     "details": [
                         {
                             "category": "infra",
@@ -45,28 +45,48 @@ const datasetHealth = async (req: Request, res: Response) => {
             });
         }
 
-        // const liveDatasets = await getLiveDatasets(requestBody?.request?.datasets)
-        // if(_.isEmpty(liveDatasets)) {
-        //     const code = "DATASET_HEALTH_NO_DATASETS"
-        //     const message = `There are no live datasets exists with given dataset_ids: ${requestBody?.request?.datasets}`
-        //     logger.error({ code, apiId, msgid, requestBody, resmsgid, message: message })
-        //     return ResponseHandler.errorResponse({
-        //         code,
-        //         message,
-        //         statusCode: 400,
-        //         errCode: "BAD_REQUEST"
-        //     } as ErrorObject, req, res);
-        // }
-        // logger.debug(apiId, msgid, resmsgid, "live datasets", liveDatasets)
+        const dataset = await getLiveDatasets(requestBody?.request?.datasets)
+        if(_.isEmpty(dataset)) {
+            const code = "DATASET_HEALTH_NO_DATASETS"
+            const message = `There are no live datasets exists with given dataset_ids: ${requestBody?.request?.datasets}`
+            logger.error({ code, apiId, msgid, requestBody, resmsgid, message: message })
+            return ResponseHandler.errorResponse({
+                code,
+                message,
+                statusCode: 400,
+                errCode: "BAD_REQUEST"
+            } as ErrorObject, req, res);
+        }
+        logger.debug(apiId, msgid, resmsgid, "dataset", dataset)
 
-        const categories = requestBody?.request?.categories;
+        const categories = _.map(requestBody?.request?.categories, (category) => _.get(category, 'category'));
+        const details = []
+        if(categories.includes("infra")) {
+            const {components, status} = await getInfraHealth()
+            details.push({
+                "category": "infra",
+                "status": status,
+                "components": components
+            })
+        } 
+        logger.debug({categories})
+        if(categories.includes("processing")) {
+            const {components, status} = await getProcessingHealth(dataset[0])
+            details.push({
+                "category": "processing",
+                "status": status,
+                "components": components
+            })
+        }
 
+        const allStatus = _.includes(_.map(details, (detail) => detail?.status), HealthStatus.UnHealthy) ? HealthStatus.UnHealthy: HealthStatus.Healthy
 
-
-        // logger.info({postgres, redis, kafka, druid, flink})
-
-        // res.send({postgres, redis, kafka, druid, flink})
-        res.send({})
+        return ResponseHandler.successResponse(req, res, {
+            status: 200, data: {
+                "status": allStatus,
+                "details": details
+            }
+        });
 
     } catch (error: any) {
         logger.error({ ...error, apiId, code: errorCode, msgid, requestBody, resmsgid });
