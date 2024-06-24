@@ -11,6 +11,7 @@ import { DatasetDraft } from "../../../models/DatasetDraft";
 import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
 import { DatasetSourceConfigDraft } from "../../../models/DatasetSourceConfigDraft";
 import { DatasourceDraft } from "../../../models/DatasourceDraft";
+import { sequelize } from "../../../connections/databaseConnection";
 
 
 chai.use(spies);
@@ -39,6 +40,12 @@ describe("DATASET STATUS TRANSITION DELETE", () => {
             return Promise.resolve({})
         })
         chai.spy.on(DatasetDraft, "destroy", () => {
+            return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
             return Promise.resolve({})
         })
         chai
