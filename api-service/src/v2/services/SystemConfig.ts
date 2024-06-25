@@ -5,7 +5,7 @@ export const SystemConfig = {
     getThresholds: () => {
         return Promise.resolve({
             "processing": {
-                'avgProcessingSpeedInSec': 50171,
+                'avgProcessingSpeedInSec': 300,
                 'validationFailuresCount': 10,
                 'dedupFailuresCount': 10,
                 'denormFailureCount': 10,

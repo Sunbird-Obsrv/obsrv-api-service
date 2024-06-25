@@ -54,24 +54,27 @@ const queryMetrics = (params: Record<string, any> | string) => {
   return prometheusInstance.get("/api/v1/query", { params })
 }
 
-export const getInfraHealth = async (): Promise<{ components: any, status: string }> => {
+export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ components: any, status: string }> => {
   const postgres = await getPostgresStatus()
-  const redis = await getRedisStatus()
-  const kafka = await getKafkaHealthStatus()
   const druid = await getDruidHealthStatus()
   const flink = await getFlinkHealthStaus()
-  const components = [{ "type": "postgres", "status": postgres },
-  { "type": "redis", "status": redis },
-  { "type": "kafka", "status": kafka },
-  { "type": "druid", "status": druid },
-  { "type": "flink", "status": flink },
+  let kafka = await getKafkaHealthStatus()
+  let redis = HealthStatus.Healthy
+  const components = [
+    { "type": "postgres", "status": postgres },
+    { "type": "kafka", "status": kafka },
+    { "type": "druid", "status": druid },
+    { "type": "flink", "status": flink }
   ]
+  if (isMasterDataset) {
+    redis = await getRedisStatus()
+    components.push({ "type": "redis", "status": redis })
+  }
   const status = [postgres, redis, kafka, druid, flink].includes(HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy
   return { components, status };
 }
 
 export const getProcessingHealth = async (dataset: any): Promise<{ components: any, status: string }> => {
-
   const dataset_id = _.get(dataset, "dataset_id")
   const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
   const flink = await getFlinkHealthStaus()
@@ -390,7 +393,8 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
         }
       ]
     })
-    return { health: HealthStatus.Healthy, count: _.get(data, "[0].event.average_processing_time", 0) || 0 }
+    const count = _.get(data, "[0].event.average_processing_time", 0) || 0
+    return { health: HealthStatus.Healthy, count: count / 1000 }
   } catch (error) {
     logger.error(error)
     return { count: 0, health: HealthStatus.UnHealthy }
