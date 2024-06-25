@@ -100,6 +100,6 @@ export const config = {
   },
   "flink_job_configs": {
     "pipeline_merged_job_manager_url": process.env.pipeline_merged_job_manager_url || "http://localhost:8081",
-    "masterdata_processor_job_manager_url": process.env.pipeline_merged_job_manager_url || "http://localhost:8081"
+    "masterdata_processor_job_manager_url": process.env.masterdata_processor_job_manager_url || "http://localhost:8081"
   }
 }
