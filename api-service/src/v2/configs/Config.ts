@@ -91,11 +91,12 @@ export const config = {
   "command_service_config": {
     "host": process.env.command_service_host || "http://localhost",
     "port": parseInt(process.env.command_service_port || "9999"),
-    "path": process.env.command_service_path || "/system/v1/dataset/command"
+    "path": process.env.command_service_path || "/system/v1/dataset/command",
+    "connector_registry_path": process.env.connector_registry_path || "/connector/v1/register",
   },
   "obsrv_api_service_config": {
     "host": process.env.obser_api_service_host || "http://localhost",
     "port": parseInt(process.env.obser_api_service_port || "3007"),
-    "generate_url_path": process.env.generate_url_path || "/v2/files/generate-url"
+    "generate_url_path": process.env.generate_url_path || "/v2/files/generate-url",
   }
 }
