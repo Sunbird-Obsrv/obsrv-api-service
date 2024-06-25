@@ -127,7 +127,7 @@ export const getProcessingHealth = async (dataset: any): Promise<{ components: a
     if ((threshold && threshold < _.get(component, 'count')) || component.status != HealthStatus.Healthy) {
       status = HealthStatus.UnHealthy
       component.status = HealthStatus.UnHealthy
-    } 
+    }
   })
   return { components, status };
 }
@@ -138,13 +138,13 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   let status = HealthStatus.Healthy;
   if (!_.isEmpty(datasources)) {
     const druidTasks = await getDruidIndexerStatus(datasources);
-      components.push(
-        {
-          "type": "indexer",
-          "status": _.get(druidTasks, "status"),
-          "value": _.get(druidTasks, "value")
-        }
-      )
+    components.push(
+      {
+        "type": "indexer",
+        "status": _.get(druidTasks, "status"),
+        "value": _.get(druidTasks, "value")
+      }
+    )
   } else {
     components.push({
       "type": "indexer",
@@ -169,7 +169,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
     "status": avgQueryReponseTimeInSec.health
   })
 
-  const queriesFailed =  await getQueriesFailedCount(dataset?.dataset_id)
+  const queriesFailed = await getQueriesFailedCount(dataset?.dataset_id)
   components.push({
     "type": "queriesFailed",
     "count": queriesFailed.count,
@@ -178,13 +178,13 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
 
   const defaultThresholds = await SystemConfig.getThresholds()
   const processingDefaultThreshold: any = _.get(defaultThresholds, "query")
-  
+
   _.forEach(components, (component: any) => {
     const threshold = processingDefaultThreshold[_.get(component, 'type')]
     if ((threshold && threshold < _.get(component, 'count')) || component.status != HealthStatus.Healthy) {
       status = HealthStatus.UnHealthy
       component.status = HealthStatus.UnHealthy
-    } 
+    }
   })
 
   return { components, status }
@@ -192,13 +192,13 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
 
 const getDruidIndexerStatus = async (datasources: any,) => {
   try {
-    const results = await Promise.all(_.map(datasources, (datasource) => getDruidDataourceStatus(datasource['datasource'])))   
+    const results = await Promise.all(_.map(datasources, (datasource) => getDruidDataourceStatus(datasource['datasource'])))
     const values: any = []
     let status = HealthStatus.Healthy
     _.forEach(results, (result: any) => {
-      logger.debug({result})
+      logger.debug({ result })
       const sourceStatus = _.get(result, "payload.state") == "RUNNING" ? HealthStatus.Healthy : HealthStatus.UnHealthy
-      logger.debug({sourceStatus})
+      logger.debug({ sourceStatus })
       values.push(
         {
           "type": "druid",
@@ -206,22 +206,22 @@ const getDruidIndexerStatus = async (datasources: any,) => {
           "status": sourceStatus,
         }
       )
-      if(sourceStatus == HealthStatus.UnHealthy){
+      if (sourceStatus == HealthStatus.UnHealthy) {
         status = HealthStatus.UnHealthy
       }
     })
-    return {value: values, status}
+    return { value: values, status }
   } catch (error) {
     logger.error(error)
-    return {value: [], status: HealthStatus.UnHealthy}
+    return { value: [], status: HealthStatus.UnHealthy }
   }
-  
-  
+
+
 }
 
 const getDruidDataourceStatus = async (datasourceId: string) => {
   logger.debug(datasourceId)
-  const {data} = await druidHttpService.get(`/druid/indexer/v1/supervisor/${datasourceId}/status`)
+  const { data } = await druidHttpService.get(`/druid/indexer/v1/supervisor/${datasourceId}/status`)
   return data;
 }
 
@@ -334,8 +334,7 @@ const getEventsProcessedToday = async (datasetId: string, isMasterDataset: boole
 const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: boolean) => {
   const startDate = moment().format(dateFormat);
   const endDate = moment().add(1, 'd').format(dateFormat);
-  // const intervals = `${startDate}/${endDate}`
-  const intervals = "2024-06-21T00:00:00+05:30/2024-06-22T00:00:00+05:30"
+  const intervals = `${startDate}/${endDate}`
   logger.debug({ datasetId, isMasterDataset })
   try {
     const { data } = await executeNativeQuery({
@@ -461,7 +460,7 @@ const getQuriesStatus = async (datasetId: string) => {
 }
 
 const getAvgQueryReponseTimeInSec = async (datasetId: string) => {
-  let query = `avg(avg_over_time(node_query_response_time{entity='data-out', dataset_id="null"}[1d]))/1000`;
+  let query = `avg(avg_over_time(node_query_response_time{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))/1000`;
   try {
     const { data } = await queryMetrics({ query })
     logger.debug(data)
