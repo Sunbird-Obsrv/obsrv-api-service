@@ -96,7 +96,7 @@ export const config = {
   },
   "obsrv_api_service_config": {
     "host": process.env.obser_api_service_host || "http://localhost",
-    "port": parseInt(process.env.obser_api_service_port || "3007"),
+    "port": parseInt(process.env.obser_api_service_port || "3000"),
     "generate_url_path": process.env.generate_url_path || "/v2/files/generate-url",
   }
 }
