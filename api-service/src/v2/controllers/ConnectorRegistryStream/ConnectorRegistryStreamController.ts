@@ -12,7 +12,7 @@ import { URLAccess } from "../../types/SampleURLModel";
 import { ErrorObject } from "../../types/ResponseModel";
 
 export const apiId = "api.files.generate-url";
-export const code = "FILES_GENERATE_URL_FAILURE";
+export const code = "FAILED_TO_REGISTER_CONNECTOR";
 
 const apiServiceHost = _.get(config, ["obsrv_api_service_config", "host"]);
 const apiServicePort = _.get(config, ["obsrv_api_service_config", "port"]);
@@ -48,11 +48,12 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
         logger.info({ apiId, resmsgid, message: `Connector registered successfully` })
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: registryResponse?.data?.message } })
     } catch (error: any) {
+        const errMessage = _.get(error, "response.data.error.message")
         logger.error(error, apiId, resmsgid, code);
         let errorMessage = error;
         const statusCode = _.get(error, "statusCode")
         if (!statusCode || statusCode == 500) {
-            errorMessage = { code, message: "Failed to read dataset" }
+            errorMessage = { code, message: errMessage || "Failed to register connector" }
         }
         ResponseHandler.errorResponse(errorMessage, req, res);
     }
@@ -78,7 +79,7 @@ const uploadStream = async (req: Request) => {
     return new Promise((resolve, reject) => {
         const filePromises: Promise<void>[] = [];
         const bb = busboy({ headers: req.headers });
-        const match: any[] = [];
+        const relative_path: any[] = [];
         let fileCount = 0;
 
         bb.on("file", async (name: any, file: any, info: any) => {
@@ -97,8 +98,8 @@ const uploadStream = async (req: Request) => {
                 const fileName = info?.filename;
                 const preSignedUrl: any = await generatePresignedUrl(fileName, URLAccess.Write);
                 const filePath = preSignedUrl[0]?.filePath
-                const regex = /(?<=\/)[^/]+\.[^/]+(?=\/|$)/g;
-                match.push(...filePath.match(regex));
+                const fileNameExtracted = extractFileNameFromPath(filePath);
+                relative_path.push(...fileNameExtracted);
                 const pass = new PassThrough();
                 file.pipe(pass);
                 const fileBuffer = await streamToBuffer(pass);
@@ -114,12 +115,16 @@ const uploadStream = async (req: Request) => {
         bb.on("close", async () => {
             try {
                 await Promise.all(filePromises);
-                resolve(match);
+                resolve(relative_path);
             } catch (error) {
-                reject(error);
+                reject({
+                    code: "FAILED_TO_UPLOAD",
+                    message: "Fail to upload a file",
+                    statusCode: 400,
+                    errCode: "BAD_REQUEST"
+                });
             }
         });
-        bb.on("error", reject);
         req.pipe(bb);
     })
 }
@@ -131,6 +136,11 @@ const streamToBuffer = (stream: PassThrough): Promise<Buffer> => {
         stream.on("end", () => resolve(Buffer.concat(chunks)));
         stream.on("error", reject);
     });
+};
+
+const extractFileNameFromPath = (filePath: string): string[] => {
+    const regex = /(?<=\/)[^/]+\.[^/]+(?=\/|$)/g;
+    return filePath.match(regex) || [];
 };
 
 export default connectorRegistryStream;
