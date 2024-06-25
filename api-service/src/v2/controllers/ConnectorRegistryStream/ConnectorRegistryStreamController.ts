@@ -79,7 +79,7 @@ const uploadStream = async (req: Request) => {
     return new Promise((resolve, reject) => {
         const filePromises: Promise<void>[] = [];
         const bb = busboy({ headers: req.headers });
-        const match: any[] = [];
+        const relative_path: any[] = [];
         let fileCount = 0;
 
         bb.on("file", async (name: any, file: any, info: any) => {
@@ -98,8 +98,8 @@ const uploadStream = async (req: Request) => {
                 const fileName = info?.filename;
                 const preSignedUrl: any = await generatePresignedUrl(fileName, URLAccess.Write);
                 const filePath = preSignedUrl[0]?.filePath
-                const regex = /(?<=\/)[^/]+\.[^/]+(?=\/|$)/g;
-                match.push(...filePath.match(regex));
+                const fileNameExtracted = extractFileNameFromPath(filePath);
+                relative_path.push(...fileNameExtracted);
                 const pass = new PassThrough();
                 file.pipe(pass);
                 const fileBuffer = await streamToBuffer(pass);
@@ -115,7 +115,7 @@ const uploadStream = async (req: Request) => {
         bb.on("close", async () => {
             try {
                 await Promise.all(filePromises);
-                resolve(match);
+                resolve(relative_path);
             } catch (error) {
                 reject({
                     code: "FAILED_TO_UPLOAD",
@@ -137,6 +137,11 @@ const streamToBuffer = (stream: PassThrough): Promise<Buffer> => {
         stream.on("end", () => resolve(Buffer.concat(chunks)));
         stream.on("error", reject);
     });
+};
+
+const extractFileNameFromPath = (filePath: string): string[] => {
+    const regex = /(?<=\/)[^/]+\.[^/]+(?=\/|$)/g;
+    return filePath.match(regex) || [];
 };
 
 export default connectorRegistryStream;
