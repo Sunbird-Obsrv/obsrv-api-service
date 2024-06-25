@@ -69,11 +69,12 @@ export const config = {
     }
   },
   "cloud_config": {
-    "cloud_storage_provider": process.env.cloud_storage_provider || "aws", // Supported providers - AWS, GCP, Azure
-    "cloud_storage_region": process.env.cloud_storage_region || "", // Region for the cloud provider storage
-    "cloud_storage_config": process.env.cloud_storage_config ? JSON.parse(process.env.cloud_storage_config) : {}, // Respective credentials object for cloud provider. Optional if service account provided
-    "container": process.env.container || "container", // Storage container/bucket name
-    "container_prefix": process.env.container_prefix || "", // Path to the folder inside container/bucket. Empty if data at root level
+    "cloud_storage_provider": process.env.cloud_storage_provider || "gcloud", // Supported providers - AWS, GCP, Azure
+    "cloud_storage_region": process.env.cloud_storage_region || "us-east-2", // Region for the cloud provider storage
+    "cloud_storage_config": process.env.cloud_storage_config || {}, // Respective credentials object for cloud provider. Optional if service account provided
+    "container": process.env.container || "exhaust-test-bucket", // Storage container/bucket name
+    "connector_container": process.env.container || "connector-registry",
+    "container_prefix": process.env.container_prefix || "connector-registry", // Path to the folder inside container/bucket. Empty if data at root level
     "storage_url_expiry": process.env.storage_url_expiry ? parseInt(process.env.storage_url_expiry) : 3600, // in seconds, Default 1hr of expiry for Signed URLs.
     "maxQueryDateRange": process.env.exhaust_query_range ? parseInt(process.env.exhaust_query_range) : 31, // in days. Defines the maximum no. of days the files can be fetched
     "exclude_exhaust_types": process.env.exclude_exhaust_types ? process.env.exclude_exhaust_types.split(",") : ["system-stats", "masterdata-system-stats", "system-events",] // list of folder type names to skip exhaust service
@@ -90,7 +91,12 @@ export const config = {
   },
   "command_service_config": {
     "host": process.env.command_service_host || "http://localhost",
-    "port": parseInt(process.env.command_service_port || "8000"),
+    "port": parseInt(process.env.command_service_port || "9999"),
     "path": process.env.command_service_path || "/system/v1/dataset/command"
+  },
+  "obsrv_api_service_config": {
+    "host": process.env.obser_api_service_host || "http://localhost",
+    "port": parseInt(process.env.obser_api_service_port || "3007"),
+    "generate_url_path": process.env.generate_url_path || "/v2/files/generate-url"
   }
 }

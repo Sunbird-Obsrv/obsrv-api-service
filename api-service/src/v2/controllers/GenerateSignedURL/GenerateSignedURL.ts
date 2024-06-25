@@ -15,11 +15,13 @@ import path from "path";
 export const apiId = "api.files.generate-url"
 export const code = "FILES_GENERATE_URL_FAILURE"
 const maxFiles = config.presigned_url_configs.maxFiles
+let containerType: string;
 
 const generateSignedURL = async (req: Request, res: Response) => {
     const requestBody = req.body
     const msgid = _.get(req, ["body", "params", "msgid"]);
     const resmsgid = _.get(res, "resmsgid");
+    containerType = _.get(req, ["body", "request", "type"]);
     try {
         const isRequestValid: Record<string, any> = schemaValidation(req.body, GenerateURL)
         if (!isRequestValid.isValid) {
@@ -75,7 +77,15 @@ const generateSignedURL = async (req: Request, res: Response) => {
 }
 
 const getFilePath = (file: string) => {
-    return `${config.cloud_config.container}/${config.presigned_url_configs.service}/user_uploads/${file}`
+    const datasetUploadPath = `${config.cloud_config.container}/${config.presigned_url_configs.service}/user_uploads/${file}`;
+    const connectorUploadPath = `${config.cloud_config.connector_container}/${file}`;
+
+    const paths: Record<string, string> = {
+        "dataset": datasetUploadPath,
+        "connector": connectorUploadPath
+    };
+
+    return paths[containerType] || datasetUploadPath;
 }
 
 const transformFileNames = (fileList: Array<string | any>, access: string): Record<string, any> => {

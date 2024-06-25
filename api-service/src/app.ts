@@ -24,6 +24,7 @@ app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
 app.set("queryServices", services);
+app.use(bodyParser.raw({ type: "application/octet-stream", limit: "500mb" }))
 
 loadExtensions(app)
   .finally(() => {
