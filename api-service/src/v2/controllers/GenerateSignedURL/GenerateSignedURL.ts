@@ -77,8 +77,8 @@ const generateSignedURL = async (req: Request, res: Response) => {
 }
 
 const getFilePath = (file: string) => {
-    const datasetUploadPath = `${config.cloud_config.container}/${config.presigned_url_configs.service}/user_uploads/${file}`;
-    const connectorUploadPath = `${config.cloud_config.container}/${config.cloud_config.container_prefix}/${file}`;
+    const datasetUploadPath = `${config.presigned_url_configs.service}/user_uploads/${file}`;
+    const connectorUploadPath = `${config.cloud_config.container_prefix}/${file}`;
 
     const paths: Record<string, string> = {
         "dataset": datasetUploadPath,
