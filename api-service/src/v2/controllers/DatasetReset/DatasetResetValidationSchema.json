@@ -25,28 +25,13 @@
     "request": {
       "type": "object",
       "properties": {
-        "dataset": {
+        "category": {
           "type": "string",
-          "minLength": 1
-        },
-        "categories": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "enum": [
-              "infra",
-              "processing",
-              "query"
-            ],
-            "required": [
-              "category"
-            ]
-          }
+          "enum": ["processing", "query"]
         }
       },
       "required": [
-        "categories"
+        "category"
       ]
     }
   }
