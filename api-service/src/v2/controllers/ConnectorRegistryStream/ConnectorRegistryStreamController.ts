@@ -36,13 +36,13 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
     try {
         const uploadStreamResponse: any = await uploadStream(req);
         // console.log({ uploadStreamResponse })
-        // const readPreSignedUrlsPromises = uploadStreamResponse.map(async (filePath: any) => {
-        //     const readPreSignedUrl: any = await generatePresignedUrl(filePath, URLAccess.Read);
-        //     return readPreSignedUrl[0]?.preSignedUrl;
-        // });
-        // const preSignedReadUrls = await Promise.all(readPreSignedUrlsPromises);
+        const readPreSignedUrlsPromises = uploadStreamResponse.map(async (filePath: any) => {
+            const readPreSignedUrl: any = await generatePresignedUrl(filePath, URLAccess.Read);
+            return readPreSignedUrl[0]?.preSignedUrl;
+        });
+        const preSignedReadUrls = await Promise.all(readPreSignedUrlsPromises);
         logger.info({ apiId, resmsgid, message: `File uploaded to cloud provider successfully` })
-        ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: "Successfully uploaded", preSignedReadUrls: uploadStreamResponse } })
+        ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: "Successfully uploaded", preSignedReadUrls: preSignedReadUrls } })
     } catch (error: any) {
         logger.error(error, apiId, resmsgid, code);
         const statusCode = _.get(error, "statusCode", 500);
