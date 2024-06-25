@@ -7,7 +7,8 @@ import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetStatus, HealthStatus } from "../../types/DatasetModels";
 import { Dataset } from "../../models/Dataset";
 import logger from "../../logger";
-import {  getInfraHealth,  getProcessingHealth } from "../../services/HealthService";
+import {  getInfraHealth,  getProcessingHealth, getQueryHealth } from "../../services/HealthService";
+import { Datasource } from "../../models/Datasource";
 
 export const apiId = "api.dataset.health";
 export const errorCode = "DATASET_HEALTH_FAILURE"
@@ -59,9 +60,9 @@ const datasetHealth = async (req: Request, res: Response) => {
         }
         logger.debug(apiId, msgid, resmsgid, "dataset", dataset)
 
-        const categories = _.map(requestBody?.request?.categories, (category) => _.get(category, 'category'));
+        const categories = requestBody?.request?.categories
         const details = []
-        if(categories.includes("infra")) {
+        if(requestBody?.request?.categories.includes("infra")) {
             const {components, status} = await getInfraHealth()
             details.push({
                 "category": "infra",
@@ -74,6 +75,16 @@ const datasetHealth = async (req: Request, res: Response) => {
             const {components, status} = await getProcessingHealth(dataset[0])
             details.push({
                 "category": "processing",
+                "status": status,
+                "components": components
+            })
+        }
+
+        if(categories.includes("query")) {
+            const datasources = await getDataSources(requestBody?.request?.datasets)
+            const {components, status} = await getQueryHealth(datasources, dataset[0])
+            details.push({
+                "category": "query",
                 "status": status,
                 "components": components
             })
@@ -103,6 +114,10 @@ const datasetHealth = async (req: Request, res: Response) => {
 }
 const getLiveDatasets = async (ids: Record<string, any>): Promise<Record<string, any>> => {
     return Dataset.findAll({ attributes: ['dataset_id', 'status', 'type'], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
+}
+
+const getDataSources = async (ids: Record<string, any>): Promise<Record<string, any>> => {
+    return Datasource.findAll({ attributes: ['dataset_id', 'datasource'], where: { dataset_id: ids }, raw: true });
 }
 
 export default datasetHealth;
