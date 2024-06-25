@@ -63,36 +63,15 @@ export const getDatasource = async (datasetId: string) => {
 }
 
 export const getUpdatedSchema = async (configs: Record<string, any>) => {
-    const { id, transformation_config, denorm_config, data_schema, action, indexCol = ingestionConfig.indexCol["Event Arrival Time"] } = configs
-    const existingTransformations = await DatasetTransformationsDraft.findAll({ where: { dataset_id: id }, raw: true })
-    let resultantTransformations: any[] = []
-    if (action === "edit") {
-        const toDeleteTransformations = _.compact(_.map(transformation_config, config => {
-            if (_.includes(["update", "remove"], _.get(config, "action"))) {
-                return _.get(config, ["value", "field_key"])
-            }
-        }))
-        const updatedExistingTransformations = _.compact(_.map(existingTransformations, configs => {
-            if (!_.includes(toDeleteTransformations, _.get(configs, "field_key"))) {
-                return configs
-            }
-        })) || []
-        const newTransformations = _.compact(_.map(transformation_config, config => {
-            if (_.includes(["update", "add"], _.get(config, "action"))) {
-                return config
-            }
-        })) || []
-        resultantTransformations = [...updatedExistingTransformations, ...newTransformations]
-    }
-    if (action === "create") {
-        resultantTransformations = transformation_config || []
-    }
+    const { id, denorm_config, data_schema, dataset_config } = configs
+    const indexCol = _.get(dataset_config, "timestamp_key")
+    const datasetTransformations = await DatasetTransformationsDraft.findAll({ where: { dataset_id: id }, raw: true })
     let denormFields = _.get(denorm_config, "denorm_fields")
     let updatedColumns = flattenSchema(data_schema)
-    const transformedFields = _.filter(resultantTransformations, field => _.get(field, ["metadata", "section"]) === "transformation")
-    let additionalFields = _.filter(resultantTransformations, field => _.get(field, ["metadata", "section"]) === "additionalFields")
+    const transformedFields = _.filter(datasetTransformations, field => _.get(field, ["metadata", "section"]) === "transformation")
+    let additionalFields = _.filter(datasetTransformations, field => _.get(field, ["metadata", "section"]) === "additionalFields")
     updatedColumns = _.map(updatedColumns, (item) => {
-        const transformedData = _.find(transformedFields, { field_key: item.column });
+        const transformedData: any = _.find(transformedFields, { field_key: item.column });
         if (transformedData) {
             const data = _.get(transformedData, "metadata")
             return {

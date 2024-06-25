@@ -33,7 +33,8 @@ const connectorInstanceSpecObj = {
 }
 
 export const generateIngestionSpec = (payload: Record<string, any>) => {
-    const { indexCol = defaultIndexCol, data_schema, id, dataset_id } = payload
+    const { data_schema, id, dataset_id, dataset_config } = payload
+    const indexCol = _.get(dataset_config, "timestamp_key") || defaultIndexCol
     const isValidTimestamp = checkTimestampCol({ indexCol, data_schema })
     if (!isValidTimestamp) {
         throw {
@@ -44,7 +45,7 @@ export const generateIngestionSpec = (payload: Record<string, any>) => {
         } as ErrorObject
     }
     const simplifiedSpec = generateExpression(_.get(data_schema, "properties"), indexCol);
-    const generatedSpec = process(simplifiedSpec, indexCol)
+    const generatedSpec = process(simplifiedSpec)
     const ingestionTemplate = generateIngestionTemplate({ generatedSpec, id, indexCol, dataset_id, type: "druid" })
     return ingestionTemplate
 }
@@ -69,26 +70,18 @@ const checkTimestampCol = (schema: Record<string, any>) => {
     return true
 }
 
-const process = (spec: Map<string, any>, indexCol: string): IngestionSpecModel => {
+const process = (spec: Map<string, any>): IngestionSpecModel => {
     const colValues = Array.from(spec.values())
     const dimensions = filterDimensionCols(colValues)
     return <IngestionSpecModel>{
         "dimensions": getObjByKey(dimensions, "dimensions"),
         "metrics": filterMetricsCols(spec),
-        "flattenSpec": filterFlattenSpec(colValues, indexCol)
+        "flattenSpec": filterFlattenSpec(colValues)
     }
 }
 
-const filterFlattenSpec = (column: Record<string, any>, indexCol: string) => {
-    let flattenSpec = getObjByKey(column, "flattenSpec")
-    if (indexCol === defaultIndexCol) {
-        const indexColDefaultSpec = {
-            "expr": ingestionConfig.syncts_path,
-            "name": ingestionConfig.indexCol["Event Arrival Time"],
-            "type": "path"
-        }
-        flattenSpec = _.concat(flattenSpec, indexColDefaultSpec)
-    }
+const filterFlattenSpec = (column: Record<string, any>) => {
+    const flattenSpec = getObjByKey(column, "flattenSpec")
     return flattenSpec
 }
 
@@ -219,6 +212,7 @@ export const getDruidIngestionTemplate = (payload: Record<string, any>) => {
                 "timestampSpec": { "column": indexCol, "format": "auto" },
                 "metricsSpec": metrics,
                 "granularitySpec": getGranularityObj(),
+                "transformSpec": {}
             },
             "tuningConfig": {
                 "type": "kafka",

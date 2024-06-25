@@ -47,7 +47,8 @@ export const TestInputsForDatasetRead = {
             "denorm_fields": [
                 {
                     "denorm_key": "actor.id",
-                    "denorm_out_field": "userdata"
+                    "denorm_out_field": "userdata",
+                    "redis_db": 10
                 }
             ]
         },
@@ -122,7 +123,8 @@ export const TestInputsForDatasetRead = {
             "denorm_fields": [
                 {
                     "denorm_key": "actor.id",
-                    "denorm_out_field": "userdata"
+                    "denorm_out_field": "userdata",
+                    "redis_db": 10
                 }
             ]
         },

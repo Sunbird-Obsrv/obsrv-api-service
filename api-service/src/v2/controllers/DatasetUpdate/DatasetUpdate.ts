@@ -150,7 +150,7 @@ const checkDatasetExists = async (dataset_id: string, version_key: string): Prom
     if (datasetExists) {
         const validVersionKey = _.get(datasetExists, "version_key")
         const apiVersion = _.get(datasetExists, "api_version")
-        if (validVersionKey !== version_key && apiVersion) {
+        if (validVersionKey !== version_key && apiVersion === "v2") {
             return { isDatasetExists: true, datasetStatus: datasetExists.status, invalidVersionKey: true, validVersionKey }
         }
         return { isDatasetExists: true, datasetStatus: datasetExists.status }
@@ -344,7 +344,7 @@ const setDenormConfigs = (newDenormPayload: Record<string, any>, datasetDenormCo
     if (_.isEmpty(denorm_fields)) {
         return { denorm_fields }
     }
-    
+
     const getDenormPayload = (action: string) => {
         return _.compact(_.flatten(_.map(denorm_fields, payload => {
             if (payload.action == action) return payload.values

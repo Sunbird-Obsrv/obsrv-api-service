@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import _ from "lodash";
 import logger from "../../logger";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
-import { getDataset, getDraftDataset, setReqDatasetId } from "../../services/DatasetService";
+import { generateDataSource, getDataset, getDraftDataset, setReqDatasetId } from "../../services/DatasetService";
 import { ErrorObject } from "../../types/ResponseModel";
 import { schemaValidation } from "../../services/ValidationService";
 import StatusTransitionSchema from "./RequestValidationSchema.json";
@@ -34,7 +34,7 @@ const allowedTransitions = {
 const statusTransitionCommands = {
     Delete: ["DELETE_DRAFT_DATASETS"],
     ReadyToPublish: ["VALIDATE_DATASET_CONFIGS"],
-    Live: ["PUBLISH_DATASET"],
+    Live: ["GENERATE_INGESTION_SPEC", "PUBLISH_DATASET"],
     Retire: ["CHECK_DATASET_IS_DENORM", "SET_DATASET_TO_RETIRE", "DELETE_SUPERVISORS", "RESTART_PIPELINE"]
 }
 
@@ -121,11 +121,10 @@ const fetchDataset = async (configs: Record<string, any>) => {
 
 const executeTransition = async (configs: Record<string, any>) => {
     const { transitionCommands, dataset, transact } = configs
-    const transitionPromises = _.map(transitionCommands, async command => {
-        const commandWorkflow = _.get(commandExecutors, command)
-        return commandWorkflow({ dataset, transact })
-    })
-    await Promise.all(transitionPromises)
+    for (const command of transitionCommands) {
+        const commandWorkflow = _.get(commandExecutors, command);
+        await commandWorkflow({ dataset, transact });
+    }
 }
 
 //VALIDATE_DATASET_CONFIGS
@@ -156,6 +155,13 @@ const deleteDraftRecords = async (config: Record<string, any>) => {
     await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction: transact })
     await DatasourceDraft.destroy({ where: { dataset_id }, transaction: transact })
     await DatasetDraft.destroy({ where: { id: dataset_id }, transaction: transact })
+}
+
+//GENERATE_INGESTION_SPEC
+const generateDatasource = async (config: Record<string, any>) => {
+    const { dataset } = config;
+    const dataSource = await generateDataSource(dataset);
+    return DatasourceDraft.upsert(dataSource)
 }
 
 //PUBLISH_DATASET
@@ -225,6 +231,7 @@ const restartPipeline = async (config: Record<string, any>) => {
 const commandExecutors = {
     DELETE_DRAFT_DATASETS: deleteDataset,
     PUBLISH_DATASET: publishDataset,
+    GENERATE_INGESTION_SPEC: generateDatasource,
     CHECK_DATASET_IS_DENORM: checkDatasetDenorm,
     SET_DATASET_TO_RETIRE: setDatasetRetired,
     DELETE_SUPERVISORS: deleteSupervisors,

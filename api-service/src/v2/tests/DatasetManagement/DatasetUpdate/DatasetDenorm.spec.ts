@@ -90,7 +90,8 @@ describe("DATASET DENORM UPDATE", () => {
                 id: "telemetry", version_key: validVersionKey, type:"dataset", status: "Draft", denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "mid"
+                        "denorm_out_field": "mid",
+                        "redis_db": 10
                     }]
                 }
             })
@@ -148,7 +149,8 @@ describe("DATASET DENORM UPDATE", () => {
                 id: "telemetry", status: "Draft", version_key: validVersionKey, tags: ["tag1", "tag2"], denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "redis_db": 10
                     }]
                 }
             })
@@ -181,7 +183,8 @@ describe("DATASET DENORM UPDATE", () => {
                 id: "telemetry", status: "Draft", version_key: validVersionKey, tags: ["tag1", "tag2"], denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "id"
+                        "denorm_out_field": "id",
+                        "redis_db": 10
                     }]
                 }
             })
