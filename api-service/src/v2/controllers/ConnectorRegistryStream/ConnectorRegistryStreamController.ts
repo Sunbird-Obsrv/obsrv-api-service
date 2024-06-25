@@ -9,6 +9,7 @@ import busboy from "busboy";
 import { v4 } from "uuid"
 import { PassThrough } from "stream";
 import { URLAccess } from "../../types/SampleURLModel";
+import { ErrorObject } from "../../types/ResponseModel";
 
 export const apiId = "api.files.generate-url";
 export const code = "FILES_GENERATE_URL_FAILURE";
@@ -16,6 +17,10 @@ export const code = "FILES_GENERATE_URL_FAILURE";
 const apiServiceHost = _.get(config, ["obsrv_api_service_config", "host"]);
 const apiServicePort = _.get(config, ["obsrv_api_service_config", "port"]);
 const generateSignedURLPath = _.get(config, ["obsrv_api_service_config", "generate_url_path"]);
+
+const commandServiceHost = _.get(config, ["command_service_config", "host"]);
+const commandServicePort = _.get(config, ["command_service_config", "port"]);
+const registryUrl = _.get(config, ["command_service_config", "connector_registry_path"])
 
 const getGenerateSignedURLRequestBody = (files: string[], access: string) => ({
     id: apiId,
@@ -35,18 +40,20 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
     const resmsgid = _.get(res, "resmsgid");
     try {
         const uploadStreamResponse: any = await uploadStream(req);
-        // console.log({ uploadStreamResponse })
-        const readPreSignedUrlsPromises = uploadStreamResponse.map(async (filePath: any) => {
-            const readPreSignedUrl: any = await generatePresignedUrl(filePath, URLAccess.Read);
-            return readPreSignedUrl[0]?.preSignedUrl;
-        });
-        const preSignedReadUrls = await Promise.all(readPreSignedUrlsPromises);
+        const registryRequestBody = {
+            relative_path: uploadStreamResponse[0]
+        }
         logger.info({ apiId, resmsgid, message: `File uploaded to cloud provider successfully` })
-        ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: "Successfully uploaded", preSignedReadUrls: preSignedReadUrls } })
+        const registryResponse = await axios.post(`${commandServiceHost}:${commandServicePort}${registryUrl}`, registryRequestBody);
+        logger.info({ apiId, resmsgid, message: `Connector registered successfully` })
+        ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: registryResponse?.data?.message } })
     } catch (error: any) {
         logger.error(error, apiId, resmsgid, code);
-        const statusCode = _.get(error, "statusCode", 500);
-        const errorMessage = statusCode === 500 ? { code, message: "Failed to upload" } : error;
+        let errorMessage = error;
+        const statusCode = _.get(error, "statusCode")
+        if (!statusCode || statusCode == 500) {
+            errorMessage = { code, message: "Failed to read dataset" }
+        }
         ResponseHandler.errorResponse(errorMessage, req, res);
     }
 };
@@ -58,7 +65,12 @@ export const generatePresignedUrl = async (fileName: string, access: string) => 
         return response?.data?.result;
     }
     catch (err) {
-        throw err
+        throw {
+            code: "FILES_GENERATE_URL_FAILURE",
+            message: "Failed to generate sample urls",
+            statusCode: 400,
+            errCode: "BAD_REQUEST"
+        } as ErrorObject
     }
 };
 
@@ -66,10 +78,21 @@ const uploadStream = async (req: Request) => {
     return new Promise((resolve, reject) => {
         const filePromises: Promise<void>[] = [];
         const bb = busboy({ headers: req.headers });
-        console.log(bb, true);
         const match: any[] = [];
+        let fileCount = 0;
 
         bb.on("file", async (name: any, file: any, info: any) => {
+            if (fileCount > 0) {
+                // If more than one file is detected, reject the request
+                bb.emit("error", reject({
+                    code: "FAILED_TO_UPLOAD",
+                    message: "Uploading multiple files are not allowed",
+                    statusCode: 400,
+                    errCode: "BAD_REQUEST"
+                }));
+                return
+            }
+            fileCount++;
             const processFile = async () => {
                 const fileName = info?.filename;
                 const preSignedUrl: any = await generatePresignedUrl(fileName, URLAccess.Write);
