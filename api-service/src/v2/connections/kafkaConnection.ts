@@ -46,7 +46,7 @@ const isHealthy = async () => {
     await admin.connect();
     return true
   } catch (error) {
-    logger.debug('Failed to connect to Kafka:', error);
+    logger.debug("Failed to connect to Kafka:", error);
   } finally {
     await admin.disconnect();
   }

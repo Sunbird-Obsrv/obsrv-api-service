@@ -3,7 +3,7 @@ import { config } from "../configs/Config";
 import { logger } from "@project-sunbird/logger";
 import { health as postgresHealth } from "../connections/databaseConnection";
 import { DatasetType, HealthStatus } from "../types/DatasetModels";
-import { createClient } from 'redis';
+import { createClient } from "redis";
 import { isHealthy as isKafkaHealthy } from "../connections/kafkaConnection";
 import { druidHttpService, executeNativeQuery } from "../connections/druidConnection";
 import _ from "lodash";
@@ -11,7 +11,7 @@ import moment from "moment";
 import { SystemConfig } from "./SystemConfig";
 
 
-const dateFormat = 'YYYY-MM-DDT00:00:00+05:30'
+const dateFormat = "YYYY-MM-DDT00:00:00+05:30"
 
 const prometheusInstance = axios.create({ baseURL: config?.query_api?.prometheus?.url, headers: { "Content-Type": "application/json" } });
 let isRedisDenormHealthy = false;
@@ -20,8 +20,8 @@ const init = async () => {
   createClient({
     url: `redis://${config.redis_config.denorm_redis_host}:${config.redis_config.denorm_redis_port}`
   })
-    .on('error', err => {
-      logger.error('unable to connect to denorm redis client', err)
+    .on("error", err => {
+      logger.error("unable to connect to denorm redis client", err)
       isRedisDenormHealthy = false
     })
     .on("ready", () => {
@@ -35,18 +35,18 @@ const init = async () => {
     .on("ready", () => {
       isRedisDedupHealthy = true
     })
-    .on('error', err => {
+    .on("error", err => {
       isRedisDedupHealthy = false
-      logger.error('unable to connect to dedup redis client', err)
+      logger.error("unable to connect to dedup redis client", err)
     })
     .connect();
 }
 
 const getDatasetIdForMetrics = (datasetId: string) => {
-  datasetId = datasetId.replace(/-/g, '_')
-    .replace(/\./g, '_')
-    .replace(/\n/g, '')
-    .replace(/[\n\r]/g, '')
+  datasetId = datasetId.replace(/-/g, "_")
+    .replace(/\./g, "_")
+    .replace(/\n/g, "")
+    .replace(/[\n\r]/g, "")
   return datasetId;
 }
 
@@ -58,7 +58,7 @@ export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ compon
   const postgres = await getPostgresStatus()
   const druid = await getDruidHealthStatus()
   const flink = await getFlinkHealthStaus()
-  let kafka = await getKafkaHealthStatus()
+  const kafka = await getKafkaHealthStatus()
   let redis = HealthStatus.Healthy
   const components = [
     { "type": "postgres", "status": postgres },
@@ -78,15 +78,16 @@ export const getProcessingHealth = async (dataset: any): Promise<{ components: a
   const dataset_id = _.get(dataset, "dataset_id")
   const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
   const flink = await getFlinkHealthStaus()
-  let { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
+  const { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
   const processingDefaultThreshold = await SystemConfig.getThresholds("processing")
+  // eslint-disable-next-line prefer-const
   let { count: avgCount, health: avgHealth } = await getAvgProcessingSpeedInSec(dataset_id, isMasterDataset)
   if (avgHealth == HealthStatus.Healthy) {
     if (avgCount > processingDefaultThreshold?.avgProcessingSpeedInSec) {
       avgHealth = HealthStatus.UnHealthy
     }
   }
-  let failure = await getValidationFailure(dataset_id, isMasterDataset)
+  const failure = await getValidationFailure(dataset_id)
   failure.health = getProcessingComponentHealth(failure, count, processingDefaultThreshold?.validationFailuresCount)
 
   const dedupFailure = await getDedupFailure(dataset_id)
@@ -136,7 +137,7 @@ export const getProcessingHealth = async (dataset: any): Promise<{ components: a
   ]
   const Healths = _.map(components, (component: any) => component?.status)
 
-  let status = _.includes(Healths, HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy;
+  const status = _.includes(Healths, HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy;
 
   return { components, status };
 }
@@ -224,7 +225,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
 
 const getDruidIndexerStatus = async (datasources: any,) => {
   try {
-    const results = await Promise.all(_.map(datasources, (datasource) => getDruidDataourceStatus(datasource['datasource'])))
+    const results = await Promise.all(_.map(datasources, (datasource) => getDruidDataourceStatus(datasource["datasource"])))
     const values: any = []
     let status = HealthStatus.Healthy
     _.forEach(results, (result: any) => {
@@ -262,7 +263,7 @@ const getPostgresStatus = async (): Promise<HealthStatus> => {
     const postgresStatus = await postgresHealth()
     logger.debug(postgresStatus)
   } catch (error) {
-    logger.error('errr: ', error)
+    logger.error("errr: ", error)
     return HealthStatus.UnHealthy
   }
   return HealthStatus.Healthy
@@ -311,7 +312,7 @@ const getDruidHealthStatus = async () => {
 
 const getEventsProcessedToday = async (datasetId: string, isMasterDataset: boolean) => {
   const startDate = moment().format(dateFormat);
-  const endDate = moment().add(1, 'd').format(dateFormat);
+  const endDate = moment().add(1, "d").format(dateFormat);
   const intervals = `${startDate}/${endDate}`
   logger.debug({ datasetId, isMasterDataset })
   try {
@@ -365,7 +366,7 @@ const getEventsProcessedToday = async (datasetId: string, isMasterDataset: boole
 
 const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: boolean) => {
   const startDate = moment().format(dateFormat);
-  const endDate = moment().add(1, 'd').format(dateFormat);
+  const endDate = moment().add(1, "d").format(dateFormat);
   const intervals = `${startDate}/${endDate}`
   logger.debug({ datasetId, isMasterDataset })
   try {
@@ -431,8 +432,8 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
   }
 }
 
-const getValidationFailure = async (datasetId: string, isMasterDataset: boolean) => {
-  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
+const getValidationFailure = async (datasetId: string) => {
+  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
   try {
     const { data } = await queryMetrics({ query })
     return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
@@ -443,7 +444,7 @@ const getValidationFailure = async (datasetId: string, isMasterDataset: boolean)
 }
 
 const getDedupFailure = async (datasetId: string) => {
-  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_dedup_failed_count[1d]))`;
+  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_dedup_failed_count[1d]))`;
   try {
     const { data } = await queryMetrics({ query })
     return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
@@ -454,7 +455,7 @@ const getDedupFailure = async (datasetId: string) => {
 }
 
 const getDenormFailure = async (datasetId: string) => {
-  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_DenormalizerJob_${getDatasetIdForMetrics(datasetId)}_denorm_failed[1d]))`;
+  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_DenormalizerJob_${getDatasetIdForMetrics(datasetId)}_denorm_failed[1d]))`;
   try {
     const { data } = await queryMetrics({ query })
     return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
@@ -465,7 +466,7 @@ const getDenormFailure = async (datasetId: string) => {
 }
 
 const getTransformFailure = async (datasetId: string) => {
-  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_TransformerJob_${getDatasetIdForMetrics(datasetId)}_transform_failed_count[1d]))`;
+  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_TransformerJob_${getDatasetIdForMetrics(datasetId)}_transform_failed_count[1d]))`;
   try {
     const { data } = await queryMetrics({ query })
     return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
@@ -476,7 +477,7 @@ const getTransformFailure = async (datasetId: string) => {
 }
 
 const getQuriesStatus = async (datasetId: string) => {
-  let query = `sum(sum_over_time(node_total_api_calls{entity="data-out", dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))`;
+  const query = `sum(sum_over_time(node_total_api_calls{entity="data-out", dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))`;
   try {
     const { data } = await queryMetrics({ query })
     logger.debug(data)
@@ -488,7 +489,7 @@ const getQuriesStatus = async (datasetId: string) => {
 }
 
 const getAvgQueryReponseTimeInSec = async (datasetId: string) => {
-  let query = `avg(avg_over_time(node_query_response_time{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))/1000`;
+  const query = `avg(avg_over_time(node_query_response_time{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))/1000`;
   try {
     const { data } = await queryMetrics({ query })
     logger.debug(data)
@@ -500,7 +501,7 @@ const getAvgQueryReponseTimeInSec = async (datasetId: string) => {
 }
 
 const getQueriesFailedCount = async (datasetId: string) => {
-  let query = `sum(sum_over_time(node_failed_api_calls{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))`;
+  const query = `sum(sum_over_time(node_failed_api_calls{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))`;
   try {
     const { data } = await queryMetrics({ query })
     logger.debug(data)

@@ -1,4 +1,4 @@
-import { Request, Response, response } from "express";
+import { Request, Response } from "express";
 import _ from "lodash";
 import { schemaValidation } from "../../services/ValidationService";
 import DatasetHealthRequestSchema from "./DatasetHealthValidationSchema.json"
@@ -115,11 +115,11 @@ const datasetHealth = async (req: Request, res: Response) => {
 
 }
 const getLiveDatasets = async (ids: Record<string, any>): Promise<Record<string, any>> => {
-    return Dataset.findAll({ attributes: ['dataset_id', 'status', 'type'], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
+    return Dataset.findAll({ attributes: ["dataset_id", "status", "type"], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
 }
 
 const getDataSources = async (ids: Record<string, any>): Promise<Record<string, any>> => {
-    return Datasource.findAll({ attributes: ['dataset_id', 'datasource'], where: { dataset_id: ids }, raw: true });
+    return Datasource.findAll({ attributes: ["dataset_id", "datasource"], where: { dataset_id: ids }, raw: true });
 }
 
 export default datasetHealth;
