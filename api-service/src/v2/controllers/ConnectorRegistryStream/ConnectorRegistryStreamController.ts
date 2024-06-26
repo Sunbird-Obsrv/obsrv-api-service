@@ -23,9 +23,9 @@ const commandServicePort = _.get(config, ["command_service_config", "port"]);
 const registryUrl = _.get(config, ["command_service_config", "connector_registry_path"])
 
 const getGenerateSignedURLRequestBody = (files: string[], access: string) => ({
-    id: apiId,
+    id: "api.files.generate-url",
     ver: "v2",
-    ts: Date.now(),
+    ts: Date.now().toString(),
     params: {
         msgid: v4()
     },
