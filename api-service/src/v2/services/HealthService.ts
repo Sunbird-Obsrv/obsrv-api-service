@@ -159,29 +159,33 @@ const getProcessingComponentHealth = (info: any, count: any, threshold: any) => 
 }
 
 export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ components: any, status: string }> => {
-  
+
   const components: any = [];
+  const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
   let status = HealthStatus.Healthy;
-  if (!_.isEmpty(datasources)) {
-    const druidTasks = await getDruidIndexerStatus(datasources);
-    components.push(
-      {
-        "type": "indexer",
-        "status": _.get(druidTasks, "status"),
-        "value": _.get(druidTasks, "value")
+  if (!isMasterDataset) {
+    if (!_.isEmpty(datasources)) {
+      const druidTasks = await getDruidIndexerStatus(datasources);
+      components.push(
+        {
+          "type": "indexer",
+          "status": _.get(druidTasks, "status"),
+          "value": _.get(druidTasks, "value")
+        }
+      )
+      if (_.get(druidTasks, "status") == HealthStatus.UnHealthy) {
+        status = HealthStatus.UnHealthy
       }
-    )
-    if(_.get(druidTasks, "status") == HealthStatus.UnHealthy){
+    } else {
+      components.push({
+        "type": "indexer",
+        "status": HealthStatus.UnHealthy,
+        "value": []
+      })
       status = HealthStatus.UnHealthy
     }
-  } else {
-    components.push({
-      "type": "indexer",
-      "status": HealthStatus.UnHealthy,
-      "value": []
-    })
-    status = HealthStatus.UnHealthy
   }
+
 
   const queriesCount = await getQuriesStatus(dataset?.dataset_id)
   const defaultThresholds = await SystemConfig.getThresholds("query")
@@ -193,7 +197,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   })
 
   const avgQueryReponseTimeInSec = await getAvgQueryReponseTimeInSec(dataset?.dataset_id)
-  if(avgQueryReponseTimeInSec.count > defaultThresholds?.avgQueryReponseTimeInSec){
+  if (avgQueryReponseTimeInSec.count > defaultThresholds?.avgQueryReponseTimeInSec) {
     avgQueryReponseTimeInSec.health = HealthStatus.UnHealthy
   }
   components.push({
@@ -203,18 +207,18 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   })
 
   const queriesFailed = await getQueriesFailedCount(dataset?.dataset_id)
-  if(queriesCount.count == 0 &&  queriesFailed.count > 0){
+  if (queriesCount.count == 0 && queriesFailed.count > 0) {
     queriesFailed.health = HealthStatus.UnHealthy
   } else {
     const percentage = (queriesFailed.count / queriesCount.count) * 100;
-    if(percentage > defaultThresholds?.queriesFailed){
+    if (percentage > defaultThresholds?.queriesFailed) {
       queriesFailed.health = HealthStatus.UnHealthy
     }
   }
-  if([queriesFailed.health, avgQueryReponseTimeInSec.health].includes(HealthStatus.UnHealthy)){
+  if ([queriesFailed.health, avgQueryReponseTimeInSec.health].includes(HealthStatus.UnHealthy)) {
     status = HealthStatus.UnHealthy
   }
-  
+
   components.push({
     "type": "queriesFailed",
     "count": queriesFailed.count,
