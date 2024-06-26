@@ -1,10 +1,10 @@
-import { Request, Response, response } from "express";
+import { Request, Response } from "express";
 import _ from "lodash";
 import { schemaValidation } from "../../services/ValidationService";
 import DatasetHealthRequestSchema from "./DatasetHealthValidationSchema.json"
 import { ErrorObject } from "../../types/ResponseModel";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
-import { DatasetStatus, HealthStatus } from "../../types/DatasetModels";
+import { DatasetStatus, DatasetType, HealthStatus } from "../../types/DatasetModels";
 import { Dataset } from "../../models/Dataset";
 import logger from "../../logger";
 import {  getInfraHealth,  getProcessingHealth, getQueryHealth } from "../../services/HealthService";
@@ -31,8 +31,8 @@ const datasetHealth = async (req: Request, res: Response) => {
                 errCode: "BAD_REQUEST"
             } as ErrorObject, req, res);
         }
-        if (requestBody?.request?.datasets === "*") {
-            const {components, status} = await getInfraHealth()
+        if (requestBody?.request?.dataset === "*") {
+            const {components, status} = await getInfraHealth(false)
             return ResponseHandler.successResponse(req, res, {
                 status: 200, data: {
                     "status": status,
@@ -46,10 +46,10 @@ const datasetHealth = async (req: Request, res: Response) => {
             });
         }
 
-        const dataset = await getLiveDatasets(requestBody?.request?.datasets)
+        const dataset = await getLiveDatasets(requestBody?.request?.dataset)
         if(_.isEmpty(dataset)) {
             const code = "DATASET_HEALTH_NO_DATASETS"
-            const message = `There are no live datasets exists with given dataset_ids: ${requestBody?.request?.datasets}`
+            const message = `There are no live dataset exists with given dataset_id: ${requestBody?.request?.dataset}`
             logger.error({ code, apiId, msgid, requestBody, resmsgid, message: message })
             return ResponseHandler.errorResponse({
                 code,
@@ -63,7 +63,9 @@ const datasetHealth = async (req: Request, res: Response) => {
         const categories = requestBody?.request?.categories
         const details = []
         if(requestBody?.request?.categories.includes("infra")) {
-            const {components, status} = await getInfraHealth()
+            const isMasterDataset = _.get(dataset, "[0].type") == DatasetType.MasterDataset;
+            logger.debug({isMasterDataset})
+            const {components, status} = await getInfraHealth(isMasterDataset)
             details.push({
                 "category": "infra",
                 "status": status,
@@ -81,7 +83,7 @@ const datasetHealth = async (req: Request, res: Response) => {
         }
 
         if(categories.includes("query")) {
-            const datasources = await getDataSources(requestBody?.request?.datasets)
+            const datasources = await getDataSources(requestBody?.request?.dataset)
             const {components, status} = await getQueryHealth(datasources, dataset[0])
             details.push({
                 "category": "query",
@@ -113,11 +115,11 @@ const datasetHealth = async (req: Request, res: Response) => {
 
 }
 const getLiveDatasets = async (ids: Record<string, any>): Promise<Record<string, any>> => {
-    return Dataset.findAll({ attributes: ['dataset_id', 'status', 'type'], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
+    return Dataset.findAll({ attributes: ["dataset_id", "status", "type"], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
 }
 
 const getDataSources = async (ids: Record<string, any>): Promise<Record<string, any>> => {
-    return Datasource.findAll({ attributes: ['dataset_id', 'datasource'], where: { dataset_id: ids }, raw: true });
+    return Datasource.findAll({ attributes: ["dataset_id", "datasource"], where: { dataset_id: ids }, raw: true });
 }
 
 export default datasetHealth;
