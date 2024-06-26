@@ -39,4 +39,18 @@ const send = async (payload: Record<string, any>, topic: string) => {
   }
 }
 
-export { connect, send }
+const admin = kafka.admin();
+
+const isHealthy = async () => {
+  try {
+    await admin.connect();
+    return true
+  } catch (error) {
+    logger.debug("Failed to connect to Kafka:", error);
+  } finally {
+    await admin.disconnect();
+  }
+  return false;
+}
+
+export { connect, send, isHealthy }

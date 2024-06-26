@@ -22,8 +22,8 @@ export const defaultMasterConfig = {
         "dedup_period": 604800, // 7 days
     },
     "denorm_config": {
-        "redis_db_host": config.redis_config.redis_host,
-        "redis_db_port": config.redis_config.redis_port,
+        "redis_db_host": config.redis_config.denorm_redis_host,
+        "redis_db_port": config.redis_config.denorm_redis_port,
         "denorm_fields": []
     },
     "router_config": {
@@ -34,8 +34,8 @@ export const defaultMasterConfig = {
         "data_key": "",
         "timestamp_key": ingestionConfig.indexCol["Event Arrival Time"],
         "entry_topic": config.telemetry_service_config.kafka.topics.createMasterDataset,
-        "redis_db_host": config.redis_config.redis_host,
-        "redis_db_port": config.redis_config.redis_port,
+        "redis_db_host": config.redis_config.denorm_redis_host,
+        "redis_db_port": config.redis_config.denorm_redis_port,
         "index_data": true,
         "redis_db": 3,
         "file_upload_path": []
@@ -66,8 +66,8 @@ export const defaultDatasetConfig = {
         "dedup_period": 604800, // 7 days
     },
     "denorm_config": {
-        "redis_db_host": config.redis_config.redis_host,
-        "redis_db_port": config.redis_config.redis_port,
+        "redis_db_host": config.redis_config.denorm_redis_host,
+        "redis_db_port": config.redis_config.denorm_redis_port,
         "denorm_fields": []
     },
     "router_config": {
@@ -78,8 +78,8 @@ export const defaultDatasetConfig = {
         "data_key": "",
         "timestamp_key": ingestionConfig.indexCol["Event Arrival Time"],
         "entry_topic": config.telemetry_service_config.kafka.topics.createDataset,
-        "redis_db_host": config.redis_config.redis_host,
-        "redis_db_port": config.redis_config.redis_port,
+        "redis_db_host": config.redis_config.dedup_redis_host,
+        "redis_db_port": config.redis_config.dedup_redis_port,
         "index_data": true,
         "redis_db": 0,
         "file_upload_path": []

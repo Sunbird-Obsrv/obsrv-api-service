@@ -201,7 +201,6 @@
             "required": [
               "denorm_key",
               "denorm_out_field",
-              "dataset_name",
               "dataset_id"
             ],
             "additionalProperties": false

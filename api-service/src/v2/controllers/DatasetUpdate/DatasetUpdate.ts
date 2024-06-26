@@ -10,9 +10,9 @@ import { DatasetDraft } from "../../models/DatasetDraft";
 import logger from "../../logger";
 import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
 import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
-import { generateDataSource, getDefaultValue, getDraftTransformations, getDuplicateConfigs, setReqDatasetId } from "../../services/DatasetService";
-import { DatasourceDraft } from "../../models/DatasourceDraft";
+import { getDefaultValue, getDraftTransformations, getDuplicateConfigs, setReqDatasetId } from "../../services/DatasetService";
 import { ingestionConfig } from "../../configs/IngestionConfig";
+import { sequelize } from "../../connections/databaseConnection";
 
 export const apiId = "api.datasets.update";
 export const invalidInputErrCode = "DATASET_UPDATE_INPUT_INVALID"
@@ -22,6 +22,7 @@ const datasetUpdate = async (req: Request, res: Response) => {
     const requestBody = req.body
     const msgid = _.get(req, ["body", "params", "msgid"]);
     const resmsgid = _.get(res, "resmsgid");
+    let transact;
     try {
         const datasetId = _.get(req, ["body", "request", "dataset_id"])
         setReqDatasetId(req, datasetId)
@@ -101,22 +102,17 @@ const datasetUpdate = async (req: Request, res: Response) => {
         const updatedPayload = await getDefaultValue(datasetPayload)
         logger.debug({ datasetPayload })
         const transformationConfigs = _.get(datasetBody, "transformation_config")
-        await manageTransformations(transformationConfigs, dataset_id);
 
-        const { data_schema } = datasetBody
-        if (data_schema) {
-            const { transformation_config } = datasetBody
-            const { dataset_config, id, dataset_id, denorm_config } = updatedPayload
-            const datasourcePayload = await generateDataSource({ indexCol: _.get(dataset_config, ["timestamp_key"]), transformation_config, denorm_config, data_schema, id, dataset_id, action: "edit" })
-            await DatasourceDraft.update(datasourcePayload, { where: { id: _.get(datasourcePayload, "id") }})
-        }
+        transact = await sequelize.transaction()
+        await manageTransformations(transformationConfigs, dataset_id, transact);
+        await DatasetDraft.update(updatedPayload, { where: { id: dataset_id }, transaction: transact })
 
-        await DatasetDraft.update(updatedPayload, { where: { id: dataset_id }})
-
+        await transact.commit();
         const responsedata = { message: "Dataset is updated successfully", id: dataset_id, version_key: _.get(datasetPayload, "version_key") }
         logger.info({ apiId, msgid, requestBody, resmsgid, message: `Dataset updated successfully with id:${dataset_id}`, response: responsedata })
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: responsedata });
     } catch (error: any) {
+        transact && await transact.rollback();
         const code = _.get(error, "code") || errorCode
         logger.error({ ...error, apiId, code, msgid, requestBody, resmsgid })
         let errorMessage = error;
@@ -128,22 +124,22 @@ const datasetUpdate = async (req: Request, res: Response) => {
     }
 }
 
-const manageTransformations = async (transformations: Record<string, any>, datasetId: string) => {
+const manageTransformations = async (transformations: Record<string, any>, datasetId: string, transact: any) => {
     if (transformations) {
         const transformationConfigs = await getTransformationConfigs(transformations, datasetId);
         if (transformationConfigs) {
             const { addTransformation, updateTransformation, deleteTransformation } = transformationConfigs;
 
             if (!_.isEmpty(addTransformation)) {
-                await DatasetTransformationsDraft.bulkCreate(addTransformation);
+                await DatasetTransformationsDraft.bulkCreate(addTransformation, { transaction: transact });
             }
 
             if (!_.isEmpty(updateTransformation)) {
-                await Promise.all(updateTransformation.map((record: any) => DatasetTransformationsDraft.update(record, { where: { id: record.id }})));
+                await Promise.all(updateTransformation.map((record: any) => DatasetTransformationsDraft.update(record, { where: { id: record.id }, transaction: transact })));
             }
 
             if (!_.isEmpty(deleteTransformation)) {
-                await DatasetTransformationsDraft.destroy({ where: { id: deleteTransformation }});
+                await DatasetTransformationsDraft.destroy({ where: { id: deleteTransformation }, transaction: transact });
             }
         }
     }
@@ -345,6 +341,10 @@ const setDenormConfigs = (newDenormPayload: Record<string, any>, datasetDenormCo
     const { denorm_fields } = newDenormPayload;
     const existingDenormFields = _.get(datasetDenormConfigs, "denorm_fields") || []
 
+    if (_.isEmpty(denorm_fields)) {
+        return { denorm_fields }
+    }
+    
     const getDenormPayload = (action: string) => {
         return _.compact(_.flatten(_.map(denorm_fields, payload => {
             if (payload.action == action) return payload.values

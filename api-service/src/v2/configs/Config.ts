@@ -15,6 +15,9 @@ export const config = {
       "native_query_path": "/druid/v2",
       "list_datasources_path": "/druid/v2/datasources",
       "submit_ingestion": "druid/indexer/v1/supervisor"
+    },
+    "prometheus": {
+      "url": process.env.prometheus_url || "http://localhost:9090"
     }
   },
   "telemetry_service_config": {
@@ -49,8 +52,10 @@ export const config = {
     masterDataset: "master-dataset"
   },
   "redis_config": {
-    "redis_host": process.env.redis_host || "localhost",
-    "redis_port": process.env.redis_port || 6379
+    "denorm_redis_host": process.env.denorm_redis_host || "localhost",
+    "denorm_redis_port": parseInt(process.env.denorm_redis_port as string) || 6379,
+    "dedup_redis_host": process.env.dedup_redis_host || "localhost",
+    "dedup_redis_port": parseInt(process.env.dedup_redis_port as string) || 6379
   },
   "exclude_datasource_validation": process.env.exclude_datasource_validation ? process.env.exclude_datasource_validation.split(",") : ["system-stats", "failed-events-summary", "masterdata-system-stats", "system-events"], // list of datasource names to skip validation while calling query API
   "telemetry_dataset": process.env.telemetry_dataset || `${env}.system.telemetry.events`,
@@ -98,5 +103,10 @@ export const config = {
     "host": process.env.obser_api_service_host || "http://localhost",
     "port": parseInt(process.env.obser_api_service_port || "3000"),
     "generate_url_path": process.env.generate_url_path || "/v2/files/generate-url",
+    "path": process.env.command_service_path || "/system/v1/dataset/command"
+  },
+  "flink_job_configs": {
+    "pipeline_merged_job_manager_url": process.env.pipeline_merged_job_manager_url || "http://localhost:8081",
+    "masterdata_processor_job_manager_url": process.env.masterdata_processor_job_manager_url || "http://localhost:8081"
   }
 }

@@ -21,6 +21,7 @@ import GenerateSignedURL from "../controllers/GenerateSignedURL/GenerateSignedUR
 import { sqlQuery } from "../controllers/QueryWrapper/SqlQueryWrapper";
 import DatasetStatusTansition from "../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import connectorRegistryStream from "../controllers/ConnectorRegistryStream/ConnectorRegistryStreamController";
+import datasetHealth from "../controllers/DatasetHealth/DatasetHealth";
 
 export const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post("/template/query/:templateId", setDataToRequestObject("api.query.tem
 router.post("/files/generate-url", setDataToRequestObject("api.files.generate-url"), onRequest({ entity: Entity.Management }), GenerateSignedURL);
 router.post("/datasets/status-transition", setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), DatasetStatusTansition);
 router.post("/connector/stream/upload", setDataToRequestObject("api.connector.stream.upload"), onRequest({ entity: Entity.Management }), connectorRegistryStream);
+router.post("/dataset/health", setDataToRequestObject("api.dataset.health"), onRequest({ entity: Entity.Management }), datasetHealth);
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);

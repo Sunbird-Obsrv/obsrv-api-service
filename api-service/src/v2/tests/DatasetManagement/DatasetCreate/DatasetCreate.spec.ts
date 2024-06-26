@@ -9,7 +9,6 @@ import { DatasetDraft } from "../../../models/DatasetDraft";
 import { sequelize } from "../../../connections/databaseConnection";
 import _ from "lodash";
 import { apiId } from "../../../controllers/DatasetCreate/DatasetCreate"
-import { DatasourceDraft } from "../../../models/DatasourceDraft";
 import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
 import { DatasetTransformations } from "../../../models/Transformation";
 import { Dataset } from "../../../models/Dataset";
@@ -34,9 +33,6 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(sequelize, "query", () => {
                 return Promise.resolve([{ nextVal: 9 }])
             })
-            chai.spy.on(DatasourceDraft, "create", () => {
-                return Promise.resolve({})
-            })
             chai.spy.on(DatasetDraft, "create", () => {
                 return Promise.resolve({ dataValues: { id: "telemetry" } })
             })
@@ -55,7 +51,12 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(DatasetTransformations, "findAll", () => {
                 return Promise.resolve()
             })
-            
+            const t = chai.spy.on(sequelize, "transaction", () => {
+                return Promise.resolve(sequelize.transaction)
+            })
+            chai.spy.on(t, "commit", () => {
+                return Promise.resolve({})
+            })
 
             chai
                 .request(app)
@@ -79,7 +80,7 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(DatasetDraft, "findOne", () => {
                 return Promise.resolve(null)
             })
-            
+
             chai
                 .request(app)
                 .post("/v2/datasets/create")
@@ -131,32 +132,6 @@ describe("DATASET CREATE API", () => {
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Dataset already exists")
                 res.body.error.code.should.be.eq("DATASET_EXISTS")
-                done();
-            });
-    });
-
-    it("Dataset creation failure: When timestamp key does not exist in the data schema", (done) => {
-        chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve(null)
-        })
-        chai.spy.on(sequelize, "query", () => {
-            return Promise.resolve([{ nextVal: 9 }])
-        })
-        chai.spy.on(DatasetDraft, "create", () => {
-            return Promise.resolve({ dataValues: { id: "telemetry" } })
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/create")
-            .send(TestInputsForDatasetCreate.DATASET_WITH_INVALID_TIMESTAMP)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.BAD_REQUEST);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Provided timestamp key not found in the data schema")
-                res.body.error.code.should.be.eq("DATASET_TIMESTAMP_NOT_FOUND")
                 done();
             });
     });
