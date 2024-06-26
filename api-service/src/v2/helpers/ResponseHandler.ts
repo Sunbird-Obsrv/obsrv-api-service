@@ -18,7 +18,7 @@ const ResponseHandler = {
     next({ statusCode: httpStatus.NOT_FOUND, message: httpStatus["404"], errCode: httpStatus["404_NAME"] });
   },
 
-  refactorResponse: ({ id = "api", ver = "v1", params = { status: "SUCCESS" }, responseCode = httpStatus["200_NAME"], result = {}, msgid = "", resmsgid = "" }): IResponse => {
+  refactorResponse: ({ id = "api", ver = "v2", params = { status: "SUCCESS" }, responseCode = httpStatus["200_NAME"], result = {}, msgid = "", resmsgid = "" }): IResponse => {
     const paramsObj = { ...params, ...(!_.isEmpty(msgid) && { msgid }), resmsgid }
     return <IResponse>{ id, ver, ts: moment().format(), params: paramsObj, responseCode, result }
   },
