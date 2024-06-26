@@ -95,7 +95,7 @@ export const config = {
   },
   "command_service_config": {
     "host": process.env.command_service_host || "http://localhost",
-    "port": parseInt(process.env.command_service_port || "9999"),
+    "port": parseInt(process.env.command_service_port || "8000"),
     "path": process.env.command_service_path || "/system/v1/dataset/command",
     "connector_registry_path": process.env.connector_registry_path || "/connector/v1/register",
   },
