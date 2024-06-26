@@ -11,7 +11,7 @@ import { PassThrough } from "stream";
 import { URLAccess } from "../../types/SampleURLModel";
 import { ErrorObject } from "../../types/ResponseModel";
 
-export const apiId = "api.files.generate-url";
+export const apiId = "api.connector.stream.upload";
 export const code = "FAILED_TO_REGISTER_CONNECTOR";
 
 const apiServiceHost = _.get(config, ["obsrv_api_service_config", "host"]);
