@@ -170,6 +170,9 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
         "value": _.get(druidTasks, "value")
       }
     )
+    if(_.get(druidTasks, "status") == HealthStatus.UnHealthy){
+      status = HealthStatus.UnHealthy
+    }
   } else {
     components.push({
       "type": "indexer",
@@ -207,6 +210,10 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
       queriesFailed.health = HealthStatus.UnHealthy
     }
   }
+  if([queriesFailed.health, avgQueryReponseTimeInSec.health].includes(HealthStatus.UnHealthy)){
+    status = HealthStatus.UnHealthy
+  }
+  
   components.push({
     "type": "queriesFailed",
     "count": queriesFailed.count,
