@@ -52,10 +52,10 @@ export const config = {
     masterDataset: "master-dataset"
   },
   "redis_config": {
-    "denorm_redis_host": process.env.denorm_redis_host,
-    "denorm_redis_port": parseInt(process.env.denorm_redis_port as string),
-    "dedup_redis_host": process.env.dedup_redis_host,
-    "dedup_redis_port": parseInt(process.env.dedup_redis_port as string)
+    "denorm_redis_host": process.env.denorm_redis_host || "localhost",
+    "denorm_redis_port": parseInt(process.env.denorm_redis_port as string) || 6379,
+    "dedup_redis_host": process.env.dedup_redis_host || "localhost",
+    "dedup_redis_port": parseInt(process.env.dedup_redis_port as string) || 6379
   },
   "exclude_datasource_validation": process.env.exclude_datasource_validation ? process.env.exclude_datasource_validation.split(",") : ["system-stats", "failed-events-summary", "masterdata-system-stats", "system-events"], // list of datasource names to skip validation while calling query API
   "telemetry_dataset": process.env.telemetry_dataset || `${env}.system.telemetry.events`,
