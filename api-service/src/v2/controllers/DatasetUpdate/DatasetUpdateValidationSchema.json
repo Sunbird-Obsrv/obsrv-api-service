@@ -321,7 +321,8 @@
                         "minLength": 1
                       }
                     },
-                    "required": ["denorm_out_field"]
+                    "required": ["denorm_out_field"],
+                    "additionalProperties": false
                   },
                   "action": {
                     "type": "string",
