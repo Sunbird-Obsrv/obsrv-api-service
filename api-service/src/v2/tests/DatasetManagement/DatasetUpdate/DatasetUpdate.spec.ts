@@ -60,6 +60,7 @@ describe("DATASET UPDATE API", () => {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
                         "denorm_out_field": "mid",
+                        "dataset_id" : "master-telemetry",
                         "redis_db": 10
                     }]
                 }
@@ -76,6 +77,9 @@ describe("DATASET UPDATE API", () => {
                     "additionalProperties": true
                 },
             })
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "dataset_id": "master-telemetry", "dataset_config": { "redis_db": 15 } }])
         })
         chai.spy.on(DatasetTransformations, "findAll", () => {
             return Promise.resolve()

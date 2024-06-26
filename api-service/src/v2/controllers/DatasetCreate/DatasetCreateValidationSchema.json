@@ -131,11 +131,12 @@
                     "type": "string",
                     "minLength": 1
                   },
-                  "redis_db": {
-                    "type": "number"
+                  "dataset_id": {
+                    "type": "string",
+                    "minLength": 1
                   }
                 },
-                "required": ["denorm_key", "denorm_out_field", "redis_db"],
+                "required": ["denorm_key", "denorm_out_field", "dataset_id"],
                 "additionalProperties": false
               }
             }

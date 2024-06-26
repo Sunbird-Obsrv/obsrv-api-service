@@ -59,7 +59,7 @@ export const TestInputsForDatasetUpdate = {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata",
-                            "redis_db": 10
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     }
@@ -298,7 +298,7 @@ export const TestInputsForDatasetUpdate = {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata",
-                            "redis_db": 10
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     },
@@ -306,7 +306,7 @@ export const TestInputsForDatasetUpdate = {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "mid",
-                            "redis_db": 10
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "remove"
                     }
@@ -387,7 +387,7 @@ export const TestInputsForDatasetUpdate = {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata",
-                            "redis_db": 10
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     },
@@ -395,7 +395,7 @@ export const TestInputsForDatasetUpdate = {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata",
-                            "redis_db": 10
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     }

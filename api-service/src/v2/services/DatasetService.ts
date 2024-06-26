@@ -10,6 +10,7 @@ import { getUpdatedSchema } from "./DatasourceService";
 import { DatasetType } from "../types/DatasetModels";
 import { defaultDatasetConfig, defaultMasterConfig } from "../configs/DatasetConfigDefault";
 import { query } from "../connections/databaseConnection";
+import { ErrorObject } from "../types/ResponseModel";
 
 export const getDataset = async (datasetId: string, raw = false): Promise<any> => {
     const dataset = await Dataset.findOne({
@@ -76,7 +77,8 @@ const getDataSource = (ingestionPayload: Record<string, any>) => {
 
 const getDatasetDefaults = async (payload: Record<string, any>): Promise<Record<string, any>> => {
     const datasetPayload = mergeDatasetConfigs(defaultDatasetConfig, payload)
-    return datasetPayload
+    const denormPayload = await updateDenormFields(_.get(datasetPayload, "denorm_config"))
+    return { ...datasetPayload, denorm_config: denormPayload }
 }
 
 const setRedisDBConfig = async (datasetConfig: Record<string, any>): Promise<Record<string, any>> => {
@@ -115,4 +117,26 @@ const mergeDatasetConfigs = (defaultConfig: Record<string, any>, requestPayload:
     const defaults = _.cloneDeep(defaultConfig)
     const datasetConfigs = _.merge(defaults, modifyPayload)
     return datasetConfigs
+}
+
+const updateDenormFields = async (denormConfigs: Record<string, any>) => {
+    const denormFields = _.get(denormConfigs, "denorm_fields")
+    if (_.isEmpty(denormFields)) {
+        return denormConfigs
+    }
+    const masterDatasets = await Dataset.findAll({ where: { type: DatasetType.MasterDataset }, raw: true });
+    const updatedFields = _.map(denormFields, fields => {
+        const master = _.find(masterDatasets, dataset => _.get(dataset, ["dataset_id"]) === fields.dataset_id)
+        if (_.isEmpty(master)) {
+            throw {
+                code: "DATASET_DENORM_NOT_FOUND",
+                message: "Denorm Master dataset not found",
+                statusCode: 404,
+                errCode: "NOT_FOUND"
+            } as ErrorObject
+        }
+        const redis_db = _.get(master, ["dataset_config", "redis_db"])
+        return { ...fields, redis_db }
+    })
+    return { ...denormConfigs, denorm_fields: updatedFields }
 }

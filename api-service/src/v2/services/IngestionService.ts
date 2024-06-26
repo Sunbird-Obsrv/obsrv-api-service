@@ -211,8 +211,7 @@ export const getDruidIngestionTemplate = (payload: Record<string, any>) => {
                 "dimensionsSpec": { "dimensions": dimensions },
                 "timestampSpec": { "column": indexCol, "format": "auto" },
                 "metricsSpec": metrics,
-                "granularitySpec": getGranularityObj(),
-                "transformSpec": {}
+                "granularitySpec": getGranularityObj()
             },
             "tuningConfig": {
                 "type": "kafka",

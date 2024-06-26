@@ -45,7 +45,7 @@ export const TestInputsForDatasetCreate = {
                     {
                         "denorm_key": "actor.id",
                         "denorm_out_field": "userdata",
-                        "redis_db": 10
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -327,7 +327,7 @@ export const TestInputsForDatasetCreate = {
                     {
                         "denorm_key": "actor.id",
                         "denorm_out_field": "userdata",
-                        "redis_db": 10
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -371,7 +371,7 @@ export const TestInputsForDatasetCreate = {
                     {
                         "denorm_key": "actor.id",
                         "denorm_out_field": "userdata",
-                        "redis_db": 10
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -424,7 +424,7 @@ export const TestInputsForDatasetCreate = {
                     {
                         "denorm_key": "actor.id",
                         "denorm_out_field": "userdata",
-                        "redis_db": 10
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -515,12 +515,12 @@ export const TestInputsForDatasetCreate = {
                     {
                         "denorm_key": "actor.id",
                         "denorm_out_field": "userdata",
-                        "redis_db": 10
+                        "dataset_id" : "master-telemetry"
                     },
                     {
                         "denorm_key": "actor.id",
                         "denorm_out_field": "userdata",
-                        "redis_db": 10
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             }

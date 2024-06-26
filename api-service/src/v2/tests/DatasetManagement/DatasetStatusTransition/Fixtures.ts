@@ -112,15 +112,13 @@ export const TestInputsForDatasetStatusTransition = {
           "denorm_key": "actor.id",
           "denorm_out_field": "userdata",
           "dataset_name": "name",
-          "dataset_id": "name",
-          "redis_db": 10
+          "dataset_id": "name"
         },
         {
           "denorm_key": "actor.id",
           "denorm_out_field": "mid",
           "dataset_name": "name",
-          "dataset_id": "name",
-          "redis_db": 15
+          "dataset_id": "name"
         }
       ]
     },
@@ -161,15 +159,13 @@ export const TestInputsForDatasetStatusTransition = {
           "denorm_key": "actor.id",
           "denorm_out_field": "userdata",
           "dataset_name": "name",
-          "dataset_id": "name",
-          "redis_db": 15
+          "dataset_id": "name"
         },
         {
           "denorm_key": "actor.id",
           "denorm_out_field": "mid",
           "dataset_name": "name",
-          "dataset_id": "name",
-          "redis_db": 23
+          "dataset_id": "name"
         }
       ]
     },
