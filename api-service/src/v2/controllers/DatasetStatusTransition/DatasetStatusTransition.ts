@@ -158,7 +158,7 @@ const deleteDraftRecords = async (config: Record<string, any>) => {
 }
 
 //GENERATE_INGESTION_SPEC
-const generateDatasource = async (config: Record<string, any>) => {
+const generateIngestionSpec = async (config: Record<string, any>) => {
     const { dataset } = config;
     const dataSource = await generateDataSource(dataset);
     return DatasourceDraft.upsert(dataSource)
@@ -231,7 +231,7 @@ const restartPipeline = async (config: Record<string, any>) => {
 const commandExecutors = {
     DELETE_DRAFT_DATASETS: deleteDataset,
     PUBLISH_DATASET: publishDataset,
-    GENERATE_INGESTION_SPEC: generateDatasource,
+    GENERATE_INGESTION_SPEC: generateIngestionSpec,
     CHECK_DATASET_IS_DENORM: checkDatasetDenorm,
     SET_DATASET_TO_RETIRE: setDatasetRetired,
     DELETE_SUPERVISORS: deleteSupervisors,
