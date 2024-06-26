@@ -78,12 +78,26 @@ export const getProcessingHealth = async (dataset: any): Promise<{ components: a
   const dataset_id = _.get(dataset, "dataset_id")
   const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
   const flink = await getFlinkHealthStaus()
-  const { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
-  const { count: avgCount, health: avgHealth } = await getAvgProcessingSpeedInSec(dataset_id, isMasterDataset)
-  const failure = await getValidationFailure(dataset_id, isMasterDataset)
+  let { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
+  const processingDefaultThreshold = await SystemConfig.getThresholds("processing")
+  let { count: avgCount, health: avgHealth } = await getAvgProcessingSpeedInSec(dataset_id, isMasterDataset)
+  if (avgHealth == HealthStatus.Healthy) {
+    if (avgCount > processingDefaultThreshold?.avgProcessingSpeedInSec) {
+      avgHealth = HealthStatus.UnHealthy
+    }
+  }
+  let failure = await getValidationFailure(dataset_id, isMasterDataset)
+  failure.health = getProcessingComponentHealth(failure, count, processingDefaultThreshold?.validationFailuresCount)
+
   const dedupFailure = await getDedupFailure(dataset_id)
+  dedupFailure.health = getProcessingComponentHealth(dedupFailure, count, processingDefaultThreshold?.dedupFailuresCount)
+
   const denormFailure = await getDenormFailure(dataset_id)
+  denormFailure.health = getProcessingComponentHealth(denormFailure, count, processingDefaultThreshold?.denormFailureCount)
+
   const transformFailure = await getTransformFailure(dataset_id)
+  denormFailure.health = getProcessingComponentHealth(transformFailure, count, processingDefaultThreshold?.transformFailureCount)
+
   const components = [
     {
       "type": "pipeline",
@@ -120,23 +134,31 @@ export const getProcessingHealth = async (dataset: any): Promise<{ components: a
       "status": transformFailure?.health
     }
   ]
+  const Healths = _.map(components, (component: any) => component?.status)
 
+  let status = _.includes(Healths, HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy;
 
-  const defaultThresholds = await SystemConfig.getThresholds()
-  const processingDefaultThreshold: any = _.get(defaultThresholds, "processing")
-  let status = HealthStatus.Healthy;
-  _.forEach(components, (component: any) => {
-    const threshold = processingDefaultThreshold[_.get(component, 'type')]
-    if ((threshold && threshold < _.get(component, 'count')) || component.status != HealthStatus.Healthy) {
-      status = HealthStatus.UnHealthy
-      component.status = HealthStatus.UnHealthy
-    }
-  })
   return { components, status };
 }
 
+const getProcessingComponentHealth = (info: any, count: any, threshold: any) => {
+  let status = info.health
+  logger.debug({ info, count, threshold })
+  if (info.health == HealthStatus.Healthy) {
+    if (info.count > 0 && count == 0) {
+      status = HealthStatus.UnHealthy
+    } else {
+      const percentage = (info.count / count) * 100
+      if (percentage > threshold) {
+        status = HealthStatus.UnHealthy
+      }
+    }
+  }
+  return status;
+}
+
 export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ components: any, status: string }> => {
-  logger.debug(JSON.stringify(datasources))
+  
   const components: any = [];
   let status = HealthStatus.Healthy;
   if (!_.isEmpty(datasources)) {
@@ -158,6 +180,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   }
 
   const queriesCount = await getQuriesStatus(dataset?.dataset_id)
+  const defaultThresholds = await SystemConfig.getThresholds("query")
 
   components.push({
     "type": "queriesCount",
@@ -166,6 +189,9 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   })
 
   const avgQueryReponseTimeInSec = await getAvgQueryReponseTimeInSec(dataset?.dataset_id)
+  if(avgQueryReponseTimeInSec.count > defaultThresholds?.avgQueryReponseTimeInSec){
+    avgQueryReponseTimeInSec.health = HealthStatus.UnHealthy
+  }
   components.push({
     "type": "avgQueryReponseTimeInSec",
     "count": avgQueryReponseTimeInSec.count,
@@ -173,23 +199,19 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   })
 
   const queriesFailed = await getQueriesFailedCount(dataset?.dataset_id)
+  if(queriesCount.count == 0 &&  queriesFailed.count > 0){
+    queriesFailed.health = HealthStatus.UnHealthy
+  } else {
+    const percentage = (queriesFailed.count / queriesCount.count) * 100;
+    if(percentage > defaultThresholds?.queriesFailed){
+      queriesFailed.health = HealthStatus.UnHealthy
+    }
+  }
   components.push({
     "type": "queriesFailed",
     "count": queriesFailed.count,
     "status": queriesFailed.health
   })
-
-  const defaultThresholds = await SystemConfig.getThresholds()
-  const processingDefaultThreshold: any = _.get(defaultThresholds, "query")
-
-  _.forEach(components, (component: any) => {
-    const threshold = processingDefaultThreshold[_.get(component, 'type')]
-    if ((threshold && threshold < _.get(component, 'count')) || component.status != HealthStatus.Healthy) {
-      status = HealthStatus.UnHealthy
-      component.status = HealthStatus.UnHealthy
-    }
-  })
-
   return { components, status }
 }
 
@@ -393,6 +415,7 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
         }
       ]
     })
+    logger.debug({ average_processing_time: JSON.stringify(data) })
     const count = _.get(data, "[0].event.average_processing_time", 0) || 0
     return { health: HealthStatus.Healthy, count: count / 1000 }
   } catch (error) {
@@ -402,13 +425,7 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
 }
 
 const getValidationFailure = async (datasetId: string, isMasterDataset: boolean) => {
-  let query = ""
-  if (isMasterDataset) {
-    query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
-  }
-  else {
-    query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
-  }
+  let query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
   try {
     const { data } = await queryMetrics({ query })
     return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
