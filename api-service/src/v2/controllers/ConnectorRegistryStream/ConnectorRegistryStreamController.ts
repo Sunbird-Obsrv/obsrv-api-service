@@ -25,7 +25,7 @@ const registryUrl = _.get(config, ["command_service_config", "connector_registry
 const getGenerateSignedURLRequestBody = (files: string[], access: string) => ({
     id: apiId,
     ver: "v2",
-    ts: new Date().toISOString(),
+    ts: Date.now(),
     params: {
         msgid: v4()
     },
