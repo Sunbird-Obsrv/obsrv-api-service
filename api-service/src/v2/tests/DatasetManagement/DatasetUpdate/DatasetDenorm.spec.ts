@@ -9,6 +9,7 @@ import _ from "lodash";
 import { TestInputsForDatasetUpdate, msgid, validVersionKey } from "./Fixtures";
 import { apiId } from "../../../controllers/DatasetUpdate/DatasetUpdate"
 import { sequelize } from "../../../connections/databaseConnection";
+import { Dataset } from "../../../models/Dataset";
 
 chai.use(spies);
 chai.should();
@@ -28,6 +29,9 @@ describe("DATASET DENORM UPDATE", () => {
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "dataset_id": "master-telemetry", "dataset_config": { "redis_db": 15 } }])
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)
@@ -90,7 +94,9 @@ describe("DATASET DENORM UPDATE", () => {
                 id: "telemetry", version_key: validVersionKey, type:"dataset", status: "Draft", denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "mid"
+                        "denorm_out_field": "mid",
+                        "dataset_id" : "master-telemetry",
+                        "redis_db": 10
                     }]
                 }
             })
@@ -148,16 +154,12 @@ describe("DATASET DENORM UPDATE", () => {
                 id: "telemetry", status: "Draft", version_key: validVersionKey, tags: ["tag1", "tag2"], denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry",
+                        "redis_db": 10
                     }]
                 }
             })
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -181,7 +183,9 @@ describe("DATASET DENORM UPDATE", () => {
                 id: "telemetry", status: "Draft", version_key: validVersionKey, tags: ["tag1", "tag2"], denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "id"
+                        "denorm_out_field": "id",
+                        "dataset_id" : "master-telemetry",
+                        "redis_db": 10
                     }]
                 }
             })
@@ -198,6 +202,31 @@ describe("DATASET DENORM UPDATE", () => {
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Denorm fields do not exist to remove")
                 res.body.error.code.should.be.eq("DATASET_DENORM_DO_NOT_EXIST")
+                done();
+            });
+    });
+
+    it("Failure: Master dataset not found as denorm", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve({
+                id: "telemetry", status: "Draft", type:"dataset", version_key: validVersionKey, denorm_config: { denorm_field: [] }
+            })
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "dataset_id": "trip-events", "dataset_config": { "redis_db": 15 } }])
+        })
+        chai
+            .request(app)
+            .patch("/v2/datasets/update")
+            .send(TestInputsForDatasetUpdate.DATASET_UPDATE_DENORM_ADD)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.NOT_FOUND);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.error.message.should.be.eq("Denorm Master dataset not found")
+                res.body.error.code.should.be.eq("DATASET_DENORM_NOT_FOUND")
                 done();
             });
     });

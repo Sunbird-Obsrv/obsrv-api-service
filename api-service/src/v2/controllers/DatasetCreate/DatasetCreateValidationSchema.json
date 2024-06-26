@@ -130,9 +130,13 @@
                   "denorm_out_field": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "dataset_id": {
+                    "type": "string",
+                    "minLength": 1
                   }
                 },
-                "required": ["denorm_key", "denorm_out_field"],
+                "required": ["denorm_key", "denorm_out_field", "dataset_id"],
                 "additionalProperties": false
               }
             }
@@ -171,7 +175,29 @@
                 "minLength": 1
               },
               "transformation_function": {
-                "type": "object"
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expr": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "condition": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "const": null
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["type", "expr"]
               },
               "mode": {
                 "type": "string",
@@ -188,8 +214,7 @@
             "required": [
               "field_key",
               "transformation_function",
-              "mode",
-              "metadata"
+              "mode"            
             ]
           }
         },
@@ -197,7 +222,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength":1
+            "minLength": 1
           }
         }
       },

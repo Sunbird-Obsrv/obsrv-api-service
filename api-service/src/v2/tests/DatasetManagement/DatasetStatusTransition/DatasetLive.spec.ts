@@ -10,6 +10,8 @@ import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { commandHttpService } from "../../../connections/commandServiceConnection";
 import { sequelize } from "../../../connections/databaseConnection";
+import { DatasourceDraft } from "../../../models/DatasourceDraft";
+import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
 
 chai.use(spies);
 chai.should();
@@ -25,7 +27,13 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
 
     it("Dataset status transition success: When the action is to set dataset live", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "ReadyToPublish" })
+            return Promise.resolve(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE_READ)
+        })
+        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
+            return Promise.resolve([])
+        })
+        chai.spy.on(DatasourceDraft, "upsert", () => {
+            return Promise.resolve({})
         })
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})

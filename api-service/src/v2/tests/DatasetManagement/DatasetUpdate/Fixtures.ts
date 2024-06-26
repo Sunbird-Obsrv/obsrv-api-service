@@ -58,7 +58,8 @@ export const TestInputsForDatasetUpdate = {
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     }
@@ -93,7 +94,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -212,7 +217,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -229,7 +238,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -284,14 +297,16 @@ export const TestInputsForDatasetUpdate = {
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     },
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "remove"
                     }
@@ -301,7 +316,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -310,7 +329,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key2",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -319,7 +342,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key3",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -359,14 +386,16 @@ export const TestInputsForDatasetUpdate = {
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     },
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "add"
                     }
@@ -434,7 +463,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -443,7 +476,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -452,7 +489,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key2",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -461,7 +502,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key2",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -470,7 +515,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key3",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -479,7 +528,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key3",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },

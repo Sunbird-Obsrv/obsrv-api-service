@@ -47,7 +47,8 @@ export const TestInputsForDatasetList = {
             "denorm_fields": [
                 {
                     "denorm_key": "actor.id",
-                    "denorm_out_field": "userdata"
+                    "denorm_out_field": "userdata",
+                    "dataset_id" : "master-telemetry"
                 }
             ]
         },
@@ -121,7 +122,8 @@ export const TestInputsForDatasetList = {
             "denorm_fields": [
                 {
                     "denorm_key": "actor.id",
-                    "denorm_out_field": "userdata"
+                    "denorm_out_field": "userdata",
+                    "dataset_id" : "master-telemetry"
                 }
             ]
         },

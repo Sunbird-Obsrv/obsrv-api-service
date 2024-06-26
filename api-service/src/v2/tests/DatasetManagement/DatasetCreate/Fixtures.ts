@@ -44,7 +44,8 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -325,7 +326,8 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -368,7 +370,8 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -420,7 +423,8 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             },
@@ -510,11 +514,13 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry"
                     },
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id" : "master-telemetry"
                     }
                 ]
             }
