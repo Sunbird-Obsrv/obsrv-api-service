@@ -85,11 +85,11 @@ const datasetReset = async (req: Request, res: Response) => {
 
 }
 const getLiveDatasets = async (ids: string): Promise<Record<string, any>> => {
-    return Dataset.findAll({ attributes: ['dataset_id', 'status', 'type'], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
+    return Dataset.findAll({ attributes: ["dataset_id", "status", "type"], where: { dataset_id: ids, status: DatasetStatus.Live }, raw: true });
 }
 
 const getDataSources = async (ids: string): Promise<Record<string, any>> => {
-    return Datasource.findAll({ attributes: ['dataset_id', 'datasource'], where: { dataset_id: ids }, raw: true });
+    return Datasource.findAll({ attributes: ["dataset_id", "datasource"], where: { dataset_id: ids }, raw: true });
 }
 
 export default datasetReset;
