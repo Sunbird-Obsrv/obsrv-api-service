@@ -78,6 +78,7 @@ paths:
                     denorm_fields:
                       - denorm_key: eid
                         denorm_out_field: userdata
+                        dataset_id: master-telemetry
                   transformations_config:
                     - field_key: eid
                       transformation_function:
@@ -93,6 +94,7 @@ paths:
                   dataset_config:
                     data_key: mid
                     timestamp_key: ets
+                    files_upload_path: ["telemetry.json"]
                   tags:
                     - tag1
                     - tag2
@@ -261,10 +263,12 @@ paths:
                       - values:
                           denorm_key: eid
                           denorm_out_field: userdata
+                          dataset_id: master-telemetry
                         action: remove
                       - values:
                           denorm_key: eid
                           denorm_out_field: edata
+                          dataset_id: trip-record
                         action: add
                   transformation_config:
                     - values:
@@ -975,7 +979,7 @@ paths:
                         redis_db_port: 6379
                         index_data: true
                         redis_db: 70
-                        file_upload_path: []
+                        files_upload_path: []
                         configurations:
                           indexConfiguration:
                             index:

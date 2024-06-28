@@ -154,7 +154,7 @@
               "type": "string",
               "minLength": 1
             },
-            "file_upload_path": {
+            "files_upload_path": {
               "type": "array",
               "items": {
                 "type": "string",
@@ -162,7 +162,6 @@
               }
             }
           },
-          "required": ["data_key", "timestamp_key"],
           "additionalProperties": false
         },
         "transformations_config": {
@@ -201,21 +200,14 @@
               },
               "mode": {
                 "type": "string",
-                "enum": [
-                  "Strict",
-                  "Lenient"
-                ]
+                "enum": ["Strict", "Lenient"]
               },
               "metadata": {
                 "type": "object"
               }
             },
             "additionalProperties": false,
-            "required": [
-              "field_key",
-              "transformation_function",
-              "mode"            
-            ]
+            "required": ["field_key", "transformation_function", "mode"]
           }
         },
         "tags": {

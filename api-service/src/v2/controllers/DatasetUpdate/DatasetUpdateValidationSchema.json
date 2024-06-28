@@ -195,7 +195,7 @@
             "dataMappings": {
               "type": "object"
             },
-            "file_upload_path": {
+            "files_upload_path": {
               "type": "array",
               "items": {
                 "type": "string",
