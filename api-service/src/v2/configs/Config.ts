@@ -99,12 +99,6 @@ export const config = {
     "path": process.env.command_service_path || "/system/v1/dataset/command",
     "connector_registry_path": process.env.connector_registry_path || "/connector/v1/register",
   },
-  "obsrv_api_service_config": {
-    "host": process.env.obsrv_api_service_host || "http://localhost",
-    "port": parseInt(process.env.obsrv_api_service_port || "3000"),
-    "generate_url_path": process.env.generate_url_path || "/v2/files/generate-url",
-    "path": process.env.command_service_path || "/system/v1/dataset/command"
-  },
   "flink_job_configs": {
     "pipeline_merged_job_manager_url": process.env.pipeline_merged_job_manager_url || "http://localhost:8081",
     "masterdata_processor_job_manager_url": process.env.masterdata_processor_job_manager_url || "http://localhost:8081"
