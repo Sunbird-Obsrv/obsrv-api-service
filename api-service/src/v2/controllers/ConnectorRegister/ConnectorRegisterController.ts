@@ -7,14 +7,14 @@ import httpStatus from "http-status";
 import busboy from "busboy";
 import { PassThrough } from "stream";
 import { generatePreSignedUrl } from "../GenerateSignedURL/helper";
-import { connectorRegistry } from "../../connections/commandServiceConnection";
+import { registerConnector } from "../../connections/commandServiceConnection";
 
-export const apiId = "api.connector.stream.upload";
+export const apiId = "api.connector.register";
 export const code = "FAILED_TO_REGISTER_CONNECTOR";
 
 let resmsgid: string | any;
 
-const connectorRegistryStream = async (req: Request, res: Response) => {
+const connectorRegisterController = async (req: Request, res: Response) => {
     resmsgid = _.get(res, "resmsgid");
     try {
         const uploadStreamResponse: any = await uploadStream(req);
@@ -22,7 +22,7 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
             relative_path: uploadStreamResponse[0]
         }
         logger.info({ apiId, resmsgid, message: `File uploaded to cloud provider successfully` })
-        const registryResponse = await connectorRegistry(registryRequestBody);
+        const registryResponse = await registerConnector(registryRequestBody);
         logger.info({ apiId, resmsgid, message: `Connector registered successfully` })
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: registryResponse?.data?.message } })
     } catch (error: any) {
@@ -40,14 +40,14 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
 const uploadStream = async (req: Request) => {
     return new Promise((resolve, reject) => {
         const filePromises: Promise<void>[] = [];
-        const bb = busboy({ headers: req.headers });
+        const busboyClient = busboy({ headers: req.headers });
         const relative_path: any[] = [];
         let fileCount = 0;
 
-        bb.on("file", async (name: any, file: any, info: any) => {
+        busboyClient.on("file", async (name: any, file: any, info: any) => {
             if (fileCount > 0) {
                 // If more than one file is detected, reject the request
-                bb.emit("error", reject({
+                busboyClient.emit("error", reject({
                     code: "FAILED_TO_UPLOAD",
                     message: "Uploading multiple files are not allowed",
                     statusCode: 400,
@@ -85,7 +85,7 @@ const uploadStream = async (req: Request) => {
             };
             filePromises.push(processFile());
         });
-        bb.on("close", async () => {
+        busboyClient.on("close", async () => {
             try {
                 await Promise.all(filePromises);
                 resolve(relative_path);
@@ -99,8 +99,8 @@ const uploadStream = async (req: Request) => {
                 });
             }
         });
-        bb.on("error", reject);
-        req.pipe(bb);
+        busboyClient.on("error", reject);
+        req.pipe(busboyClient);
     })
 }
 
@@ -118,4 +118,4 @@ const extractFileNameFromPath = (filePath: string): string[] => {
     return filePath.match(regex) || [];
 };
 
-export default connectorRegistryStream;
+export default connectorRegisterController;
