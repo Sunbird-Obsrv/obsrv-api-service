@@ -6,11 +6,9 @@ import logger from "../../logger";
 import { ErrorObject } from "../../types/ResponseModel";
 import { schemaValidation } from "../../services/ValidationService";
 import GenerateURL from "./GenerateSignedURLValidationSchema.json"
-import { cloudProvider } from "../../services/CloudServices";
 import { config } from "../../configs/Config";
 import { URLAccess } from "../../types/SampleURLModel";
-import { v4 as uuidv4 } from "uuid";
-import path from "path";
+import { generatePreSignedUrl } from "./helper";
 
 export const apiId = "api.files.generate-url"
 export const code = "FILES_GENERATE_URL_FAILURE"
@@ -48,21 +46,7 @@ const generateSignedURL = async (req: Request, res: Response) => {
                 errCode: "BAD_REQUEST"
             } as ErrorObject, req, res);
         }
-
-        const { filesList, updatedFileNames } = transformFileNames(files, access)
-        logger.info(`Updated file names with path:${updatedFileNames}`)
-
-        const urlExpiry: number = getURLExpiry(access)
-        const preSignedUrls = await Promise.all(cloudProvider.generateSignedURLs(config.cloud_config.container, updatedFileNames, access, urlExpiry))
-        const signedUrlList = _.map(preSignedUrls, list => {
-            const fileNameWithUid = _.keys(list)[0]
-            return {
-                filePath: getFilePath(fileNameWithUid),
-                fileName: filesList.get(fileNameWithUid),
-                preSignedUrl: _.values(list)[0]
-            }
-        })
-
+        const signedUrlList = await generatePreSignedUrl(access, files, containerType)
         logger.info({ apiId, requestBody, msgid, resmsgid, response: signedUrlList, message: `Sample urls generated successfully for files:${files}` })
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: signedUrlList })
     } catch (error: any) {
@@ -74,52 +58,6 @@ const generateSignedURL = async (req: Request, res: Response) => {
         }
         ResponseHandler.errorResponse(errorMessage, req, res);
     }
-}
-
-const getFilePath = (file: string) => {
-    const datasetUploadPath = `${config.presigned_url_configs.service}/user_uploads/${file}`;
-    const connectorUploadPath = `${config.cloud_config.container_prefix}/${file}`;
-
-    const paths: Record<string, string> = {
-        "dataset": datasetUploadPath,
-        "connector": connectorUploadPath
-    };
-
-    return paths[containerType] || datasetUploadPath;
-}
-
-const transformFileNames = (fileList: Array<string | any>, access: string): Record<string, any> => {
-    if (access === URLAccess.Read) {
-        return transformReadFiles(fileList)
-    }
-    return transformWriteFiles(fileList)
-}
-
-const transformReadFiles = (fileNames: Array<string | any>) => {
-    const fileMap = new Map();
-    const updatedFileNames = _.map(fileNames, file => {
-        fileMap.set(file, file)
-        return getFilePath(file)
-    })
-    return { filesList: fileMap, updatedFileNames }
-}
-
-const transformWriteFiles = (fileNames: Array<string | any>) => {
-    const fileMap = new Map();
-    const updatedFileNames = _.map(fileNames, file => {
-        const uuid = uuidv4().replace(/-/g, "").slice(0, 6);
-        const ext = path.extname(file)
-        const baseName = path.basename(file, ext)
-        const updatedFileName = `${baseName}_${uuid}${ext}`
-        fileMap.set(updatedFileName, file)
-        return getFilePath(updatedFileName)
-    })
-    return { filesList: fileMap, updatedFileNames }
-
-}
-
-const getURLExpiry = (access: string) => {
-    return access === URLAccess.Read ? config.presigned_url_configs.read_storage_url_expiry : config.presigned_url_configs.write_storage_url_expiry
 }
 
 const checkLimitExceed = (files: Array<string>): boolean => {

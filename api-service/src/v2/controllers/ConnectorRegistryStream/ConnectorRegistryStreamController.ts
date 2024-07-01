@@ -6,38 +6,19 @@ import { config } from "../../configs/Config";
 import axios from "axios";
 import httpStatus from "http-status";
 import busboy from "busboy";
-import { v4 } from "uuid"
 import { PassThrough } from "stream";
-import { URLAccess } from "../../types/SampleURLModel";
-import { ErrorObject } from "../../types/ResponseModel";
+import { generatePreSignedUrl } from "../GenerateSignedURL/helper";
 
 export const apiId = "api.connector.stream.upload";
 export const code = "FAILED_TO_REGISTER_CONNECTOR";
 
-const apiServiceHost = _.get(config, ["obsrv_api_service_config", "host"]);
-const apiServicePort = _.get(config, ["obsrv_api_service_config", "port"]);
-const generateSignedURLPath = _.get(config, ["obsrv_api_service_config", "generate_url_path"]);
-
 const commandServiceHost = _.get(config, ["command_service_config", "host"]);
 const commandServicePort = _.get(config, ["command_service_config", "port"]);
 const registryUrl = _.get(config, ["command_service_config", "connector_registry_path"])
-
-const getGenerateSignedURLRequestBody = (files: string[], access: string) => ({
-    id: "api.files.generate-url",
-    ver: "v2",
-    ts: Date.now().toString(),
-    params: {
-        msgid: v4()
-    },
-    request: {
-        files,
-        access: access || URLAccess.Read,
-        type: "connector"
-    }
-});
+let resmsgid: string | any;
 
 const connectorRegistryStream = async (req: Request, res: Response) => {
-    const resmsgid = _.get(res, "resmsgid");
+    resmsgid = _.get(res, "resmsgid");
     try {
         const uploadStreamResponse: any = await uploadStream(req);
         const registryRequestBody = {
@@ -56,22 +37,6 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
             errorMessage = { code, message: errMessage || "Failed to register connector" }
         }
         ResponseHandler.errorResponse(errorMessage, req, res);
-    }
-};
-
-export const generatePresignedUrl = async (fileName: string, access: string) => {
-    try {
-        const requestBody = getGenerateSignedURLRequestBody([fileName], access);
-        const response = await axios.post(`${apiServiceHost}:${apiServicePort}${generateSignedURLPath}`, requestBody);
-        return response?.data?.result;
-    }
-    catch (err) {
-        throw {
-            code: "FILES_GENERATE_URL_FAILURE",
-            message: "Failed to generate sample urls",
-            statusCode: 400,
-            errCode: "BAD_REQUEST"
-        } as ErrorObject
     }
 };
 
@@ -96,19 +61,30 @@ const uploadStream = async (req: Request) => {
             fileCount++;
             const processFile = async () => {
                 const fileName = info?.filename;
-                const preSignedUrl: any = await generatePresignedUrl(fileName, URLAccess.Write);
-                const filePath = preSignedUrl[0]?.filePath
-                const fileNameExtracted = extractFileNameFromPath(filePath);
-                relative_path.push(...fileNameExtracted);
-                const pass = new PassThrough();
-                file.pipe(pass);
-                const fileBuffer = await streamToBuffer(pass);
-                await axios.put(preSignedUrl[0]?.preSignedUrl, fileBuffer, {
-                    headers: {
-                        "Content-Type": info.mimeType,
-                        "Content-Length": fileBuffer.length,
-                    }
-                });
+                try {
+                    const preSignedUrl: any = await generatePreSignedUrl("write", [fileName], "connector")
+                    const filePath = preSignedUrl[0]?.filePath
+                    const fileNameExtracted = extractFileNameFromPath(filePath);
+                    relative_path.push(...fileNameExtracted);
+                    const pass = new PassThrough();
+                    file.pipe(pass);
+                    const fileBuffer = await streamToBuffer(pass);
+                    await axios.put(preSignedUrl[0]?.preSignedUrl, fileBuffer, {
+                        headers: {
+                            "Content-Type": info.mimeType,
+                            "Content-Length": fileBuffer.length,
+                        }
+                    });
+                }
+                catch (err) {
+                    logger.error({ apiId, err, resmsgid, message: "Failed to generate sample urls", code: "FILES_GENERATE_URL_FAILURE" })
+                    reject({
+                        code: "FILES_GENERATE_URL_FAILURE",
+                        message: "Failed to generate sample urls",
+                        statusCode: 500,
+                        errCode: "INTERNAL_SERVER_ERROR"
+                    })
+                }
             };
             filePromises.push(processFile());
         });
@@ -117,6 +93,7 @@ const uploadStream = async (req: Request) => {
                 await Promise.all(filePromises);
                 resolve(relative_path);
             } catch (error) {
+                logger.error({ apiId, error, resmsgid, message: "Fail to upload a file", code: "FAILED_TO_UPLOAD" })
                 reject({
                     code: "FAILED_TO_UPLOAD",
                     message: "Fail to upload a file",
