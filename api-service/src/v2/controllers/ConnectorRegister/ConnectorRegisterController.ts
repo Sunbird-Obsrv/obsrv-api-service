@@ -18,11 +18,11 @@ const connectorRegisterController = async (req: Request, res: Response) => {
     resmsgid = _.get(res, "resmsgid");
     try {
         const uploadStreamResponse: any = await uploadStream(req);
-        const registryRequestBody = {
+        const payload = {
             relative_path: uploadStreamResponse[0]
         }
         logger.info({ apiId, resmsgid, message: `File uploaded to cloud provider successfully` })
-        const registryResponse = await registerConnector(registryRequestBody);
+        const registryResponse = await registerConnector(payload);
         logger.info({ apiId, resmsgid, message: `Connector registered successfully` })
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: registryResponse?.data?.message } })
     } catch (error: any) {
