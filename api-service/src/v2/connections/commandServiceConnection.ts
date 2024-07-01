@@ -19,3 +19,7 @@ export const executeCommand = async (id: string, command: string) => {
     }
     return commandHttpService.post(commandPath, payload)
 }
+
+export const connectorRegistry = async (registryRequestBody: any) => {
+    return commandHttpService.post("/connector/v1/register", registryRequestBody)
+}

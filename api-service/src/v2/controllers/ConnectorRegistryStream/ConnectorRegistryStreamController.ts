@@ -2,19 +2,16 @@ import { Request, Response } from "express";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import _ from "lodash";
 import logger from "../../logger";
-import { config } from "../../configs/Config";
 import axios from "axios";
 import httpStatus from "http-status";
 import busboy from "busboy";
 import { PassThrough } from "stream";
 import { generatePreSignedUrl } from "../GenerateSignedURL/helper";
+import { connectorRegistry } from "../../connections/commandServiceConnection";
 
 export const apiId = "api.connector.stream.upload";
 export const code = "FAILED_TO_REGISTER_CONNECTOR";
 
-const commandServiceHost = _.get(config, ["command_service_config", "host"]);
-const commandServicePort = _.get(config, ["command_service_config", "port"]);
-const registryUrl = _.get(config, ["command_service_config", "connector_registry_path"])
 let resmsgid: string | any;
 
 const connectorRegistryStream = async (req: Request, res: Response) => {
@@ -25,7 +22,7 @@ const connectorRegistryStream = async (req: Request, res: Response) => {
             relative_path: uploadStreamResponse[0]
         }
         logger.info({ apiId, resmsgid, message: `File uploaded to cloud provider successfully` })
-        const registryResponse = await axios.post(`${commandServiceHost}:${commandServicePort}${registryUrl}`, registryRequestBody);
+        const registryResponse = await connectorRegistry(registryRequestBody);
         logger.info({ apiId, resmsgid, message: `Connector registered successfully` })
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: registryResponse?.data?.message } })
     } catch (error: any) {
