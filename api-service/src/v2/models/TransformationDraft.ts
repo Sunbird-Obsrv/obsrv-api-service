@@ -41,10 +41,6 @@ export const DatasetTransformationsDraft = sequelize.define("dataset_transformat
         type: DataTypes.TEXT,
         allowNull: false,
         defaultValue: "SYSTEM",
-    },
-    published_date: {
-        type: DataTypes.DATE,
-        defaultValue: null
     }
 }, {
     timestamps: true,

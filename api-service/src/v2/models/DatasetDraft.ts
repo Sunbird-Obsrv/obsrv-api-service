@@ -80,10 +80,6 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     allowNull: false,
     defaultValue: "SYSTEM",
   },
-  published_date: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
   client_state: {
     type: DataTypes.JSON,
     defaultValue: {}
@@ -95,6 +91,14 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
   api_version: {
     type: DataTypes.STRING,
     defaultValue: "v2"
+  },
+  fields_set: {
+      type: DataTypes.JSON,
+      defaultValue: {}
+  },
+  sample_data: {
+      type: DataTypes.JSON,
+      defaultValue: {}
   }
 }, {
   timestamps: true,

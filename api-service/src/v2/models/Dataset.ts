@@ -48,7 +48,7 @@ export const Dataset = sequelize.define("datasets", {
         defaultValue: {}
     },
     status: {
-        type: DataTypes.ENUM("Draft", "Live", "Retired", "Publish"),
+        type: DataTypes.ENUM("Draft", "Publish", "Live", "Retired", "Archiving", "Archived"),
         defaultValue: "Draft",
     },
     created_by: {
@@ -61,10 +61,25 @@ export const Dataset = sequelize.define("datasets", {
     },
     data_version: {
         type: DataTypes.NUMBER
+    },
+    api_version: {
+        type: DataTypes.STRING,
+    },
+    version: {
+        type: DataTypes.NUMBER
+    },
+    fields_set: {
+        type: DataTypes.JSON,
+        defaultValue: {}
+    },
+    sample_data: {
+        type: DataTypes.JSON,
+        defaultValue: {}
     }
 }, {
     tableName: "datasets",
     timestamps: true,
     createdAt: "created_date",
     updatedAt: "updated_date",
+    paranoid: true
 })

@@ -10,7 +10,7 @@ import { DatasetTransformationsDraft } from "../../models/TransformationDraft";
 import { DatasetTransformations } from "../../models/Transformation";
 import { DatasetDraft } from "../../models/DatasetDraft";
 import { Dataset } from "../../models/Dataset";
-import { getDataset, setReqDatasetId } from "../../services/DatasetService";
+import { datasetService } from "../../services/DatasetService";
 import { Datasource } from "../../models/Datasource";
 import { DatasetSourceConfig } from "../../models/DatasetSourceConfig";
 import { DatasourceDraft } from "../../models/DatasourceDraft";
@@ -76,6 +76,12 @@ const datasetRead = async (req: Request, res: Response) => {
     }
 }
 
+const setReqDatasetId = (req: Request, dataset_id: string) => {
+    if (dataset_id) {
+        return _.set(req, "dataset_id", dataset_id)
+    }
+}
+
 const getDatasetModel = (status: string | any) => {
     if (status === DatasetStatus.Draft || status === DatasetStatus.ReadyToPublish) {
         return DatasetDraft;
@@ -126,7 +132,7 @@ const getTransfomationModel = (status: string) => {
 
 const getDatasetByLive = async (dataset_id: string) => {
     const draftRecord = await DatasetDraft.findOne({ where: { id: dataset_id }, raw: true })
-    const liveDataset = await getDataset(dataset_id, true)
+    const liveDataset = await datasetService.getDataset(dataset_id, true)
     if (_.isEmpty(liveDataset)) {
         throw {
             code: "DATASET_NOT_FOUND",

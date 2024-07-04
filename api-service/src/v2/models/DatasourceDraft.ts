@@ -52,9 +52,6 @@ export const DatasourceDraft = sequelize.define("datasources_draft", {
         type: DataTypes.STRING,
         defaultValue: "SYSTEM",
     },
-    published_date: {
-        type: DataTypes.TIME
-    },
     metadata: {
         type: DataTypes.JSON,
         defaultValue: { "aggregated": false, "granularity": "day" }

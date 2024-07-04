@@ -94,5 +94,9 @@ export const config = {
     "host": process.env.command_service_host || "http://localhost",
     "port": parseInt(process.env.command_service_port || "8000"),
     "path": process.env.command_service_path || "/system/v1/dataset/command"
+  },
+  "encryption_config": {
+    "encryption_key": process.env.encryption_key || "strong_encryption_key_to_encrypt",
+    "encryption_algorithm": process.env.encryption_algorithm || "aes-256-ecb",
   }
 }
