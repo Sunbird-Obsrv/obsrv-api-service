@@ -55,6 +55,16 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     allowNull: true,
     defaultValue: {}
   },
+  transformations_config: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: {}
+  },
+  connectors_config: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: {}
+  },
   tags: {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     allowNull: true,

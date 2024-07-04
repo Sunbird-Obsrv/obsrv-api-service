@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import logger from "../../logger";
@@ -57,8 +58,7 @@ const datasetCreate = async (req: Request, res: Response) => {
     if(!isRequestValid) {
         return;
     }
-
-    const dataset = await datasetService.create(req.body.request);
+    const dataset = await datasetService.createDataset(req.body.request);
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
 
