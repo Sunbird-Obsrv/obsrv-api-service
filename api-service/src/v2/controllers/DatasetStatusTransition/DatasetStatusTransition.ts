@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import _ from "lodash";
 import logger from "../../logger";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
-import { getDataset, getDraftDataset, setReqDatasetId } from "../../services/DatasetService";
+import { datasetService } from "../../services/DatasetService";
 import { ErrorObject } from "../../types/ResponseModel";
 import { schemaValidation } from "../../services/ValidationService";
 import StatusTransitionSchema from "./RequestValidationSchema.json";
@@ -43,7 +43,6 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     const resmsgid = _.get(res, "resmsgid");
         try {
             const { dataset_id, status } = _.get(requestBody, "request");
-            setReqDatasetId(req, dataset_id)
 
             const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
             if (!isRequestValid.isValid) {
@@ -107,10 +106,10 @@ const fetchDataset = async (configs: Record<string, any>) => {
         return getDraftDatasetRecord(dataset_id)
     }
     if (_.includes([DatasetAction.Live], status)) {
-        return getDraftDataset(dataset_id)
+        return datasetService.getDraftDataset(dataset_id)
     }
     if (_.includes([DatasetAction.Retire], status)) {
-        return getDataset(dataset_id)
+        return datasetService.getDataset(dataset_id)
     }
 }
 
