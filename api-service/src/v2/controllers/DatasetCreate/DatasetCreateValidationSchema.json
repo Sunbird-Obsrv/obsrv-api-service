@@ -56,7 +56,8 @@
           "type": "object",
           "properties": {
             "is_batch_event": {
-              "type": "boolean"
+              "type": "boolean",
+              "default": true
             },
             "extraction_key": {
               "type": "string",
@@ -118,46 +119,6 @@
             }
           },
           "required": ["$schema", "type", "properties", "additionalProperties"],
-          "additionalProperties": false
-        },
-        "denorm_config": {
-          "type": "object",
-          "properties": {
-            "denorm_fields": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "denorm_dataset": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "denorm_key": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "denorm_out_field": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "jsonata_expr": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "oneOf": [
-                  {
-                    "required": ["denorm_dataset", "denorm_out_field", "denorm_key"]
-                  },
-                  {
-                    "required": ["denorm_dataset", "denorm_out_field", "jsonata_expr"]
-                  }
-                ],
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": ["denorm_fields"],
           "additionalProperties": false
         },
         "dataset_config": {
@@ -269,12 +230,48 @@
               }
             },
             "additionalProperties": false,
-            "required": [
-              "field_key",
-              "transformation_function",
-              "mode"
-            ]
+            "required": ["field_key", "transformation_function", "mode"]
           }
+        },
+        "denorm_config": {
+          "type": "object",
+          "properties": {
+            "denorm_fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "denorm_dataset": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "denorm_key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "denorm_out_field": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "jsonata_expr": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "oneOf": [
+                  {
+                    "required": ["denorm_dataset", "denorm_out_field", "denorm_key"]
+                  },
+                  {
+                    "required": ["denorm_dataset", "denorm_out_field", "jsonata_expr"]
+                  }
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["denorm_fields"],
+          "additionalProperties": false
         },
         "connectors_config": {
           "type": "array",

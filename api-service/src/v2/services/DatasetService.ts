@@ -11,13 +11,7 @@ import { DatasetTransformationsDraft } from "../models/TransformationDraft";
 class DatasetService {
 
     getDataset = async (datasetId: string, raw = false): Promise<any> => {
-        const dataset = await Dataset.findOne({
-            where: {
-                id: datasetId,
-            },
-            raw: raw
-        });
-        return dataset
+        return Dataset.findOne({ where: { id: datasetId }, raw: raw });
     }
 
     getDuplicateDenormKey = (denormConfig: Record<string, any>): Array<string> => {
@@ -52,56 +46,23 @@ class DatasetService {
         return DatasetTransformations.findAll({ where: { dataset_id }, raw: true });
     }
 
-    createDataset = async (datasetReq: Record<string, any>): Promise<Record<string, any>> => {
-        const transformationsConfig:Array<Record<string, any>> = _.get(datasetReq, "transformations_config")
-        const connectorsConfig:Array<Record<string, any>> = _.get(datasetReq, "connectors_config")
-        const dataset = _.omit(datasetReq, ["transformations_config", "connectors_config"])
-        const mergedDataset = this.mergeDatasetConfigs(defaultDatasetConfig, dataset)
-        const draftDataset = { 
-            ...mergedDataset, 
-            version_key: Date.now().toString(),
-            transformations_config: this.getDatasetTransformations(transformationsConfig),
-            connectors_config: this.getDatasetConnectors(connectorsConfig),
-        }
+    updateDraftDataset = async (draftDataset: Record<string, any>): Promise<Record<string, any>> => {
+
+        await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id }})
+        const responseData = { message: "Dataset is updated successfully", id: draftDataset.id, version_key: draftDataset.version_key }
+        logger.info({ draftDataset, message: `Dataset updated successfully with id:${draftDataset.id}`, response: responseData })
+        return responseData;
+    }
+
+    createDraftDataset = async (draftDataset: Record<string, any>): Promise<Record<string, any>> => {
+
         const response = await DatasetDraft.create(draftDataset)
         const responseData = { id: _.get(response, ["dataValues", "id"]) || "", version_key: draftDataset.version_key }
-        logger.info({ datasetReq, message: `Dataset Created Successfully with id:${_.get(response, ["dataValues", "id"])}`, response: responseData })
+        logger.info({ draftDataset, message: `Dataset Created Successfully with id:${_.get(response, ["dataValues", "id"])}`, response: responseData })
         return responseData
     }
 
-    mergeDatasetConfigs = (defaultConfig: Record<string, any>, requestPayload: Record<string, any>): Record<string, any> => {
-        const { id, dataset_id } = requestPayload;
-        const datasetId = !id ? dataset_id : id
-        const modifyPayload = { ...requestPayload, id: datasetId, router_config: { topic: datasetId } }
-        const defaults = _.cloneDeep(defaultConfig)
-        const datasetConfigs = _.merge(defaults, modifyPayload)
-        return datasetConfigs
-    }
-
-    getDatasetConnectors = (connectorConfigs: Array<Record<string, any>>): Array<Record<string, any>> => {
-        
-        if (!_.isEmpty(connectorConfigs)) {
-            const uniqueConnectors = _.uniqWith(connectorConfigs, (a: Record<string, any>, b: Record<string, any>) => {
-                return _.isEqual(a.connector_id, b.connector_id) && _.isEqual(a.connector_config, b.connector_config)
-            })
-            return _.map(uniqueConnectors, (config) => {
-                return {
-                    connector_id: config.connector_id,
-                    connector_config: cipherService.encrypt(JSON.stringify(config.connector_config)),
-                    operations_config: config.operations_config
-                }
-            })
-        }
-        return []
-    }
-
-    getDatasetTransformations = (configs: Array<Record<string, any>>): Array<Record<string, any>> => {
-
-        if (configs) {
-            return _.uniqBy(configs, "field_key")
-        }
-        return []
-    }
+    
 
 }
 

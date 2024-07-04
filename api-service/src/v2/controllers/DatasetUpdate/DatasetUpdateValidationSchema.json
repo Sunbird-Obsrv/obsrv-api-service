@@ -36,9 +36,6 @@
           "type": "string",
           "minLength": 1
         },
-        "client_state": {
-          "type": "object"
-        },
         "validation_config": {
           "type": "object",
           "properties": {
@@ -50,18 +47,8 @@
               "enum": ["Strict", "IgnoreNewFields"]
             }
           },
-          "additionalProperties": false,
-          "required": ["validate"],
-          "if": {
-            "properties": {
-              "validate": {
-                "const": true
-              }
-            }
-          },
-          "then": {
-            "required": ["mode"]
-          }
+          "required": ["validate", "mode"],
+          "additionalProperties": false
         },
         "extraction_config": {
           "type": "object",
@@ -85,71 +72,27 @@
                   "type": "string"
                 }
               },
-              "if": {
-                "properties": {
-                  "drop_duplicates": {
-                    "const": true
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "dedup_key": {
-                    "minLength": 1
-                  }
-                },
-                "required": ["dedup_key"]
-              },
+              "required": ["drop_duplicates", "dedup_key"],
               "additionalProperties": false
             }
           },
-          "additionalProperties": false,
-          "required": ["is_batch_event"],
-          "if": {
-            "properties": {
-              "is_batch_event": {
-                "const": true
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "extraction_key": {
-                "minLength": 1
-              },
-              "batch_id": {
-                "minLength": 1
-              }
-            },
-            "required": ["extraction_key", "dedup_config"]
-          }
+          "required": ["is_batch_event", "extraction_key", "dedup_config"],
+          "additionalProperties": false
         },
         "dedup_config": {
           "type": "object",
           "properties": {
             "drop_duplicates": {
-              "type": "boolean"
+              "type": "boolean",
+              "default": true
             },
             "dedup_key": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             }
           },
-          "additionalProperties": false,
-          "if": {
-            "properties": {
-              "drop_duplicates": {
-                "const": true
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "dedup_key": {
-                "minLength": 1
-              }
-            },
-            "required": ["dedup_key"]
-          }
+          "required": ["drop_duplicates", "dedup_key"],
+          "additionalProperties": false
         },
         "data_schema": {
           "type": "object",
@@ -180,37 +123,63 @@
         "dataset_config": {
           "type": "object",
           "properties": {
-            "data_key": {
-              "type": "string"
-            },
-            "timestamp_key": {
-              "type": "string"
-            },
-            "mergedEvent": {
-              "type": "object"
-            },
-            "configurations": {
-              "type": "object"
-            },
-            "dataMappings": {
-              "type": "object"
-            },
             "file_upload_path": {
               "type": "array",
               "items": {
                 "type": "string",
                 "minLength": 1
               }
+            },
+            "dataset_tz": {
+              "type": "string"
+            },
+            "indexing_config": {
+              "type": "object",
+              "properties": {
+                "olap_store_enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "lakehouse_enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "cache_enabled": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            }, 
+            "keys_config": {
+              "type": "object",
+              "properties": {
+                "data_key": {
+                  "type": "string"
+                },
+                "partition_key": {
+                  "type": "string"
+                },
+                "timestamp_key": {
+                  "type": "string"
+                },
+                "timestamp_format": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
             }
           },
+          "required": ["indexing_config", "keys_config"],
           "additionalProperties": false
         },
-        "transformation_config": {
+        "transformations_config": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "values": {
+              "value": {
                 "type": "object",
                 "properties": {
                   "field_key": {
@@ -218,61 +187,74 @@
                     "minLength": 1
                   },
                   "transformation_function": {
-                    "type": "object"
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "expr": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "condition": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "expr": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": ["type", "expr"],
+                        "additionalProperties": false
+                      },
+                      "datatype": {
+                        "type": "string"
+                      },
+                      "category": {
+                        "type": "string",
+                        "enum": ["pii", "transform", "derived"]
+                      }
+                    },
+                    "required": ["type", "expr"],
+                    "additionalProperties": false
                   },
                   "mode": {
                     "type": "string",
-                    "enum": ["Strict", "Lenient"]
-                  },
-                  "metadata": {
-                    "type": "object"
+                    "enum": [
+                      "Strict",
+                      "Lenient"
+                    ]
                   }
                 },
-                "additionalProperties": false,
-                "required": ["field_key"]
+                "required": ["field_key"],
+                "additionalProperties": false
               },
               "action": {
                 "type": "string",
-                "enum": ["add", "remove", "update"]
+                "enum": ["upsert", "remove"]
               }
             },
             "additionalProperties": false,
-            "required": ["values", "action"],
+            "required": ["value", "action"],
             "if": {
               "properties": {
                 "action": {
-                  "const": "add"
+                  "const": "upsert"
                 }
               }
             },
             "then": {
               "properties": {
-                "values": {
+                "value": {
                   "required": ["transformation_function", "mode"]
                 }
               }
             }
-          }
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "minItems": 1
-              },
-              "action": {
-                "type": "string",
-                "enum": ["add", "remove"]
-              }
-            },
-            "required": ["values", "action"]
           }
         },
         "denorm_config": {
@@ -283,9 +265,13 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "values": {
+                  "value": {
                     "type": "object",
                     "properties": {
+                      "denorm_dataset": {
+                        "type": "string",
+                        "minLength": 1
+                      },
                       "denorm_key": {
                         "type": "string",
                         "minLength": 1
@@ -293,37 +279,115 @@
                       "denorm_out_field": {
                         "type": "string",
                         "minLength": 1
+                      },
+                      "jsonata_expr": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
-                    "required": ["denorm_out_field"]
+                    "additionalProperties": false
                   },
                   "action": {
                     "type": "string",
-                    "enum": ["add", "remove"]
+                    "enum": ["upsert", "remove"]
                   }
                 },
                 "additionalProperties": false,
-                "required": ["values", "action"],
+                "required": ["value", "action"],
                 "if": {
                   "properties": {
                     "action": {
-                      "const": "add"
+                      "enum": ["upsert", "update"]
                     }
                   }
                 },
                 "then": {
                   "properties": {
-                    "values": {
-                      "required": ["denorm_key"]
+                    "value": {
+                      "oneOf": [
+                        {
+                          "required": ["denorm_dataset", "denorm_out_field", "denorm_key"]
+                        },
+                        {
+                          "required": ["denorm_dataset", "denorm_out_field", "jsonata_expr"]
+                        }
+                      ]
                     }
                   }
                 }
               }
             }
           }
+        },
+        "connectors_config": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "object",
+                "properties": {
+                  "connector_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "connector_config": {
+                    "type": "object"
+                  },
+                  "operations_config": {
+                    "type": "object"
+                  }
+                },
+                "required": ["connector_id"],
+                "additionalProperties": false
+              },
+              "action": {
+                "type": "string",
+                "enum": ["upsert", "remove"]
+              }
+            },
+            "additionalProperties": false,
+            "required": ["value", "action"],
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "upsert"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "required": ["connector_config"]
+                }
+              }
+            }
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": ["upsert", "remove"]
+              }
+            },
+            "required": ["value", "action"]
+          }
+        },
+        "sample_data": {
+          "type": "object"
         }
       },
       "required": ["dataset_id", "version_key"]
     }
-  }
+  },
+  "required": ["id", "ver", "ts", "params", "request"],
+  "additionalProperties": false
 }
