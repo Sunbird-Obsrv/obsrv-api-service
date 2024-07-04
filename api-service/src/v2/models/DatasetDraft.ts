@@ -90,10 +90,6 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     allowNull: false,
     defaultValue: "SYSTEM",
   },
-  client_state: {
-    type: DataTypes.JSON,
-    defaultValue: {}
-  },
   version_key: {
     type: DataTypes.STRING,
     allowNull: false

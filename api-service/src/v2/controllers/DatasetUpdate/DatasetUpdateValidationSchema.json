@@ -268,7 +268,7 @@
                   "value": {
                     "type": "object",
                     "properties": {
-                      "denorm_dataset": {
+                      "dataset_id": {
                         "type": "string",
                         "minLength": 1
                       },
