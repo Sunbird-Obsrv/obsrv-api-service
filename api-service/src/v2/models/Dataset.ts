@@ -80,6 +80,5 @@ export const Dataset = sequelize.define("datasets", {
     tableName: "datasets",
     timestamps: true,
     createdAt: "created_date",
-    updatedAt: "updated_date",
-    paranoid: true
+    updatedAt: "updated_date"
 })

@@ -119,7 +119,8 @@ class DatasetService {
             await DatasetDraft.update(draftDataset, { where: { id: datasetId }, transaction});
             await DatasetTransformationsDraft.destroy({ where: { dataset_id: datasetId }, transaction });
             await DatasetSourceConfigDraft.destroy({ where: { dataset_id: datasetId }, transaction });
-        } catch(err) {
+            await transaction.commit();
+        } catch (err) {
             await transaction.rollback();
             throw err;
         }
@@ -140,7 +141,7 @@ class DatasetService {
 
     createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
         
-        let draftDataset:any = _.omit(dataset.toJSON, ["created_date", "updated_date", "published_date"]);
+        let draftDataset:any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
         const dataset_config:any = _.get(dataset, "dataset_config");
         const api_version:any = _.get(dataset, "api_version");
         if(api_version === "v1") {
@@ -174,6 +175,7 @@ class DatasetService {
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "datatype", "category"]);
             draftDataset["transformations_config"] = transformations
         }
+        draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         await DatasetDraft.create(draftDataset);
         return await this.getDraftDataset(draftDataset.dataset_id);

@@ -297,7 +297,7 @@
                 "if": {
                   "properties": {
                     "action": {
-                      "enum": ["upsert", "update"]
+                      "const": "upsert"
                     }
                   }
                 },
@@ -306,10 +306,10 @@
                     "value": {
                       "oneOf": [
                         {
-                          "required": ["denorm_dataset", "denorm_out_field", "denorm_key"]
+                          "required": ["dataset_id", "denorm_out_field", "denorm_key"]
                         },
                         {
-                          "required": ["denorm_dataset", "denorm_out_field", "jsonata_expr"]
+                          "required": ["dataset_id", "denorm_out_field", "jsonata_expr"]
                         }
                       ]
                     }
