@@ -24,7 +24,6 @@ from model.data_models import (
     Result,
 )
 from service.detect_pii_service import DetectPIIService
-from service.prometheus_backup import PrometheusBackup
 
 app = FastAPI()
 command_executor = CommandExecutor()
@@ -226,28 +225,6 @@ async def register_connector(req: FastAPIRequest):
             },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
-prom_backup_endpoint = "/system/v1/backup/prometheus"
-
-
-@app.get(prom_backup_endpoint)
-def backup_prometheus() -> PlainTextResponse:
-    helper.onRequest(
-        entity="prometheus_backup",
-        id=None,
-        endpoint=prom_backup_endpoint,
-        dataset_id=None,
-    )
-    prometheus_backup = PrometheusBackup()
-    prometheus_backup.backup_prometheus()
-    helper.onSuccessRequest(
-        entity="prometheus_backup",
-        id=None,
-        endpoint=prom_backup_endpoint,
-        dataset_id=None,
-    )
-    return "Prometheus backup successful"
 
 
 if __name__ == "__main__":
