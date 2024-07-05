@@ -16,7 +16,7 @@ export const dataExhaust = async (req: Request, res: Response) => {
     const momentFormat = "YYYY-MM-DD";
 
     const verifyDatasetExists = async (datasetId: string) => {
-        const dataset = await datasetService.getDataset(datasetId)
+        const dataset = await datasetService.getDataset(datasetId, ["id"], true)
         return dataset;
     }
 

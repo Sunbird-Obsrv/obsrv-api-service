@@ -13,10 +13,11 @@ import { ConnectorInstances } from "../models/ConnectorInstances";
 class DatasetService {
 
     getDataset = async (datasetId: string, attributes?: string[], raw = false): Promise<any> => {
-        if(attributes)
-            return Dataset.findOne({ where: { id: datasetId }, attributes, raw: raw });
-        else    
-            return Dataset.findOne({ where: { id: datasetId }, raw: raw });
+        return Dataset.findOne({ where: { id: datasetId }, attributes, raw: raw });
+    }
+
+    findDatasets = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
+        return Dataset.findAll({where, attributes, order, raw: true})
     }
 
     getDuplicateDenormKey = (denormConfig: Record<string, any>): Array<string> => {
@@ -40,45 +41,31 @@ class DatasetService {
     }
 
     getDraftDataset = async (dataset_id: string, attributes?: string[]) => {
-        if(attributes)
-            return DatasetDraft.findOne({ where: { dataset_id }, attributes, raw: true });
-        else 
-            return DatasetDraft.findOne({ where: { dataset_id }, raw: true });
+        return DatasetDraft.findOne({ where: { dataset_id }, attributes, raw: true });
+    }
+
+    findDraftDatasets = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
+        return DatasetDraft.findAll({where, attributes, order, raw: true})
     }
 
     getDraftTransformations = async (dataset_id: string, attributes?: string[]) => {
-        if(attributes)
-            return DatasetTransformationsDraft.findAll({ where: { dataset_id }, attributes, raw: true });
-        else
-            return DatasetTransformationsDraft.findAll({ where: { dataset_id }, raw: true });
+        return DatasetTransformationsDraft.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
     getDraftConnectors = async (dataset_id: string, attributes?: string[]) => {
-        if(attributes)
-            return DatasetSourceConfigDraft.findAll({ where: { dataset_id }, attributes, raw: true });
-        else
-            return DatasetSourceConfigDraft.findAll({ where: { dataset_id }, raw: true });
+        return DatasetSourceConfigDraft.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
     getConnectorsV1 = async (dataset_id: string, attributes?: string[]) => {
-        if(attributes)
-            return DatasetSourceConfig.findAll({ where: { dataset_id }, attributes, raw: true });
-        else 
-            return DatasetSourceConfig.findAll({ where: { dataset_id }, raw: true });
+        return DatasetSourceConfig.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
     getConnectors = async (dataset_id: string, attributes?: string[]) => {
-        if(attributes)
-            return ConnectorInstances.findAll({ where: { dataset_id }, attributes, raw: true });
-        else 
-            return ConnectorInstances.findAll({ where: { dataset_id }, raw: true });
+        return ConnectorInstances.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
     getTransformations = async (dataset_id: string, attributes?: string[]) => {
-        if(attributes)
-            return DatasetTransformations.findAll({ where: { dataset_id }, attributes, raw: true });
-        else 
-            return DatasetTransformations.findAll({ where: { dataset_id }, raw: true });
+        return DatasetTransformations.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
     updateDraftDataset = async (draftDataset: Record<string, any>): Promise<Record<string, any>> => {
@@ -98,6 +85,7 @@ class DatasetService {
     }
 
     migrateDraftDataset = async (datasetId: string, dataset: Model<any, any>): Promise<any> => {
+
         let draftDataset : Record<string, any> = {
             api_version: "v2"
         }
@@ -139,6 +127,7 @@ class DatasetService {
     }
 
     getTransformationCategory = (section: string):string => {
+
         switch(section) {
             case "pii":
                 return "pii";
@@ -150,6 +139,7 @@ class DatasetService {
     }
 
     createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
+        
         let draftDataset:any = _.omit(dataset.toJSON, ["created_date", "updated_date", "published_date"]);
         const dataset_config:any = _.get(dataset, "dataset_config");
         const api_version:any = _.get(dataset, "api_version");
@@ -162,18 +152,18 @@ class DatasetService {
             const connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["connector_type", "connector_config"]);
             draftDataset["connectors_config"] = _.map(connectors, (config) => {
                 return {
-                    connector_id: _.get(config, ["connector_type"]),
-                    connector_config: _.get(config, ["connector_config"]),
+                    connector_id: _.get(config, "connector_type"),
+                    connector_config: _.get(config, "connector_config"),
                     version: "v1"
                 }
             })
             const transformations = await this.getDraftTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
             draftDataset["transformations_config"] = _.map(transformations, (config) => {
                 return {
-                    field_key: _.get(config, ["field_key"]),
-                    transformation_function: _.get(config, ["transformation_function"]),
-                    mode: _.get(config, ["mode"]),
-                    datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
+                    field_key: _.get(config, "field_key"),
+                    transformation_function: _.get(config, "transformation_function"),
+                    mode: _.get(config, "mode"),
+                    datatype: _.get(config, "metadata._transformedFieldDataType") || "string",
                     category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
                 }
             })
@@ -184,7 +174,7 @@ class DatasetService {
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "datatype", "category"]);
             draftDataset["transformations_config"] = transformations
         }
-        
+        draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         await DatasetDraft.create(draftDataset);
         return await this.getDraftDataset(draftDataset.dataset_id);
     }

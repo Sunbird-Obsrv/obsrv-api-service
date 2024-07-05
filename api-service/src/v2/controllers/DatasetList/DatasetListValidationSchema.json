@@ -33,7 +33,7 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["Draft", "Live", "ReadyToPublish", "Retired"]
+                    "enum": ["Draft", "Live", "ReadyToPublish", "Retired", "Purged"]
                   }
                 },
                 {
@@ -44,37 +44,10 @@
             },
             "type": {
               "type": "string",
-              "enum": ["dataset", "master-dataset"]
-            },
-            "dataset_id": {
-              "type": "string",
-              "minLength": 1
+              "enum": ["event", "transaction", "master"]
             }
           },
           "additionalProperties": false
-        },
-        "sortBy": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "field": {
-                "type": "string",
-                "enum": [
-                  "created_date",
-                  "updated_date",
-                  "published_date",
-                  "name"
-                ]
-              },
-              "order": {
-                "type": "string",
-                "enum": ["asc", "desc"]
-              }
-            },
-            "additionalProperties": false,
-            "required": ["field", "order"]
-          }
         }
       },
       "additionalProperties": false

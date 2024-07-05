@@ -35,7 +35,7 @@ const dataIn = async (req: Request, res: Response) => {
             logger.error({ apiId, message: isValidSchema?.message, code: "DATA_INGESTION_INVALID_INPUT" })
             return ResponseHandler.errorResponse({ message: isValidSchema?.message, statusCode: 400, errCode: "BAD_REQUEST", code: "DATA_INGESTION_INVALID_INPUT" }, req, res);
         }
-        const dataset = await datasetService.getDataset(datasetId)
+        const dataset = await datasetService.getDataset(datasetId, ["id"], true)
         if (!dataset) {
             logger.error({ apiId, message: `Dataset with id ${datasetId} not found in live table`, code: "DATASET_NOT_FOUND" })
             return ResponseHandler.errorResponse(errorObject.datasetNotFound, req, res);

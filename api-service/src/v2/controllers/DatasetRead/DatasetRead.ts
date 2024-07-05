@@ -74,7 +74,7 @@ const readDraftDataset = async (datasetId: string, attributes: string[]): Promis
         return _.pick(dataset, attributes); 
     }
 
-    const liveDataset = await datasetService.getDataset(datasetId);
+    const liveDataset = await datasetService.getDataset(datasetId, undefined, true);
     if(liveDataset) {
         const dataset = await datasetService.createDraftDatasetFromLive(liveDataset)
         return _.pick(dataset, attributes); 
@@ -84,7 +84,7 @@ const readDraftDataset = async (datasetId: string, attributes: string[]): Promis
 }
 
 const readDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
-    const dataset = await datasetService.getDataset(datasetId, attributes);
+    const dataset = await datasetService.getDataset(datasetId, attributes, true);
     return dataset;
 }
 
