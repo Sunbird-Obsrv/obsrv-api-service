@@ -1,1 +1,10 @@
-from .data_models import Command, Action, CommandPayload, Request, ResponseParams, Result, HttpResponse
+# autoflake: skip_file
+from .data_models import (
+    Action,
+    Command,
+    CommandPayload,
+    HttpResponse,
+    Request,
+    ResponseParams,
+    Result,
+)
