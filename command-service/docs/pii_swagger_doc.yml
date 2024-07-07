@@ -1,0 +1,147 @@
+openapi: 3.0.0
+info:
+  title: PII Detection API
+  description: A simple API for detecting PII fields in dataset sample.
+  version: 1.0.0
+servers:
+  - url: http://{url}:{port}/data/v1
+paths:
+  /analyze/pii:
+    post:
+      summary: return fields with PII data flagged with explanation and confidence
+      operationId: detectPII
+      requestBody:
+        description: dataset id and sample single flattened event with all fields populated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PIIRequest'
+      responses:
+        '200':
+          description: A list of potential fields with PII
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PIIResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PIIFailedResponse'
+components:
+  schemas:
+    PIIRequest:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          example: telemetry-data
+        data:
+          type: array
+          items: 
+            type: object
+      required:
+        - dataset_id
+        - data
+    PIIResponse:
+      type: object
+      properties:
+        id: 
+          type: string
+          example: dc235b34-32b1-4d5e-b1c8-985f5e4d30d9
+        response_code: 
+          type: string
+          example: OK
+        status_code:  
+          type: integer
+          example: 200
+        result:  
+          type: array
+          items: 
+            type: object
+            properties:
+              field:
+                type: string
+                description: the flattened column name/path
+                example: user.mobile
+              type:
+                type: string
+                description: whether the field is detected as a name/phone/email/ID/location
+                example: phone
+              score:
+                type: number
+                description: a 0-100% value signifying the confidence in the detection
+                example: 0.75
+              reason:
+                type: array
+                items:
+                  properties:
+                    code:
+                      type: string
+                      description: reason code for i18n code
+                      example: <>
+                    resourceKey::
+                      type: string
+                      description: resource bundle id for UI to display proper label
+                      example: pii.descriptions.m001
+                    region:
+                      type: string
+                      description: Optional. whether related to any specific region
+                      example: IN
+                    score:
+                      type: number
+                      description: Confidence score specific to region
+                      example: 0.75
+                  required:
+                    - code
+                    - message
+        ts: 
+          type: string
+          example: 1705645119000
+        params: 
+          type: object
+          properties:
+            status: 
+              type: string
+      required:
+        - id
+        - response_code
+        - status_code
+    PIIFailedResponse:
+      type: object
+      properties:
+        id: 
+          type: string
+          example: dc235b34-32b1-4d5e-b1c8-985f5e4d30d9
+        response_code: 
+          type: string
+          example: INTERNAL_SERVER_ERROR
+        status_code:  
+          type: integer
+          example: 500
+        result: 
+          type: object
+          properties:
+            errorCode: 
+              type: integer
+              example: 500
+            errorMsg: 
+              type: string
+              example: Error parsing the sample event
+            errorTrace: 
+              type: string
+              example: "SyntaxError: JSON.parse: bad character in string literal"
+        ts: 
+          type: string
+          example: 1705645119000
+        params: 
+          type: object
+          properties:
+            status: 
+              type: string
+      required:
+        - id
+        - response_code
+        - status_code

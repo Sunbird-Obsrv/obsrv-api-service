@@ -1,2 +1,15 @@
-.vscode
-.idea
+coverage
+node_modules
+.nyc_output
+dist
+credentials.js
+uploads/
+.env
+# Byte-compiled / optimized / DLL files
+*.pyc
+__pycache__/
+.vscode/
+*.DS_Store
+#to ignore embedded postgres data files
+data
+connector-registry
