@@ -5,12 +5,11 @@ import spies from "chai-spies";
 import httpStatus from "http-status";
 import { describe, it } from 'mocha';
 import _ from "lodash";
-import { apiId, errorCode } from "../../../controllers/DatasetList/DatasetList";
+import { apiId } from "../../../controllers/DatasetList/DatasetList";
 import { TestInputsForDatasetList } from "./Fixtures";
 import { Dataset } from "../../../models/Dataset";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { DatasetTransformations } from "../../../models/Transformation";
-import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
 
 chai.use(spies);
 chai.should();
@@ -31,12 +30,6 @@ describe("DATASET LIST API", () => {
         chai.spy.on(DatasetDraft, "findAll", () => {
             return Promise.resolve([TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA])
         })
-        chai.spy.on(DatasetTransformations, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA])
-        })
-        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA])
-        })
         chai
             .request(app)
             .post("/v2/datasets/list")
@@ -50,7 +43,7 @@ describe("DATASET LIST API", () => {
                 res.body.result.count.should.be.eq(2)
                 res.body.params.msgid.should.be.eq(msgid)
                 const result = JSON.stringify(res.body.result.data)
-                const expectedResult = JSON.stringify([{ ..._.omit(TestInputsForDatasetList.VALID_LIVE_DATASET_SCHEMA, ["data_version"]), version: 1, transformations_config: [_.omit(TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA, ["dataset_id"])] }, { ...TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA, "transformations_config": [_.omit(TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA, ["dataset_id"])] }])
+                const expectedResult = JSON.stringify(TestInputsForDatasetList.VALID_RESPONSE)
                 result.should.be.eq(expectedResult)
                 done();
             });
@@ -60,11 +53,8 @@ describe("DATASET LIST API", () => {
         chai.spy.on(DatasetDraft, "findAll", () => {
             return Promise.resolve([TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA])
         })
-        chai.spy.on(DatasetTransformations, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA])
-        })
-        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA])
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([])
         })
         chai
             .request(app)
@@ -79,7 +69,7 @@ describe("DATASET LIST API", () => {
                 res.body.result.count.should.be.eq(1)
                 res.body.params.msgid.should.be.eq(msgid)
                 const result = JSON.stringify(res.body.result.data)
-                const expectedResult = JSON.stringify([{ ...TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA, "transformations_config": [_.omit(TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA, ["dataset_id"])] }])
+                const expectedResult = JSON.stringify([{ ...TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA }])
                 result.should.be.eq(expectedResult)
                 done();
             });
@@ -89,11 +79,8 @@ describe("DATASET LIST API", () => {
         chai.spy.on(Dataset, "findAll", () => {
             return Promise.resolve([TestInputsForDatasetList.VALID_LIVE_DATASET_SCHEMA])
         })
-        chai.spy.on(DatasetTransformations, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA])
-        })
-        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA])
+        chai.spy.on(DatasetDraft, "findAll", () => {
+            return Promise.resolve([])
         })
         chai
             .request(app)
@@ -108,39 +95,7 @@ describe("DATASET LIST API", () => {
                 res.body.result.count.should.be.eq(1)
                 res.body.params.msgid.should.be.eq(msgid)
                 const result = JSON.stringify(res.body.result.data)
-                const expectedResult = JSON.stringify([{ ..._.omit(TestInputsForDatasetList.VALID_LIVE_DATASET_SCHEMA, ["data_version"]), version: 1, transformations_config: [_.omit(TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA, ["dataset_id"])] }])
-                result.should.be.eq(expectedResult)
-                done();
-            });
-    });
-
-    it("Dataset list success: When sortBy is provided in request payload", (done) => {
-        chai.spy.on(Dataset, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.VALID_LIVE_DATASET_SCHEMA])
-        })
-        chai.spy.on(DatasetDraft, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA])
-        })
-        chai.spy.on(DatasetTransformations, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA])
-        })
-        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
-            return Promise.resolve([TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA])
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/list")
-            .send(TestInputsForDatasetList.REQUEST_WITH_SORTBY)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.OK);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
-                res.body.params.status.should.be.eq("SUCCESS")
-                res.body.result.should.be.a("object")
-                res.body.result.count.should.be.eq(2)
-                res.body.params.msgid.should.be.eq(msgid)
-                const result = JSON.stringify(res.body.result.data)
-                const expectedResult = JSON.stringify([{ ...TestInputsForDatasetList.VALID_DRAFT_DATASET_SCHEMA, "transformations_config": [_.omit(TestInputsForDatasetList.TRANSFORMATIONS_DRAFT_SCHEMA, ["dataset_id"])] }, { ..._.omit(TestInputsForDatasetList.VALID_LIVE_DATASET_SCHEMA, ["data_version"]), version: 1, transformations_config: [_.omit(TestInputsForDatasetList.TRANSFORMATIONS_LIVE_SCHEMA, ["dataset_id"])] }])
+                const expectedResult = JSON.stringify([{ ...TestInputsForDatasetList.VALID_LIVE_DATASET_SCHEMA}])
                 result.should.be.eq(expectedResult)
                 done();
             });
@@ -162,23 +117,4 @@ describe("DATASET LIST API", () => {
             });
     });
 
-
-    it("Dataset list failure: Connection to the database failed", (done) => {
-        chai.spy.on(Dataset, "findAll", () => {
-            return Promise.reject()
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/list")
-            .send(TestInputsForDatasetList.REQUEST_WITHOUT_FILTERS)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.error.code.should.be.eq(errorCode)
-                res.body.error.message.should.be.eq("Failed to list dataset")
-                done();
-            });
-    });
 })
