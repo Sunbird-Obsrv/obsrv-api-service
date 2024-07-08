@@ -26,7 +26,7 @@ const isValidRequest = (req: Request, res: Response): boolean => {
         } as ErrorObject, req, res);
         return false;
     }
-    const fieldValues = _.split(fields, ",")
+    const fieldValues = fields ? _.split(fields, ",") : []
     const invalidFields = _.difference(fieldValues, Object.keys(DatasetDraft.getAttributes()))
     if (!_.isEmpty(invalidFields)) {
         logger.error({ code: "DATASET_INVALID_FIELDS", apiId, dataset_id, message: `The specified fields [${invalidFields}] in the dataset cannot be found` })
@@ -49,7 +49,7 @@ const datasetRead = async (req: Request, res: Response) => {
     }
     const { dataset_id } = req.params;
     const { fields, mode } = req.query;
-    const attributes = (fields === null) ? defaultFields : _.split(<string>fields, ",");
+    const attributes = !fields ? defaultFields : _.split(<string>fields, ",");
     const dataset = (mode == "edit") ? await readDraftDataset(dataset_id, attributes) : await readDataset(dataset_id, attributes)
     if(!dataset) {
         logger.error({ code: "DATASET_NOT_FOUND", apiId, dataset_id, message: `Dataset with the given dataset_id:${dataset_id} not found` })
