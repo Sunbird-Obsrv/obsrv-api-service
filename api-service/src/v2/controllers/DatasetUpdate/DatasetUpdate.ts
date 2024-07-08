@@ -43,29 +43,15 @@ const isValidRequest = async (req: Request, res: Response): Promise<boolean> => 
         return false;
     }
 
-    const duplicateDenormKeys = datasetService.getDuplicateDenormKey(_.get(req, ["body", "request", "denorm_config"]))
-    if (!_.isEmpty(duplicateDenormKeys)) {
-        const code = "DATASET_DUPLICATE_DENORM_KEY"
-        logger.error({ code: "DATASET_DUPLICATE_DENORM_KEY", body: req.body, message: `Duplicate denorm output fields found. Duplicate Denorm out fields are [${duplicateDenormKeys}]` })
-        ResponseHandler.errorResponse({
-            code: "DATASET_DUPLICATE_DENORM_KEY",
-            statusCode: 400,
-            message: "Duplicate denorm key found",
-            errCode: "BAD_REQUEST"
-        } as ErrorObject, req, res);
-        return false;
-    }
-
     return true;
 }
 
-const isValidDataset = (datasetModel: Model<any, any> | null, req: Request, res: Response) : boolean => {
+const isValidDataset = (dataset: Record<string, any> | null, req: Request, res: Response): boolean => {
 
     const datasetId = _.get(req, ["body", "request", "dataset_id"])
     const versionKey = _.get(req, ["body", "request", "version_key"])
-    if(datasetModel) {
-        const dataset:Record<string, any> = datasetModel.toJSON
-        if(dataset.api_version !== "v2") {
+    if (dataset) {
+        if (dataset.api_version !== "v2") {
             logger.error({ code: "DATASET_API_VERSION_MISMATCH", apiId, body: req.body, message: `Draft dataset api version is not v2:${datasetId}` })
             ResponseHandler.errorResponse({
                 code: "DATASET_API_VERSION_MISMATCH",
@@ -122,15 +108,16 @@ const datasetUpdate = async (req: Request, res: Response) => {
     }
     
     const draftDataset = mergeDraftDataset(datasetModel, datasetReq);
-    const response = datasetService.updateDraftDataset(draftDataset);    
+    const response = await datasetService.updateDraftDataset(draftDataset);
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: response });
 }
 
 const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any): Record<string, any> => {
 
-    let dataset:Record<string, any> = {
-        version_key: datasetReq.version_key,
-        name: datasetReq.name || _.get(datasetModel, ["name"])
+    let dataset: Record<string, any> = {
+        version_key: Date.now().toString(),
+        name: datasetReq.name || _.get(datasetModel, ["name"]),
+        id: _.get(datasetModel, ["id"])
     }
     if(datasetReq.validation_config) dataset["validation_config"] = datasetReq.validation_config
     if(datasetReq.extraction_config) dataset["extraction_config"] = datasetReq.extraction_config
