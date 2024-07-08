@@ -45,7 +45,7 @@ export interface Result {
 }
 
 export enum DatasetStatus {
-    Live = "Live", Retired = "Retired", Draft = "Draft", ReadyToPublish = "ReadyToPublish"
+    Live = "Live", Retired = "Retired", Draft = "Draft", ReadyToPublish = "ReadyToPublish", Archived = "Archived"
 }
 
 export enum TransformationMode {
@@ -57,7 +57,7 @@ export enum ValidationMode {
 }
 
 export enum DatasetType {
-    Dataset = "dataset", MasterDataset = "master-dataset"
+    event = "event", master = "master", transaction = "transaction"
 }
 
 export enum DatasetAction {
