@@ -101,7 +101,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
         return;
     }
 
-    const dataset:Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status"])
+    const dataset:Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type"])
     
     if(!validateDataset(req, res, dataset, status, headers)) {
         return;
@@ -179,6 +179,8 @@ const publishDataset = async (dataset: Record<string, any>) => {
     await validateAndUpdateDenormConfig(draftDataset);
     await updateMaterDataConfig(draftDataset)
     await DatasetDraft.update(draftDataset, { where: { id: dataset.id } })
+    await generateDataSouce(draftDataset)
+    
     await executeCommand(dataset.id, "PUBLISH_DATASET");
 }
 
@@ -188,6 +190,14 @@ const validateAndUpdateDenormConfig = async (draftDataset: any) => {
     const denormConfig = _.get(draftDataset, "denorm_config")
     if(denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
         const datasetIds = _.map(denormConfig.denorm_fields, 'dataset_id')
+        if(_.includes(datasetIds, draftDataset.id)) {
+            throw {
+                code: "SELF_REFERENCING_MASTER_DATA",
+                message: `The denorm master dataset is self-referencing itself`,
+                errCode: "SELF_REFERENCING_MASTER_DATA",
+                statusCode: 409
+            }
+        }
         const masterDatasets = await datasetService.findDatasets({id: datasetIds, type: "master"}, ["id", "status", "dataset_config", "api_version"])
         const masterDatasetsStatus = _.map(denormConfig.denorm_fields, (denormField) => {
             const md = _.find(masterDatasets, (master) => { return denormField.dataset_id === master.id })
@@ -242,68 +252,69 @@ const updateMaterDataConfig = async (draftDataset: any) => {
     }
 }
 
-//CHECK_DATASET_IS_DENORM
-const checkDatasetDenorm = async (payload: Record<string, any>) => {
-    const { dataset } = payload
-    const { dataset_id, type } = dataset
-    if (type === DatasetType.MasterDataset) {
-        const liveDatasets = await Dataset.findAll({ where: { status: DatasetStatus.Live, type: DatasetType.Dataset }, attributes: ["denorm_config", "id"], raw: true }) || []
-        const draftDatasets = await DatasetDraft.findAll({ where: { status: [DatasetStatus.ReadyToPublish, DatasetStatus.Draft], type: DatasetType.Dataset }, attributes: ["denorm_config", "id"], raw: true }) || []
-        const liveDenorms = _.uniq(getDenormDatasets(liveDatasets, dataset_id))
-        const draftDenorms = _.uniq(getDenormDatasets(draftDatasets, dataset_id))
-        if (_.size([...liveDenorms, ...draftDenorms])) {
-            const denormErrMsg = getDenormErrMsg(liveDenorms, draftDenorms)
+const generateDataSouce = async (draftDataset: any) => {
+
+}
+
+const retireDataset = async (dataset: Record<string, any>) => {
+
+    await canRetireIfMasterDataset(dataset);
+    await updateDatasetStatusToRetired(dataset);
+    await deleteDruidSupervisors(dataset);
+    await restartPipeline(dataset);
+}
+
+
+const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
+
+    if (dataset.type === DatasetType.master) {
+
+        const liveDatasets = await Dataset.findAll({ where: { status: DatasetStatus.Live}, attributes: ["denorm_config", "id", "status"], raw: true }) || []
+        const draftDatasets = await DatasetDraft.findAll({ where: { status: [DatasetStatus.ReadyToPublish, DatasetStatus.Draft] }, attributes: ["denorm_config", "id", "status"], raw: true }) || []
+        const allDatasets = _.union(liveDatasets, draftDatasets)
+        const extractDenormFields = _.map(allDatasets, function(depDataset) {
+            return {dataset_id: _.get(depDataset, 'id'), status: _.get(depDataset, 'status'), denorm_datasets: _.map(_.get(depDataset, 'denorm_config.denorm_fields'), 'dataset_id')}
+        })
+        const deps = _.filter(extractDenormFields, function(depDS) { return _.includes(depDS.denorm_datasets, dataset.id)})
+        if (_.size(deps) > 0) {
+            const denormErrMsg = `Failed to retire dataset as it is in use. Please retire or delete dependent datasets before retiring this dataset`
             logger.error(denormErrMsg);
             throw {
                 code: "DATASET_IN_USE",
                 errCode: "BAD_REQUEST",
                 message: denormErrMsg,
-                statusCode: 400
+                statusCode: 400,
+                data: _.map(deps, function(o) { return _.omit(o, 'denorm_datasets')})
             }
         }
     }
 }
 
-const getDenormErrMsg = (liveDenorms: Record<string, any>, draftDenorms: Record<string, any>) => {
-    if (_.size(liveDenorms) && _.size(draftDenorms)) {
-        return `Failed to retire dataset as it is used by Live datasets with id:[${liveDenorms}] and Draft datasets with id:[${draftDenorms}]`
-    }
-    if (_.size(liveDenorms)) {
-        return `Failed to retire dataset as it is used by Live datasets with id:[${liveDenorms}]`
-    }
-    if (_.size(draftDenorms)) {
-        return `Failed to retire dataset as it is used by Draft datasets with id:[${draftDenorms}]`
-    }
-}
+const updateDatasetStatusToRetired = async (dataset: Record<string, any>) => {
 
-const getDenormDatasets = (datasets: any[], dataset_id: string) => {
-    const denorms = _.map(datasets, dataset => {
-        return _.map(_.get(dataset, "denorm_config.denorm_fields"), denorms => {
-            if (_.get(denorms, "dataset_id") === dataset_id) {
-                return _.get(dataset, "id")
-            }
-        })
-    })
-    return _.compact(_.flattenDeep(denorms))
-}
-
-//SET_DATASET_TO_RETIRE
-const setDatasetRetired = async (config: Record<string, any>) => {
-    const { dataset } = config;
-    const { dataset_id } = dataset
-    await Dataset.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-    await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-    await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-    await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id } })
-}
-
-//DELETE_SUPERVISORS
-const deleteSupervisors = async (configs: Record<string, any>) => {
-    const { dataset } = configs
-    const { type, dataset_id } = dataset
+    const transaction = await sequelize.transaction()
     try {
-        if (type !== DatasetType.MasterDataset) {
-            const datasourceRefs = await Datasource.findAll({ where: { dataset_id }, attributes: ["datasource_ref"], raw: true })
+        await Dataset.update({ status: DatasetStatus.Retired }, { where: { id: dataset.id }, transaction })
+        await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction })
+        await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id } , transaction})
+        await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id } , transaction})
+        await transaction.commit()
+    } catch(err:any) {
+        await transaction.rollback()
+        throw {
+            code: "UNABLE_TO_RETIRE_DATASET",
+            errCode: "SERVER_ERROR",
+            message: err.message,
+            statusCode: 500
+        }
+    }
+}
+
+const deleteDruidSupervisors = async (dataset: Record<string, any>) => {
+
+    try {
+        if (dataset.type !== DatasetType.master) {
+            const datasourceRefs = await Datasource.findAll({ where: { dataset_id: dataset.id }, attributes: ["datasource_ref"], raw: true })
             for (const sourceRefs of datasourceRefs) {
                 const datasourceRef = _.get(sourceRefs, "datasource_ref")
                 await druidHttpService.post(`/druid/indexer/v1/supervisor/${datasourceRef}/terminate`)
@@ -311,47 +322,33 @@ const deleteSupervisors = async (configs: Record<string, any>) => {
             }
         }
     } catch (error: any) {
-        logger.error({ error: _.get(error, "message"), message: `Failed to delete supervisors for dataset:${dataset_id}` })
+        logger.error({ error: _.get(error, "message"), message: `Failed to delete supervisors for dataset:${dataset.id}` })
     }
 }
 
 //RESTART_PIPELINE
-const restartPipeline = async (config: Record<string, any>) => {
-    const dataset_id = _.get(config, ["dataset", "dataset_id"])
-    return executeCommand(dataset_id, "RESTART_PIPELINE")
+const restartPipeline = async (dataset: Record<string, any>) => {
+    return executeCommand(dataset.id, "RESTART_PIPELINE")
 }
 
-const commandExecutors = {
-    DELETE_DRAFT_DATASETS: deleteDataset,
-    PUBLISH_DATASET: publishDataset,
-    CHECK_DATASET_IS_DENORM: checkDatasetDenorm,
-    SET_DATASET_TO_RETIRE: setDatasetRetired,
-    DELETE_SUPERVISORS: deleteSupervisors,
-    RESTART_PIPELINE: restartPipeline,
-    VALIDATE_DATASET_CONFIGS: validateDataset
-}
+const archiveDataset = async (dataset: Record<string, any>) => {
 
-const getDraftDatasetRecord = async (dataset_id: string) => {
-    return DatasetDraft.findOne({ where: { id: dataset_id }, raw: true });
-}
-
-const errorMessage = {
-    DATASET_NOT_FOUND: {
-        Delete: "Dataset not found to delete",
-        Retire: "Dataset not found to retire",
-        ReadyToPublish: "Dataset not found to perform status transition to ready to publish",
-        Live: "Dataset not found to perform status transition to live"
-    },
-    STATUS_INVALID: {
-        Delete: "Failed to Delete dataset",
-        Retire: "Failed to Retire dataset as it is not in live state",
-        ReadyToPublish: "Failed to mark dataset Ready to publish as it not in draft state",
-        Live: "Failed to mark dataset Live as it is not in ready to publish state"
+    throw {
+        code: "ARCHIVE_NOT_IMPLEMENTED",
+        errCode: "NOT_IMPLEMENTED",
+        message: "Archive functionality is not implemented",
+        statusCode: 501
     }
 }
 
-const getErrorMessage = (status: string, code: string) => {
-    return _.get(errorMessage, [code, status]) || "Failed to perform status transition"
+const purgeDataset = async (dataset: Record<string, any>) => {
+
+    throw {
+        code: "PURGE_NOT_IMPLEMENTED",
+        errCode: "NOT_IMPLEMENTED",
+        message: "Purge functionality is not implemented",
+        statusCode: 501
+    }
 }
 
 export default datasetStatusTransition;

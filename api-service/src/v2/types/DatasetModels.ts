@@ -57,7 +57,7 @@ export enum ValidationMode {
 }
 
 export enum DatasetType {
-    Dataset = "dataset", MasterDataset = "master-dataset"
+    event = "event", master = "master", transaction = "transaction"
 }
 
 export enum DatasetAction {
