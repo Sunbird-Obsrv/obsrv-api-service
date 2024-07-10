@@ -42,8 +42,8 @@ export const defaultDatasetConfig = {
             "timestamp_key": ingestionConfig.indexCol["Event Arrival Time"]
         },
         "cache_config": {
-            "redis_db_host": config.redis_config.dedup_redis_host,
-            "redis_db_port": config.redis_config.dedup_redis_port,
+            "redis_db_host": config.redis_config.denorm_redis_host,
+            "redis_db_port": config.redis_config.denorm_redis_port,
             "redis_db": 0
         },
         "file_upload_path": []
