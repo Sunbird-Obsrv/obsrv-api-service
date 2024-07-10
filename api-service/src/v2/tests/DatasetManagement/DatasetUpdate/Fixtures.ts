@@ -56,11 +56,12 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id": "master"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     }
                 ]
             }
@@ -74,7 +75,7 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
@@ -407,16 +408,18 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
                         },
                         "action": "remove"
                     },
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
                         },
                         "action": "remove"
                     }

@@ -22,6 +22,7 @@ import { druidHttpService } from "../../connections/druidConnection";
 import { query, sequelize } from "../../connections/databaseConnection";
 import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
 
+export const apiId = "api.datasets.status-transition";
 const transitionFailed = "DATASET_STATUS_TRANSITION_FAILURE"
 const invalidRequest = "DATASET_STATUS_TRANSITION_INVALID_INPUT"
 const datasetNotFound = "DATASET_NOT_FOUND"
@@ -79,10 +80,10 @@ const validateDataset = (req: Request, res: Response, dataset: any, action: stri
 
     if(!_.includes(allowedTransitions[action], dataset.status)) {
         const code = `DATASET_${_.toUpper(action)}_FAILURE`
-        logger.error({ code, headers, message: `${errorMessage} for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}` })
+        logger.error({ code, headers, message: `for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}` })
         ResponseHandler.errorResponse({
             code: datasetNotFound,
-            message: `${errorMessage} for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}`,
+            message: `$ for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}`,
             statusCode: 404,
             errCode: "NOT_FOUND"
         } as ErrorObject, req, res);

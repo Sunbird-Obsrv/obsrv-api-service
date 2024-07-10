@@ -22,7 +22,7 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
     it("Success: Dataset dedupe configs updated with dedup key if duplicates need to be dropped", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -48,7 +48,7 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
     it("Success: Dataset dedupe configs updated with default values if duplicates need to be dropped", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -57,7 +57,7 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
         chai
             .request(app)
             .patch("/v2/datasets/update")
-            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, dedup_config: { drop_duplicates: false } } })
+            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, dedup_config: { drop_duplicates: false, dedup_key: "mid" } } })
             .end((err, res) => {
                 console.log(res.body.result)
                 res.should.have.status(httpStatus.OK);
