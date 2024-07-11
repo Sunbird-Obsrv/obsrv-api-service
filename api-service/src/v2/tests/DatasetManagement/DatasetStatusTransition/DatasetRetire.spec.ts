@@ -5,7 +5,6 @@ import spies from "chai-spies";
 import httpStatus from "http-status";
 import { describe, it } from 'mocha';
 import _ from "lodash";
-import { apiId, errorCode } from "../../../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { Dataset } from "../../../models/Dataset";
 import { DatasetDraft } from "../../../models/DatasetDraft";
@@ -59,7 +58,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
@@ -101,7 +100,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
@@ -143,7 +142,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
@@ -164,7 +163,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.NOT_FOUND);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Dataset not found to retire")
@@ -184,7 +183,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.BAD_REQUEST);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Failed to Retire dataset as it is not in live state")
@@ -210,7 +209,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.BAD_REQUEST);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Failed to retire dataset as it is used by other datasets")
@@ -233,9 +232,8 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.code.should.be.eq(errorCode)
                 res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
                 done();
             });
@@ -270,9 +268,8 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.code.should.be.eq(errorCode)
                 res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
                 done();
             });

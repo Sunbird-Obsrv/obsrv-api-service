@@ -13,3 +13,4 @@ __pycache__/
 #to ignore embedded postgres data files
 data
 connector-registry
+package-lock.json

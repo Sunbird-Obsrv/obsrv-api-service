@@ -5,7 +5,6 @@ import spies from "chai-spies";
 import httpStatus from "http-status";
 import { describe, it } from 'mocha';
 import _ from "lodash";
-import { apiId } from "../../../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
@@ -48,7 +47,7 @@ describe("DATASET STATUS TRANSITION DELETE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
@@ -69,7 +68,7 @@ describe("DATASET STATUS TRANSITION DELETE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.NOT_FOUND);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Dataset not found to delete")
