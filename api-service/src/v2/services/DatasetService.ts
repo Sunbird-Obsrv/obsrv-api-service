@@ -243,10 +243,21 @@ class DatasetService {
 
     publishDataset = async (draftDataset: Record<string, any>) => {
 
+        const indexingConfig = draftDataset.dataset_config.indexing_config;
         const transaction = await sequelize.transaction()
         try {
             await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id } , transaction})
-            await this.generateDataSouce(draftDataset, transaction)
+            if(indexingConfig.olap_store_enabled) {
+                await this.createDruidDataSource(draftDataset, transaction);
+            }
+            if(indexingConfig.lakehouse_enabled) {
+                const liveDataset = await this.getDataset(draftDataset.dataset_id, ["id"], true);
+                if(liveDataset) {
+                    await this.updateHudiDataSource(draftDataset, transaction)
+                } else {
+                    await this.createHudiDataSource(draftDataset, transaction)
+                }
+            }
             await transaction.commit()
             await executeCommand(draftDataset.id, "PUBLISH_DATASET");
         } catch(err:any) {
@@ -256,25 +267,38 @@ class DatasetService {
         
     }
 
-    generateDataSouce = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+    createDruidDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
-        const indexingConfig = draftDataset.dataset_config.indexing_config;
-        if(indexingConfig.olap_store_enabled) {
-            const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
-            const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, draftDatasource.datasource_ref);
-            _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
-            await DatasourceDraft.create(draftDatasource, {transaction})
-        }
-        if(indexingConfig.lakehouse_enabled) {
+        const allFields = await tableGenerator.getAllFields(draftDataset, "druid");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
+        const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
+        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        await DatasourceDraft.create(draftDatasource, {transaction})
+    }
 
-        }
+    createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+
+        const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
+        const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
+        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        await DatasourceDraft.create(draftDatasource, {transaction})
+    }
+
+    updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+
+        const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
+        const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
+        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
     createDraftDatasource = (draftDataset: Record<string, any>, type: string) : Record<string, any> => {
 
         const datasource = _.join([draftDataset.dataset_id,"events"], "_")
         return {
-            id: datasource,
+            id: _.join([datasource,type], '_'),
             datasource: draftDataset.dataset_id,
             dataset_id: draftDataset.dataset_id,
             datasource_ref: datasource,
