@@ -180,6 +180,27 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
+    getHudiIngestionSpecForUpdate = (dataset: Record<string, any>, existingHudiSpec: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
+
+        let newHudiSpec = this.getHudiIngestionSpecForCreate(dataset, allFields, datasourceRef)
+
+        const newColumnSpec = newHudiSpec.schema.columnSpec;
+        let oldColumnSpec = existingHudiSpec.schema.columnSpec;
+        let currIndex = _.get(_.maxBy(oldColumnSpec, 'index'), 'index') as unknown as number
+        const newColumns = _.differenceBy(newColumnSpec, oldColumnSpec, 'name');
+        if(_.size(newColumns) > 0) {
+            _.each(newColumns, (col) => {
+                oldColumnSpec.push({
+                    "type": col.type,
+                    "name": col.name,
+                    "index": currIndex++
+                })
+            })
+        }
+        _.set(newHudiSpec, 'schema.columnSpec', oldColumnSpec)
+        return newHudiSpec;
+    }
+
     private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string) : Record<string, any>[] => {
 
         const instance = this;
