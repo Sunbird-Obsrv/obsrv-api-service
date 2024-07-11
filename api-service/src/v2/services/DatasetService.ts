@@ -6,9 +6,17 @@ import { DatasetTransformations } from "../models/Transformation";
 import { DatasetTransformationsDraft } from "../models/TransformationDraft";
 import Model from "sequelize/types/model";
 import { DatasetSourceConfigDraft } from "../models/DatasetSourceConfigDraft";
-import { sequelize } from "../connections/databaseConnection";
+import { query, sequelize } from "../connections/databaseConnection";
 import { DatasetSourceConfig } from "../models/DatasetSourceConfig";
 import { ConnectorInstances } from "../models/ConnectorInstances";
+import { DatasourceDraft } from "../models/DatasourceDraft";
+import { executeCommand } from "../connections/commandServiceConnection";
+import Transaction from "sequelize/types/transaction";
+import { DatasetStatus, DatasetType } from "../types/DatasetModels";
+import { Datasource } from "../models/Datasource";
+import { obsrvError } from "../types/ObsrvError";
+import { druidHttpService } from "../connections/druidConnection";
+import { tableGenerator } from "./TableGenerator";
 
 class DatasetService {
 
@@ -179,6 +187,99 @@ class DatasetService {
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         await DatasetDraft.create(draftDataset);
         return await this.getDraftDataset(draftDataset.dataset_id);
+    }
+
+    getNextRedisDBIndex = async () => {
+        return await query("SELECT nextval('redis_db_index')")
+    }
+
+    deleteDraftDataset = async (dataset: Record<string, any>) => {
+
+        const { id } = dataset
+        const transaction = await sequelize.transaction()
+        try {
+            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id } , transaction})
+            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id } , transaction})
+            await DatasourceDraft.destroy({ where: { dataset_id: id } , transaction})
+            await DatasetDraft.destroy({ where: { id } , transaction})
+            await transaction.commit()
+        } catch (err:any) {
+            await transaction.rollback()
+            throw obsrvError(dataset.id, "FAILED_TO_DELETE_DATASET", err.message, "SERVER_ERROR", 500, err)
+        }
+    }
+
+    retireDataset = async (dataset: Record<string, any>) => {
+
+        const transaction = await sequelize.transaction();
+        try {
+            await Dataset.update({ status: DatasetStatus.Retired }, { where: { id: dataset.id }, transaction });
+            await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
+            await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id } , transaction});
+            await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id } , transaction});
+            await transaction.commit();
+            await this.deleteDruidSupervisors(dataset);
+        } catch(err:any) {
+            await transaction.rollback();
+            throw obsrvError(dataset.id, "FAILED_TO_RETIRE_DATASET", err.message, "SERVER_ERROR", 500, err);
+        }
+    }
+
+    deleteDruidSupervisors = async (dataset: Record<string, any>) => {
+
+        try {
+            if (dataset.type !== DatasetType.master) {
+                const datasourceRefs = await Datasource.findAll({ where: { dataset_id: dataset.id }, attributes: ["datasource_ref"], raw: true })
+                for (const sourceRefs of datasourceRefs) {
+                    const datasourceRef = _.get(sourceRefs, "datasource_ref")
+                    await druidHttpService.post(`/druid/indexer/v1/supervisor/${datasourceRef}/terminate`)
+                    logger.info(`Datasource ref ${datasourceRef} deleted from druid`)
+                }
+            }
+        } catch (error: any) {
+            logger.error({ error: _.get(error, "message"), message: `Failed to delete supervisors for dataset:${dataset.id}` })
+        }
+    }
+
+    publishDataset = async (draftDataset: Record<string, any>) => {
+
+        const transaction = await sequelize.transaction()
+        try {
+            await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id } , transaction})
+            await this.generateDataSouce(draftDataset, transaction)
+            await transaction.commit()
+            await executeCommand(draftDataset.id, "PUBLISH_DATASET");
+        } catch(err:any) {
+            await transaction.rollback()
+            throw obsrvError(draftDataset.id, "FAILED_TO_PUBLISH_DATASET", err.message, "SERVER_ERROR", 500, err);
+        }
+        
+    }
+
+    generateDataSouce = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+
+        const indexingConfig = draftDataset.dataset_config.indexing_config;
+        if(indexingConfig.olap_store_enabled) {
+            const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
+            const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, draftDatasource.datasource_ref);
+            _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+            await DatasourceDraft.create(draftDatasource, {transaction})
+        }
+        if(indexingConfig.lakehouse_enabled) {
+
+        }
+    }
+
+    createDraftDatasource = (draftDataset: Record<string, any>, type: string) : Record<string, any> => {
+
+        const datasource = _.join([draftDataset.dataset_id,"events"], "_")
+        return {
+            id: datasource,
+            datasource: draftDataset.dataset_id,
+            dataset_id: draftDataset.dataset_id,
+            datasource_ref: datasource,
+            type
+        }
     }
 
 }

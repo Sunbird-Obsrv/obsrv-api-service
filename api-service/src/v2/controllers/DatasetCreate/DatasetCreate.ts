@@ -1,65 +1,38 @@
 import _ from "lodash";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
-import logger from "../../logger";
 import { datasetService } from "../../services/DatasetService";
 import DatasetCreate from "./DatasetCreateValidationSchema.json";
 import { schemaValidation } from "../../services/ValidationService";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
-import { ErrorObject } from "../../types/ResponseModel";
 import { cipherService } from "../../services/CipherService";
 import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
+import { obsrvError } from "../../types/ObsrvError";
 
 export const apiId = "api.datasets.create"
 
-const isValidRequest = async (req: Request, res: Response): Promise<boolean> => {
+const validateRequest = async (req: Request) => {
 
     const isRequestValid: Record<string, any> = schemaValidation(req.body, DatasetCreate)
     if (!isRequestValid.isValid) {
-        logger.error({ code: "DATASET_INVALID_INPUT", apiId, body: req.body, message: isRequestValid.message })
-        ResponseHandler.errorResponse({
-            code: "DATASET_INVALID_INPUT",
-            message: isRequestValid.message,
-            statusCode: 400,
-            errCode: "BAD_REQUEST"
-        } as ErrorObject, req, res);
-        return false;
+        throw obsrvError("", "DATASET_INVALID_INPUT", isRequestValid.message, "BAD_REQUEST", 400)
     }
     const datasetId = _.get(req, ["body", "request", "dataset_id"])
     const isDataSetExists = await datasetService.checkDatasetExists(datasetId);
     if (isDataSetExists) {
-        logger.error({ code: "DATASET_EXISTS", apiId, body: req.body, message: `Dataset Already exists with id:${datasetId}` })
-        ResponseHandler.errorResponse({
-            code: "DATASET_EXISTS",
-            message: "Dataset already exists",
-            statusCode: 409,
-            errCode: "CONFLICT"
-        } as ErrorObject, req, res);
-        return false;
+        throw obsrvError(datasetId, "DATASET_EXISTS", `Dataset Already exists with id:${datasetId}`, "CONFLICT", 409)
     }
 
     const duplicateDenormKeys = datasetService.getDuplicateDenormKey(_.get(req, ["body", "request", "denorm_config"]))
     if (!_.isEmpty(duplicateDenormKeys)) {
-        const code = "DATASET_DUPLICATE_DENORM_KEY"
-        logger.error({ code: "DATASET_DUPLICATE_DENORM_KEY", apiId, body: req.body, message: `Duplicate denorm output fields found. Duplicate Denorm out fields are [${duplicateDenormKeys}]` })
-        ResponseHandler.errorResponse({
-            code: "DATASET_DUPLICATE_DENORM_KEY",
-            statusCode: 400,
-            message: "Duplicate denorm key found",
-            errCode: "BAD_REQUEST"
-        } as ErrorObject, req, res);
-        return false;
+        throw obsrvError(datasetId, "DATASET_DUPLICATE_DENORM_KEY", "Duplicate denorm output fields found.", "BAD_REQUEST", 400, undefined, {duplicateKeys: duplicateDenormKeys})
     }
 
-    return true;
 }
 
 const datasetCreate = async (req: Request, res: Response) => {
     
-    const isRequestValid = await isValidRequest(req, res)
-    if(!isRequestValid) {
-        return;
-    }
+    validateRequest(req)
     const draftDataset = getDraftDataset(req.body.request)
     const dataset = await datasetService.createDraftDataset(draftDataset);
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });

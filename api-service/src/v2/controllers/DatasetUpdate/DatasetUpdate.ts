@@ -1,111 +1,60 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
-import logger from "../../logger";
 import _ from "lodash";
 import Model from "sequelize/types/model";
-import { ErrorObject } from "../../types/ResponseModel";
 import { DatasetStatus } from "../../types/DatasetModels";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { cipherService } from "../../services/CipherService";
 import { datasetService } from "../../services/DatasetService";
 import { schemaValidation } from "../../services/ValidationService";
 import DatasetUpdate from "./DatasetUpdateValidationSchema.json";
+import { obsrvError } from "../../types/ObsrvError";
 
 export const apiId = "api.datasets.update";
 export const invalidInputErrCode = "DATASET_UPDATE_INPUT_INVALID"
 export const errorCode = "DATASET_UPDATE_FAILURE"
 
-const isValidRequest = async (req: Request, res: Response): Promise<boolean> => {
+const validateRequest = async (req: Request) => {
 
+    const datasetId = _.get(req, ["body", "request", "dataset_id"])
     const isRequestValid: Record<string, any> = schemaValidation(req.body, DatasetUpdate)
     if (!isRequestValid.isValid) {
-        logger.error({ code: "DATASET_UPDATE_INPUT_INVALID", apiId, body: req.body, message: isRequestValid.message })
-        ResponseHandler.errorResponse({
-            code: "DATASET_UPDATE_INPUT_INVALID",
-            message: isRequestValid.message,
-            statusCode: 400,
-            errCode: "BAD_REQUEST"
-        } as ErrorObject, req, res);
-        return false;
+        throw obsrvError(datasetId, "DATASET_UPDATE_INPUT_INVALID", isRequestValid.message, "BAD_REQUEST", 400)
     }
 
     const datasetBody = req.body.request
     const { dataset_id, version_key, ...rest } = datasetBody
     if (_.isEmpty(rest)) {
-        const code = "DATASET_UPDATE_NO_FIELDS"
-        logger.error({ code, apiId, body: req.body, message: `Provide atleast one field in addition to the dataset_id:${dataset_id} and version_key:${version_key} to update the dataset` })
-        ResponseHandler.errorResponse({
-            code,
-            message: "Provide atleast one field in addition to the dataset_id to update the dataset",
-            statusCode: 400,
-            errCode: "BAD_REQUEST"
-        } as ErrorObject, req, res);
-        return false;
+        throw obsrvError(datasetId, "DATASET_UPDATE_NO_FIELDS", "Provide atleast one field in addition to the dataset_id to update the dataset", "BAD_REQUEST", 400)
     }
 
-    return true;
 }
 
-const isValidDataset = (dataset: Record<string, any> | null, req: Request, res: Response): boolean => {
+const validateDataset = (dataset: Record<string, any> | null, req: Request) => {
 
     const datasetId = _.get(req, ["body", "request", "dataset_id"])
     const versionKey = _.get(req, ["body", "request", "version_key"])
     if (dataset) {
         if (dataset.api_version !== "v2") {
-            logger.error({ code: "DATASET_API_VERSION_MISMATCH", apiId, body: req.body, message: `Draft dataset api version is not v2:${datasetId}` })
-            ResponseHandler.errorResponse({
-                code: "DATASET_API_VERSION_MISMATCH",
-                message: "Draft dataset api version is not v2",
-                statusCode: 404,
-                errCode: "NOT_FOUND"
-            } as ErrorObject, req, res);
-            return false;
+            throw obsrvError(datasetId, "DATASET_API_VERSION_MISMATCH", "Draft dataset api version is not v2. Perform a read api call with mode=edit to migrate the dataset", "NOT_FOUND", 404)
         } 
         if(dataset.version_key !== versionKey) {
-            logger.error({ code: "DATASET_OUTDATED", body: req.body, message: `The dataset:${datasetId} with version_key:${versionKey} is outdated. Please try to fetch latest changes of the dataset with version key:${dataset.version_key} and perform the updates` })
-            ResponseHandler.errorResponse({
-                code: "DATASET_OUTDATED",
-                message: "The dataset is outdated. Please try to fetch latest changes of the dataset and perform the updates",
-                statusCode: 409,
-                errCode: "CONFLICT"
-            } as ErrorObject, req, res);
-            return false;
+            throw obsrvError(datasetId, "DATASET_OUTDATED", "The dataset is outdated. Please try to fetch latest changes of the dataset and perform the updates", "CONFLICT", 409)
         }
         if(!_.includes([DatasetStatus.Draft, DatasetStatus.ReadyToPublish], dataset.status)) {
-            logger.error({ code: "DATASET_NOT_IN_DRAFT_STATE_TO_UPDATE", body: req.body, message: `Dataset with id:${datasetId} cannot be updated as it is not in draft state` })
-            ResponseHandler.errorResponse({
-                code: "DATASET_NOT_IN_DRAFT_STATE_TO_UPDATE",
-                message: "Dataset cannot be updated as it is not in draft state",
-                statusCode: 400,
-                errCode: "BAD_REQUEST"
-            } as ErrorObject, req, res);
-            return false;
+            throw obsrvError(datasetId, "DATASET_NOT_IN_DRAFT_STATE_TO_UPDATE", "Dataset cannot be updated as it is not in draft state", "BAD_REQUEST", 400)
         }
-        return true;
     } else {
-        logger.error({ code: "DATASET_NOT_EXISTS", body: req.body, message: `Dataset does not exists with id:${datasetId}` })
-        ResponseHandler.errorResponse({
-            code: "DATASET_NOT_EXISTS",
-            message: "Dataset does not exists to update",
-            statusCode: 404,
-            errCode: "NOT_FOUND"
-        } as ErrorObject, req, res);
-        return false;
+        throw obsrvError(datasetId, "DATASET_NOT_EXISTS", `Dataset does not exists with id:${datasetId}`, "NOT_FOUND", 404)
     }
 }
 
 const datasetUpdate = async (req: Request, res: Response) => {
     
-    const isRequestValid = await isValidRequest(req, res)
-    if(!isRequestValid) {
-        return;
-    }
-
+    await validateRequest(req)
     const datasetReq = req.body.request;
     const datasetModel = await datasetService.getDraftDataset(datasetReq.dataset_id)
-    if(!isValidDataset(datasetModel, req, res)) {
-        return;
-    }
+    validateDataset(datasetModel, req)
     
     const draftDataset = mergeDraftDataset(datasetModel, datasetReq);
     const response = await datasetService.updateDraftDataset(draftDataset);

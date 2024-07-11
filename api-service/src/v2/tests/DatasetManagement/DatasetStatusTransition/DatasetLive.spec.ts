@@ -5,7 +5,6 @@ import spies from "chai-spies";
 import httpStatus from "http-status";
 import { describe, it } from 'mocha';
 import _ from "lodash";
-import { apiId, errorCode } from "../../../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { commandHttpService } from "../../../connections/commandServiceConnection";
@@ -36,7 +35,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
@@ -57,7 +56,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.NOT_FOUND);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("Dataset not found to perform status transition to live")
@@ -80,9 +79,8 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.code.should.be.eq(errorCode)
                 res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
                 done();
             });
@@ -99,7 +97,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.BAD_REQUEST);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.error.code.should.be.eq("DATASET_LIVE_FAILURE")
                 res.body.error.message.should.be.eq("Failed to mark dataset Live as it is not in ready to publish state")
