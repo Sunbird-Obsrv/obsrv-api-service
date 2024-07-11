@@ -70,7 +70,7 @@
     "@types/mocha": "^10.0.0",
     "@types/mock-knex": "^0.4.4",
     "@types/moment": "^2.13.0",
-    "@types/node": "^18.11.9",
+    "@types/node": "^18.19.39",
     "@types/pg": "^8.6.6",
     "@types/sinon": "^17.0.3",
     "@types/slug": "^5.0.8",

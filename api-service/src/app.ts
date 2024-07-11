@@ -10,7 +10,7 @@ import { interceptAuditEvents } from "./v1/services/telemetry";
 import { queryService } from "./v1/routes/Router";
 import { routesConfig } from "./v1/configs/RoutesConfig";
 import { QueryValidator } from "./v1/validators/QueryValidator";
-import { errorHandler } from "./v2/middlewares/errors";
+import { errorHandler, obsrvErrorHandler } from "./v2/middlewares/errors";
 const app: Application = express();
 const queryValidator = new QueryValidator();
 
@@ -25,6 +25,7 @@ app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
 app.use(errorHandler)
+app.use(obsrvErrorHandler);
 app.set("queryServices", services);
 
 loadExtensions(app)
