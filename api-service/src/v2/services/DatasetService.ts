@@ -135,7 +135,7 @@ class DatasetService {
         return await this.getDraftDataset(datasetId);
     }
 
-    getTransformationCategory = (section: string):string => {
+    private getTransformationCategory = (section: string):string => {
 
         switch(section) {
             case "pii":
@@ -225,7 +225,7 @@ class DatasetService {
         }
     }
 
-    deleteDruidSupervisors = async (dataset: Record<string, any>) => {
+    private deleteDruidSupervisors = async (dataset: Record<string, any>) => {
 
         try {
             if (dataset.type !== DatasetType.master) {
@@ -267,7 +267,7 @@ class DatasetService {
         
     }
 
-    createDruidDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+    private createDruidDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
         const allFields = await tableGenerator.getAllFields(draftDataset, "druid");
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
@@ -276,7 +276,7 @@ class DatasetService {
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
-    createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+    private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
@@ -285,7 +285,7 @@ class DatasetService {
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
-    updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
+    private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
@@ -294,7 +294,7 @@ class DatasetService {
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
-    createDraftDatasource = (draftDataset: Record<string, any>, type: string) : Record<string, any> => {
+    private createDraftDatasource = (draftDataset: Record<string, any>, type: string) : Record<string, any> => {
 
         const datasource = _.join([draftDataset.dataset_id,"events"], "_")
         return {

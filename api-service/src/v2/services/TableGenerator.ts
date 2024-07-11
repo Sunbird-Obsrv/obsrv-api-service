@@ -110,7 +110,7 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
     
-    getDruidDimensions = (allFields: Record<string, any>[], timestampKey: string, partitionKey: string | undefined) => {
+    private getDruidDimensions = (allFields: Record<string, any>[], timestampKey: string, partitionKey: string | undefined) => {
 
         const dataFields = _.cloneDeep(allFields);
         if(partitionKey) { // Move the partition column to the top of the dimensions
@@ -132,7 +132,7 @@ class TableGenerator extends BaseTableGenerator {
         )
     }
 
-    getDruidDimensionType = (data_type: string):string => {
+    private getDruidDimensionType = (data_type: string):string => {
         switch (data_type) {
             case "number": return "double";
             case "integer": return "long";
@@ -144,7 +144,7 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
-    getDruidFlattenSpec = (allFields: Record<string, any>) => {
+    private getDruidFlattenSpec = (allFields: Record<string, any>) => {
         return _.union(
             _.map(allFields, (field) => {
                 return {
@@ -180,7 +180,7 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
-    getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string) : Record<string, any>[] => {
+    private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string) : Record<string, any>[] => {
 
         const instance = this;
         const dataFields = _.cloneDeep(allFields);
@@ -205,7 +205,7 @@ class TableGenerator extends BaseTableGenerator {
         return transformFields;
     }
 
-    getHudiColumnType = (field: Record<string, any>) : string => {
+    private getHudiColumnType = (field: Record<string, any>) : string => {
         if(field.data_type === 'array' && field.arrival_format !== 'array') {
             return "array";
         }
@@ -250,7 +250,7 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
-    getHudiFields = (allFields: Record<string, any>[]) : Record<string, any>[] => {
+    private getHudiFields = (allFields: Record<string, any>[]) : Record<string, any>[] => {
 
         return _.union(
             _.map(allFields, (field) => {
@@ -264,35 +264,17 @@ class TableGenerator extends BaseTableGenerator {
         )
     }
 
-    getPrimaryKey = (dataset: Record<string, any>) : string => {
+    private getPrimaryKey = (dataset: Record<string, any>) : string => {
         return dataset.dataset_config.keys_config.data_key;
     }
 
-    getHudiPartitionKey = (dataset: Record<string, any>) : string => {
+    private getHudiPartitionKey = (dataset: Record<string, any>) : string => {
         return dataset.dataset_config.keys_config.partition_key || dataset.dataset_config.keys_config.timestamp_key;
     }
 
-    getTimestampKey = (dataset: Record<string, any>) : string => {
+    private getTimestampKey = (dataset: Record<string, any>) : string => {
         return dataset.dataset_config.keys_config.timestamp_key;
     }
 }
 
 export const tableGenerator = new TableGenerator();
-
-const schema = '{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","properties":{"userid":{"type":"string","arrival_format":"text","data_type":"string"},"block":{"type":"string","arrival_format":"text","data_type":"string"},"cluster":{"type":"string","arrival_format":"text","data_type":"string"},"schooludisecode":{"type":"string","arrival_format":"text","data_type":"string"},"schoolname":{"type":"string","arrival_format":"text","data_type":"string"},"usertype":{"type":"string","arrival_format":"text","data_type":"string"},"usersubtype":{"type":"string","arrival_format":"text","data_type":"string"},"board":{"type":"string","arrival_format":"text","data_type":"string"},"rootorgid":{"type":"string","arrival_format":"text","data_type":"string"},"orgname":{"type":"string","arrival_format":"text","data_type":"string"},"subject":{"type":"array","items":{"type":"string"},"arrival_format":"array","data_type":"array"},"language":{"type":"array","items":{"type":"string"},"arrival_format":"array","data_type":"array"},"grade":{"type":"array","items":{"type":"string"},"arrival_format":"array","data_type":"array"},"framework":{"type":"string","arrival_format":"text","data_type":"string"},"medium":{"type":"array","items":{"type":"string"},"arrival_format":"array","data_type":"array"},"district":{"type":"string","arrival_format":"text","data_type":"string"},"profileusertypes":{"type":"array","items":{"type":"object","properties":{"type":{"type":"string","arrival_format":"text","data_type":"string"},"subType":{"type":"string","arrival_format":"text","data_type":"string"}},"additionalProperties":false},"arrival_format":"array","data_type":"array"}},"additionalProperties":false}';
-const dataSchema = JSON.parse(schema);
-const allFields = tableGenerator.flattenSchema(dataSchema, "druid")
-const dataset = {
-    dataset_id: "ny_trip_data",
-    router_config: {
-        topic: "ny_trip_data"
-    },
-    dataset_config: {
-        keys_config: {
-            data_key: "userid",
-            timestamp_key: "grade",
-            partition_key: "block",
-        }
-    }
-}
-console.log(JSON.stringify(tableGenerator.getDruidIngestionSpec(dataset, allFields, "ny_trip_data_events")))
