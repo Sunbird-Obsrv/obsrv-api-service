@@ -98,10 +98,6 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     type: DataTypes.STRING,
     defaultValue: "v2"
   },
-  fields_set: {
-      type: DataTypes.JSON,
-      defaultValue: {}
-  },
   sample_data: {
       type: DataTypes.JSON,
       defaultValue: {}
