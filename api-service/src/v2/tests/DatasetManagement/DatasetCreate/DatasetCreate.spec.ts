@@ -74,7 +74,7 @@ describe("DATASET CREATE API", () => {
                     res.body.id.should.be.eq(apiId);
                     res.body.params.status.should.be.eq(fixture.status)
                     res.body.params.msgid.should.be.eq(fixture.msgid)
-                    res.body.error.message.should.be.eq("Duplicate denorm key found")
+                    res.body.error.message.should.be.eq("Duplicate denorm output fields found.")
                     res.body.error.code.should.be.eq("DATASET_DUPLICATE_DENORM_KEY")
                     done();
                 });
@@ -113,7 +113,7 @@ describe("DATASET CREATE API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset already exists")
+                res.body.error.message.should.be.eq("Dataset Already exists with id:sb-ddd")
                 res.body.error.code.should.be.eq("DATASET_EXISTS")
                 done();
             });

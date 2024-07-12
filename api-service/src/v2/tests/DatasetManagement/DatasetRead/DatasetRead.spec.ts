@@ -181,7 +181,7 @@ describe("DATASET READ API", () => {
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("Dataset with the given dataset_id not found")
+                res.body.error.message.should.be.eq("Dataset with the given dataset_id:sb-telemetry not found")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });
