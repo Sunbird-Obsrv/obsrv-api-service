@@ -51,6 +51,7 @@ export const rawIngestionSpecDefaults = {
         "name": "obsrv_meta.syncts",
         "arrival_format": "text",
         "data_type": "date",
+        "type": "text",
         "expr": "$.obsrv_meta.syncts"
     },
     "dimensions": [
@@ -66,12 +67,12 @@ export const rawIngestionSpecDefaults = {
     "flattenSpec": [
         {
             "type": "path",
-            "expr": "$.obsrv_meta.source.['connector']",
+            "expr": "$.obsrv_meta.source.connector",
             "name": "obsrv.meta.source.connector"
         },
         {
             "type": "path",
-            "expr": "$.obsrv_meta.source.['connectorInstance']",
+            "expr": "$.obsrv_meta.source.connectorInstance",
             "name": "obsrv.meta.source.id"
         }
     ]
