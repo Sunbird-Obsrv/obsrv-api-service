@@ -25,11 +25,8 @@ export const TestInputsForDatasetUpdate = {
             "version_key": validVersionKey,
             "tags": [
                 {
-                    "values": [
-                        "tag1",
-                        "tag2"
-                    ],
-                    "action": "add"
+                    "values": "tag1",
+                    "action": "upsert"
                 }]
         }
     },
@@ -40,10 +37,7 @@ export const TestInputsForDatasetUpdate = {
             "version_key": validVersionKey,
             "tags": [
                 {
-                    "values": [
-                        "tag1",
-                        "tag2"
-                    ],
+                    "values": "tag1",
                     "action": "remove"
                 }]
         }
@@ -98,7 +92,7 @@ export const TestInputsForDatasetUpdate = {
                         "mode": "Strict",
                         "metadata": {}
                     },
-                    "action": "add"
+                    "action": "upsert"
                 }]
         }
     },
@@ -287,7 +281,7 @@ export const TestInputsForDatasetUpdate = {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     },
                     {
                         "values": {
@@ -306,7 +300,7 @@ export const TestInputsForDatasetUpdate = {
                         "mode": "Strict",
                         "metadata": {}
                     },
-                    "action": "add"
+                    "action": "upsert"
                 },
                 {
                     "values": {
@@ -334,18 +328,12 @@ export const TestInputsForDatasetUpdate = {
             },
             "tags": [
                 {
-                    "values": [
-                        "tag1",
-                        "tag2"
-                    ],
+                    "values": "tag1",
                     "action": "remove"
                 },
                 {
-                    "values": [
-                        "tag3",
-                        "tag4"
-                    ],
-                    "action": "add"
+                    "values": "tag3",
+                    "action": "upsert"
                 }
             ]
         }
@@ -362,44 +350,20 @@ export const TestInputsForDatasetUpdate = {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     },
                     {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     }
                 ]
             }
         }
     },
-
-    DATASET_UPDATE_WITH_SAME_TAGS_ADD: {
-        ...requestStructure, request: {
-            "dataset_id": "telemetry",
-            "version_key": validVersionKey,
-            "name": "sb-telemetry",
-            "tags": [
-                {
-                    "values": [
-                        "tag1",
-                        "tag1"
-                    ],
-                    "action": "remove"
-                },
-                {
-                    "values": [
-                        "tag4",
-                        "tag4"
-                    ],
-                    "action": "add"
-                }
-            ]
-        }
-    },
-
+    
     DATASET_UPDATE_WITH_SAME_DENORM_REMOVE: {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
@@ -441,7 +405,7 @@ export const TestInputsForDatasetUpdate = {
                         "mode": "Strict",
                         "metadata": {}
                     },
-                    "action": "add"
+                    "action": "upsert"
                 },
                 {
                     "values": {
@@ -450,7 +414,7 @@ export const TestInputsForDatasetUpdate = {
                         "mode": "Strict",
                         "metadata": {}
                     },
-                    "action": "add"
+                    "action": "upsert"
                 },
                 {
                     "values": {
