@@ -48,13 +48,13 @@ class BaseTableGenerator {
      * @param denorm_config 
      * @returns Promise<Record<string, any>[]>
      */
-    getAllFields = async (dataset: Record<string, any>, type: string) : Promise<Record<string, any>[]> => {
+    getAllFields = async (dataset: Record<string, any>, type: string): Promise<Record<string, any>[]> => {
 
-        const { data_schema, denorm_config, transformations_config} = dataset
+        const { data_schema, denorm_config, transformations_config } = dataset
         const instance = this;
         let dataFields = instance.flattenSchema(data_schema, type);
-        if(denorm_config.denorm_fields) {
-            _.map(denorm_config.denorm_fields, async (denormField) => {
+        if (denorm_config.denorm_fields) {
+            for (const denormField of denorm_config.denorm_fields) {
                 const denormDataset: any = await datasetService.getDataset(denormField.dataset_id, ["data_schema"], true);
                 const properties = instance.flattenSchema(denormDataset.data_schema, type);
                 const transformProps = _.map(properties, (prop) => {
@@ -63,21 +63,21 @@ class BaseTableGenerator {
                     return prop;
                 });
                 dataFields.push(...transformProps);
-            })
+            }
         }
-        if(transformations_config) {
-            _.map(transformations_config, async (tf) => {
-                dataFields.push({
-                    expr: "$." + tf.field_key,
-                    name: tf.field_key,
-                    data_type: tf.transformation_function.datatype,
-                    arrival_format: tf.transformation_function.datatype,
-                    type: tf.transformation_function.datatype
-                })
-            })
+        if (!_.isEmpty(transformations_config)) {
+            const transformationFields = _.map(transformations_config, (tf) => ({
+                expr: "$." + tf.field_key,
+                name: tf.field_key,
+                data_type: tf.transformation_function.datatype,
+                arrival_format: tf.transformation_function.datatype,
+                type: tf.transformation_function.datatype
+            }))
+            const originalFields = _.differenceBy(dataFields, transformationFields, "name")
+            dataFields = _.concat(originalFields, transformationFields)
         }
         dataFields.push(rawIngestionSpecDefaults.synctsField)
-        _.remove(dataFields, {is_deleted: true}) // Delete all the excluded fields
+        _.remove(dataFields, { is_deleted: true }) // Delete all the excluded fields
         return dataFields;
     }
 }
