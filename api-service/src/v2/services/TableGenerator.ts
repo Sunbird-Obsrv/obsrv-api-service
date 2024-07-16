@@ -53,7 +53,7 @@ class BaseTableGenerator {
         const { data_schema, denorm_config, transformations_config } = dataset
         const instance = this;
         let dataFields = instance.flattenSchema(data_schema, type);
-        if (denorm_config.denorm_fields) {
+        if (!_.isEmpty(denorm_config.denorm_fields)) {
             for (const denormField of denorm_config.denorm_fields) {
                 const denormDataset: any = await datasetService.getDataset(denormField.dataset_id, ["data_schema"], true);
                 const properties = instance.flattenSchema(denormDataset.data_schema, type);
