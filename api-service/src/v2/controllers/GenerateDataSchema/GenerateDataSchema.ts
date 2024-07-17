@@ -29,18 +29,17 @@ const validateRequest = async (req: Request) => {
 const dataSchema = async (req: Request, res: Response) => {
 
     await validateRequest(req)
-    const request = <DatasetSchemeRequest>req.body
+    const request = <DatasetSchemeRequest>req.body.request
     const dataSchemaSpec = schemaGenerate(request.data, request.config)
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataSchemaSpec });
     
 }
 
 const schemaGenerate = (sample: Map<string, any>[], config: Record<string, any>): any => {
-    const { isBatch = false, extractionKey } = config;
+    const { isBatch = false, extractionKey, dataset } = config;
     const isJsonSchema = checkJsonSchema(_.head(sample) || new Map<string, any>());
     const schemaInference = new SchemaInference();
     const schemaArrayValidator = new SchemaArrayValidator();
-    const dataset = _.get(config, "dataset")
     if (isJsonSchema) {
         let result = process(sample, dataset)
         result.schema = removeNonIndexColumns(result.schema)
