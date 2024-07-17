@@ -1,0 +1,34 @@
+{
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            },
+            "minItems": 1
+        },
+        "config": {
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string"
+                },
+                "isBatch": {
+                    "type": "boolean"
+                },
+                "extractionKey": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "dataset"
+            ]
+        }
+    },
+    "required": [
+        "data",
+        "config"
+    ],
+    "additionalProperties": false
+}
