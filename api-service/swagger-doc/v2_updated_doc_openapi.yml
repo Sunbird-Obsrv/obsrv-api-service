@@ -5,12 +5,14 @@ info:
 servers:
   - url: localhost:3000
   - url: http://localhost:3007
+tags:
+  - name: Dataset api's
 paths:
   /v2/datasets/create:
     post:
       tags:
-        - Dataset API's
-      summary: API to create a new dataset.
+        - Dataset api's
+      summary: Dataset create
       requestBody:
         content:
           application/json:
