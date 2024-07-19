@@ -25,7 +25,6 @@ app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
 app.use(errorHandler)
-app.use(obsrvErrorHandler);
 app.set("queryServices", services);
 
 loadExtensions(app)
@@ -35,7 +34,7 @@ loadExtensions(app)
     app.use("/", router);
     app.use("/", metricsRouter);
     app.use("*", ResponseHandler.routeNotFound);
-    app.use(ResponseHandler.errorResponse);
+    app.use(obsrvErrorHandler);
 
     app.listen(config.api_port, () => {
       console.log(`listening on port ${config.api_port}`);
