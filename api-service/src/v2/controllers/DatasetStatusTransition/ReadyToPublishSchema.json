@@ -18,7 +18,7 @@
     },
     "type": {
       "type": "string",
-      "enum": ["dataset", "master-dataset"]
+      "enum": ["event", "transaction", "master"]
     },
     "name": {
       "type": "string",
@@ -305,7 +305,7 @@
       }
     },
     "sample_data": {
-      "type": "string"
+      "type": "object"
     },
     "transformations_config": {
       "type": "array",
