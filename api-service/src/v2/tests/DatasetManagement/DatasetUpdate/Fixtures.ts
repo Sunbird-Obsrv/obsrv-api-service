@@ -25,7 +25,7 @@ export const TestInputsForDatasetUpdate = {
             "version_key": validVersionKey,
             "tags": [
                 {
-                    "values": "tag1",
+                    "value": "tag1",
                     "action": "upsert"
                 }]
         }
@@ -37,7 +37,7 @@ export const TestInputsForDatasetUpdate = {
             "version_key": validVersionKey,
             "tags": [
                 {
-                    "values": "tag1",
+                    "value": "tag1",
                     "action": "remove"
                 }]
         }
@@ -84,16 +84,7 @@ export const TestInputsForDatasetUpdate = {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "upsert"
-                }]
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }],
         }
     },
 
@@ -193,8 +184,18 @@ export const TestInputsForDatasetUpdate = {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
             "dataset_config": {
-                "data_key": "mid",
-                "timestamp_key": "ets"
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets",
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             }
         }
     },
@@ -203,16 +204,7 @@ export const TestInputsForDatasetUpdate = {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                }]
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }],
         }
     },
 
@@ -277,62 +269,45 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id": "master"
                         },
                         "action": "upsert"
                     },
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
                         },
                         "action": "remove"
                     }
                 ]
             },
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "upsert"
-                },
-                {
-                    "values": {
-                        "field_key": "key2",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                },
-                {
-                    "values": {
-                        "field_key": "key3",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "update"
-                }
-            ],
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }, { "value": { "field_key": "key2", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "remove" }],
             "dataset_config": {
-                "data_key": "mid",
-                "timestamp_key": "ets",
-                "file_upload_path": ["/config/file.json"]
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets",
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             },
             "tags": [
                 {
-                    "values": "tag1",
+                    "value": "tag1",
                     "action": "remove"
                 },
                 {
-                    "values": "tag3",
+                    "value": "tag3",
                     "action": "upsert"
                 }
             ]
@@ -363,7 +338,7 @@ export const TestInputsForDatasetUpdate = {
             }
         }
     },
-    
+
     DATASET_UPDATE_WITH_SAME_DENORM_REMOVE: {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
@@ -397,62 +372,7 @@ export const TestInputsForDatasetUpdate = {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
             "name": "sb-telemetry",
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "upsert"
-                },
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "upsert"
-                },
-                {
-                    "values": {
-                        "field_key": "key2",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                },
-                {
-                    "values": {
-                        "field_key": "key2",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                },
-                {
-                    "values": {
-                        "field_key": "key3",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "update"
-                },
-                {
-                    "values": {
-                        "field_key": "key3",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "update"
-                }
-            ]
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }, { "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }]
         }
     }
 }

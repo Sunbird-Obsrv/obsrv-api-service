@@ -22,7 +22,7 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
     it("Success: Dataset validation configs updated when validation is true", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -48,7 +48,7 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
     it("Success: Dataset validation configs updated with default values when validation is false", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
@@ -57,7 +57,7 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
         chai
             .request(app)
             .patch("/v2/datasets/update")
-            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, validation_config: { "validate": false } } })
+            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, validation_config: { "validate": false, "mode": "Strict" } } })
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")

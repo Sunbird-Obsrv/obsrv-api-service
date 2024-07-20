@@ -1,5 +1,5 @@
 import app from "../../../../app";
-import chai, { expect } from "chai";
+import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
