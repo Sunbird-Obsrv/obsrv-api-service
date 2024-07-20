@@ -94,7 +94,7 @@ class DatasetService {
 
     migrateDraftDataset = async (datasetId: string, dataset: Model<any, any>): Promise<any> => {
 
-        let draftDataset : Record<string, any> = {
+        const draftDataset : Record<string, any> = {
             api_version: "v2"
         }
         const dataset_config:any = _.get(dataset, "dataset_config");
@@ -149,7 +149,7 @@ class DatasetService {
 
     createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
         
-        let draftDataset:any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
+        const draftDataset:any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
         const dataset_config:any = _.get(dataset, "dataset_config");
         const api_version:any = _.get(dataset, "api_version");
         if(api_version === "v1") {
@@ -272,7 +272,7 @@ class DatasetService {
         const allFields = await tableGenerator.getAllFields(draftDataset, "druid");
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
         const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
@@ -281,7 +281,7 @@ class DatasetService {
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
@@ -292,7 +292,7 @@ class DatasetService {
         const dsId = _.join([draftDataset.dataset_id,"events","hudi"], "_")
         const liveDatasource = await Datasource.findOne({where: {id: dsId}, attributes: ["ingestion_spec"], raw: true}) as unknown as Record<string,any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource.ingestion_spec, allFields, draftDatasource.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
@@ -300,7 +300,7 @@ class DatasetService {
 
         const datasource = _.join([draftDataset.dataset_id,"events"], "_")
         return {
-            id: _.join([datasource,type], '_'),
+            id: _.join([datasource,type], "_"),
             datasource: draftDataset.dataset_id,
             dataset_id: draftDataset.dataset_id,
             datasource_ref: datasource,

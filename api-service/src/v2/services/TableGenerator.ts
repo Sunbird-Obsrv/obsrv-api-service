@@ -12,31 +12,31 @@ class BaseTableGenerator {
      */
     flattenSchema = (dataSchema: Record<string, any>, type: string) : Record<string, any>[] => {
 
-        let properties: Record<string, any>[] = []
+        const properties: Record<string, any>[] = []
         const flatten = (schema: Record<string, any>, prev: string | undefined, prevExpr: string | undefined) => {
             _.mapKeys(schema, function(value, parentKey) {
-                const newKey = (prev) ? _.join([prev, parentKey], '.') : parentKey;
-                const newExpr = (prevExpr) ? _.join([prevExpr, ".['", parentKey, "']"], '') : _.join(["$.['", parentKey, "']"], '');
-                switch(value['type']) {
-                    case 'object':     
-                        flatten(_.get(value, 'properties'), newKey, newExpr);
+                const newKey = (prev) ? _.join([prev, parentKey], ".") : parentKey;
+                const newExpr = (prevExpr) ? _.join([prevExpr, ".['", parentKey, "']"], "") : _.join(["$.['", parentKey, "']"], "");
+                switch(value["type"]) {
+                    case "object":     
+                        flatten(_.get(value, "properties"), newKey, newExpr);
                         break;
-                    case 'array':
-                        if(type === "druid" && _.get(value, 'items.type') == 'object' && _.get(value, 'items.properties')) {
-                            _.mapKeys(_.get(value, 'items.properties'), function(value, childKey) {
-                                const objChildKey = _.join([newKey, childKey], '.')
-                                properties.push(_.merge(_.pick(value, ['type', 'arrival_format', 'is_deleted']), {expr: _.join([newExpr,"[*].['",childKey,"']"], ''), name: objChildKey, data_type: 'array'}))
+                    case "array":
+                        if(type === "druid" && _.get(value, "items.type") == "object" && _.get(value, "items.properties")) {
+                            _.mapKeys(_.get(value, "items.properties"), function(value, childKey) {
+                                const objChildKey = _.join([newKey, childKey], ".")
+                                properties.push(_.merge(_.pick(value, ["type", "arrival_format", "is_deleted"]), {expr: _.join([newExpr,"[*].['",childKey,"']"], ""), name: objChildKey, data_type: "array"}))
                             })
                         } else {
-                            properties.push(_.merge(_.pick(value, ['arrival_format', 'data_type', 'is_deleted']), {expr: newExpr+'[*]', name: newKey, type: _.get(value, 'items.type')}))
+                            properties.push(_.merge(_.pick(value, ["arrival_format", "data_type", "is_deleted"]), {expr: newExpr+"[*]", name: newKey, type: _.get(value, "items.type")}))
                         }
                         break;
                     default:
-                        properties.push(_.merge(_.pick(value, ['type', 'arrival_format', 'data_type', 'is_deleted']), {expr: newExpr, name: newKey}))
+                        properties.push(_.merge(_.pick(value, ["type", "arrival_format", "data_type", "is_deleted"]), {expr: newExpr, name: newKey}))
                 }
             });
         }
-        flatten(_.get(dataSchema, 'properties'), undefined, undefined)
+        flatten(_.get(dataSchema, "properties"), undefined, undefined)
         return properties
     }
 
@@ -58,8 +58,8 @@ class BaseTableGenerator {
                 const denormDataset: any = await datasetService.getDataset(denormField.dataset_id, ["data_schema"], true);
                 const properties = instance.flattenSchema(denormDataset.data_schema, type);
                 const transformProps = _.map(properties, (prop) => {
-                    _.set(prop, 'name', _.join([denormField.denorm_out_field, prop.name], '.'));
-                    _.set(prop, 'expr', _.replace(prop.expr, "$", "$." + denormField.denorm_out_field));
+                    _.set(prop, "name", _.join([denormField.denorm_out_field, prop.name], "."));
+                    _.set(prop, "expr", _.replace(prop.expr, "$", "$." + denormField.denorm_out_field));
                     return prop;
                 });
                 dataFields.push(...transformProps);
@@ -182,12 +182,12 @@ class TableGenerator extends BaseTableGenerator {
 
     getHudiIngestionSpecForUpdate = (dataset: Record<string, any>, existingHudiSpec: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
 
-        let newHudiSpec = this.getHudiIngestionSpecForCreate(dataset, allFields, datasourceRef)
+        const newHudiSpec = this.getHudiIngestionSpecForCreate(dataset, allFields, datasourceRef)
 
         const newColumnSpec = newHudiSpec.schema.columnSpec;
-        let oldColumnSpec = existingHudiSpec.schema.columnSpec;
-        let currIndex = _.get(_.maxBy(oldColumnSpec, 'index'), 'index') as unknown as number
-        const newColumns = _.differenceBy(newColumnSpec, oldColumnSpec, 'name');
+        const oldColumnSpec = existingHudiSpec.schema.columnSpec;
+        let currIndex = _.get(_.maxBy(oldColumnSpec, "index"), "index") as unknown as number
+        const newColumns = _.differenceBy(newColumnSpec, oldColumnSpec, "name");
         if(_.size(newColumns) > 0) {
             _.each(newColumns, (col) => {
                 oldColumnSpec.push({
@@ -197,7 +197,7 @@ class TableGenerator extends BaseTableGenerator {
                 })
             })
         }
-        _.set(newHudiSpec, 'schema.columnSpec', oldColumnSpec)
+        _.set(newHudiSpec, "schema.columnSpec", oldColumnSpec)
         return newHudiSpec;
     }
 
@@ -227,10 +227,10 @@ class TableGenerator extends BaseTableGenerator {
     }
 
     private getHudiColumnType = (field: Record<string, any>) : string => {
-        if(field.data_type === 'array' && field.arrival_format !== 'array') {
+        if(field.data_type === "array" && field.arrival_format !== "array") {
             return "array";
         }
-        if(field.data_type === 'array' && field.arrival_format === 'array') {
+        if(field.data_type === "array" && field.arrival_format === "array") {
             switch(field.type) {
                 case "string":
                     return "array<string>"

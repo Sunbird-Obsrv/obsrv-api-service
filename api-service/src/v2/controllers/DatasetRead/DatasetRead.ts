@@ -16,7 +16,7 @@ const validateRequest = (req: Request) => {
 
     const { dataset_id } = req.params;
     const fields = req.query.fields;
-    if(fields && typeof fields !== 'string') {
+    if(fields && typeof fields !== "string") {
         throw obsrvError(dataset_id, "DATASET_INVALID_FIELDS_VAL", `The specified fields [${fields}] in the query param is not a string.`, "BAD_REQUEST", 400);
     }
     const fieldValues = fields ? _.split(fields, ",") : [];

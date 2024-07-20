@@ -41,7 +41,7 @@ const schemaGenerate = (sample: Map<string, any>[], config: Record<string, any>)
     const schemaInference = new SchemaInference();
     const schemaArrayValidator = new SchemaArrayValidator();
     if (isJsonSchema) {
-        let result = process(sample, dataset)
+        const result = process(sample, dataset)
         result.schema = removeNonIndexColumns(result.schema)
         result.schema = removeFormats(result.schema)
         return result
@@ -50,7 +50,7 @@ const schemaGenerate = (sample: Map<string, any>[], config: Record<string, any>)
         schema = schemaArrayValidator.validate(schema)
         const schemaCardinalityAnalyser = new SchemaCardinalityAnalyser(sample, schema)
         rollupInfo = schemaCardinalityAnalyser.analyse()
-        let result = process(schema, dataset)
+        const result = process(schema, dataset)
         result.schema = removeNonIndexColumns(result.schema)
         result.schema = removeFormats(result.schema)
         return result
@@ -81,14 +81,14 @@ const checkJsonSchema = (sample: Map<string, any>): boolean => {
 const removeNonIndexColumns = (schema: any) => {
     if (schema.properties) {
         Object.entries(schema.properties).map(([key, property]: any) => {
-            _.unset(schema, 'required');
+            _.unset(schema, "required");
             removeNonIndexColumns(property)
         });
     } else if (schema.items) {
         removeNonIndexColumns(schema.items)
     }
     if (Array.isArray(schema.required) && schema.required.length === 0) {
-        _.unset(schema, 'required');
+        _.unset(schema, "required");
     }
     return schema
 }
@@ -97,17 +97,17 @@ const removeFormats = (schema: any) => {
     if (schema.properties) {
         Object.entries(schema.properties).map(([key, property]: any) => {
             // Removing format to avoid schema validation issues
-            const isDateTypeField = ['date-time', 'date', 'epoch'].includes((property as any).format);
-            if (isDateTypeField && _.get(property, 'data_type') === 'string') {
-                _.set(property, 'data_type', _.get(property, 'format'));
-            } else if (isDateTypeField && _.get(property, 'data_type') === 'integer') {
-                _.set(property, 'data_type', 'epoch');
+            const isDateTypeField = ["date-time", "date", "epoch"].includes((property as any).format);
+            if (isDateTypeField && _.get(property, "data_type") === "string") {
+                _.set(property, "data_type", _.get(property, "format"));
+            } else if (isDateTypeField && _.get(property, "data_type") === "integer") {
+                _.set(property, "data_type", "epoch");
             }
-            _.unset(property, 'format');
+            _.unset(property, "format");
             removeFormats(property)
         });
     } else if (schema.items) {
-        _.unset(schema.items, 'format');
+        _.unset(schema.items, "format");
         removeFormats(schema.items)
     }
     return schema

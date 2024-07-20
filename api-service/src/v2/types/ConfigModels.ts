@@ -1,5 +1,5 @@
 import { IngestionConfig } from "./IngestionModels";
-import { IDataSourceRules, IRules } from "./QueryModels";
+import { IDataSourceRules } from "./QueryModels";
 
 export interface ExtractionConfig {
   is_batch_event: boolean;
