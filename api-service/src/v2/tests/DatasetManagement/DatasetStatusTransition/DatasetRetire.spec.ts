@@ -166,7 +166,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found to retire")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             })

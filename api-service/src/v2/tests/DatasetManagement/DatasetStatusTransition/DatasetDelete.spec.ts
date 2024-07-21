@@ -10,6 +10,7 @@ import { DatasetDraft } from "../../../models/DatasetDraft";
 import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
 import { DatasetSourceConfigDraft } from "../../../models/DatasetSourceConfigDraft";
 import { DatasourceDraft } from "../../../models/DatasourceDraft";
+import { sequelize } from "../../../connections/databaseConnection";
 
 
 chai.use(spies);
@@ -38,6 +39,12 @@ describe("DATASET STATUS TRANSITION DELETE", () => {
             return Promise.resolve({})
         })
         chai.spy.on(DatasetDraft, "destroy", () => {
+            return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
             return Promise.resolve({})
         })
         chai
@@ -71,7 +78,7 @@ describe("DATASET STATUS TRANSITION DELETE", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found to delete")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry.1")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });

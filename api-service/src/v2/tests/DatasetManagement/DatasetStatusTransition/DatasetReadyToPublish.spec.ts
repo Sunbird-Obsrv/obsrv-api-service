@@ -59,7 +59,7 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found to perform status transition to ready to publish")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry.1")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });
