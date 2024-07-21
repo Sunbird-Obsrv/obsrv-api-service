@@ -25,8 +25,8 @@ export class SchemaAnalyser {
         const result: FlattenSchema[] = _.flatten(this.schemas.map(element => {
             return this.flattenSchema(new Map(Object.entries(element)));
         }))
-        const conflicts = Object.entries(_.groupBy(result, "path")).map(([key, value]) => {
-            return this.getSchemaConflictTypes(this.getOccurance(value, key))
+        const conflicts = Object.entries(_.groupBy(result, "path")).map(([, value]) => {
+            return this.getSchemaConflictTypes(this.getOccurance(value))
         })
         return _.filter(conflicts, obj => (!_.isEmpty(obj.schema) || !_.isEmpty(obj.required) || !_.isEmpty(obj.formats)))
     }
@@ -123,7 +123,7 @@ export class SchemaAnalyser {
      */
     private findOptionalPropConflicts(occurance: Occurance): Conflict {
         const maxOccurance: number = 1
-        const requiredCount = _.map(occurance.property, (value, key) => {
+        const requiredCount = _.map(occurance.property, (value) => {
             return value
         })[0]
 
@@ -148,9 +148,9 @@ export class SchemaAnalyser {
      *
      * Method to get the occurance of the given key from the given object 
      */
-    private getOccurance(arrayOfObjects: object[], key: string): Occurance {
-        const result = _(arrayOfObjects).flatMap(obj => _.toPairs(obj)).groupBy(([key, value]) => key)
-            .mapValues(group => _.countBy(group, ([key, value]) => value)).value();
+    private getOccurance(arrayOfObjects: object[]): Occurance {
+        const result = _(arrayOfObjects).flatMap(obj => _.toPairs(obj)).groupBy(([key]) => key)
+            .mapValues(group => _.countBy(group, ([, value]) => value)).value();
         return { property: result.property, dataType: result.dataType, isRequired: result.isRequired, path: result.path, absolutePath: result.absolutePath, format: result.formate };
     }
 

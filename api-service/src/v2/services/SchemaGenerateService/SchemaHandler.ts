@@ -39,18 +39,18 @@ export class SchemaHandler {
     }
 
     private updateDataTypes(schema: any, conflict: ConflictTypes): any {
-        const { absolutePath, schema: { resolution: { value } } } = conflict;
+        const { absolutePath, schema: { resolution } } = conflict;
         return _.set(schema, `${absolutePath}`, {
             ...schema[absolutePath],
             ...{
-                type: conflict.schema.resolution["value"],
+                type: resolution.value,
                 oneof: conflict.schema.values.map(key => ({ type: key })),
             }
         });
     }
 
     private setNulltype(schema: any, conflict: ConflictTypes): any {
-        const { absolutePath, schema: { resolution: { value } } } = conflict;
+        const { absolutePath } = conflict;
         const dataTypes: any = [];
         _.forEach(DataMappings, (valueItem) => {
             _.forEach(_.get(valueItem, "store_format"), (subValue) => {

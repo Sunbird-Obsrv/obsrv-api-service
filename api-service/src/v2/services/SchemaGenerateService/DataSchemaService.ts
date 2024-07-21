@@ -76,9 +76,9 @@ export class SchemaInference {
 
     isValidTimestamp(value: any) {
         const dataType = typeof value;
+        const epochRegex = /^\d+$/ig;
         switch (dataType) {
             case "string":
-                const epochRegex = /^\d+$/ig;
                 if(epochRegex.test(value)){
                     const parsedValue = parseInt(value, 10);
                     // Timestamp should be greater than Jan 01 2000 00:00:00 UTC/GMT in seconds

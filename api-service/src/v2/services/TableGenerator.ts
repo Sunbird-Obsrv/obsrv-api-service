@@ -10,29 +10,29 @@ class BaseTableGenerator {
      * @param dataSchema 
      * @returns properties Record<string, any>[]
      */
-    flattenSchema = (dataSchema: Record<string, any>, type: string) : Record<string, any>[] => {
+    flattenSchema = (dataSchema: Record<string, any>, type: string): Record<string, any>[] => {
 
         const properties: Record<string, any>[] = []
         const flatten = (schema: Record<string, any>, prev: string | undefined, prevExpr: string | undefined) => {
-            _.mapKeys(schema, function(value, parentKey) {
+            _.mapKeys(schema, function (value, parentKey) {
                 const newKey = (prev) ? _.join([prev, parentKey], ".") : parentKey;
                 const newExpr = (prevExpr) ? _.join([prevExpr, ".['", parentKey, "']"], "") : _.join(["$.['", parentKey, "']"], "");
-                switch(value["type"]) {
-                    case "object":     
+                switch (value["type"]) {
+                    case "object":
                         flatten(_.get(value, "properties"), newKey, newExpr);
                         break;
                     case "array":
-                        if(type === "druid" && _.get(value, "items.type") == "object" && _.get(value, "items.properties")) {
-                            _.mapKeys(_.get(value, "items.properties"), function(value, childKey) {
+                        if (type === "druid" && _.get(value, "items.type") == "object" && _.get(value, "items.properties")) {
+                            _.mapKeys(_.get(value, "items.properties"), function (value, childKey) {
                                 const objChildKey = _.join([newKey, childKey], ".")
-                                properties.push(_.merge(_.pick(value, ["type", "arrival_format", "is_deleted"]), {expr: _.join([newExpr,"[*].['",childKey,"']"], ""), name: objChildKey, data_type: "array"}))
+                                properties.push(_.merge(_.pick(value, ["type", "arrival_format", "is_deleted"]), { expr: _.join([newExpr, "[*].['", childKey, "']"], ""), name: objChildKey, data_type: "array" }))
                             })
                         } else {
-                            properties.push(_.merge(_.pick(value, ["arrival_format", "data_type", "is_deleted"]), {expr: newExpr+"[*]", name: newKey, type: _.get(value, "items.type")}))
+                            properties.push(_.merge(_.pick(value, ["arrival_format", "data_type", "is_deleted"]), { expr: newExpr + "[*]", name: newKey, type: _.get(value, "items.type") }))
                         }
                         break;
                     default:
-                        properties.push(_.merge(_.pick(value, ["type", "arrival_format", "data_type", "is_deleted"]), {expr: newExpr, name: newKey}))
+                        properties.push(_.merge(_.pick(value, ["type", "arrival_format", "data_type", "is_deleted"]), { expr: newExpr, name: newKey }))
                 }
             });
         }
@@ -51,12 +51,11 @@ class BaseTableGenerator {
     getAllFields = async (dataset: Record<string, any>, type: string): Promise<Record<string, any>[]> => {
 
         const { data_schema, denorm_config, transformations_config } = dataset
-        const instance = this;
-        let dataFields = instance.flattenSchema(data_schema, type);
+        let dataFields = this.flattenSchema(data_schema, type);
         if (!_.isEmpty(denorm_config.denorm_fields)) {
             for (const denormField of denorm_config.denorm_fields) {
                 const denormDataset: any = await datasetService.getDataset(denormField.dataset_id, ["data_schema"], true);
-                const properties = instance.flattenSchema(denormDataset.data_schema, type);
+                const properties = this.flattenSchema(denormDataset.data_schema, type);
                 const transformProps = _.map(properties, (prop) => {
                     _.set(prop, "name", _.join([denormField.denorm_out_field, prop.name], "."));
                     _.set(prop, "expr", _.replace(prop.expr, "$", "$." + denormField.denorm_out_field));
@@ -85,7 +84,7 @@ class BaseTableGenerator {
 class TableGenerator extends BaseTableGenerator {
 
     getDruidIngestionSpec = (dataset: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
-        
+
         const { dataset_config, router_config } = dataset
         return {
             "type": "kafka",
@@ -109,22 +108,21 @@ class TableGenerator extends BaseTableGenerator {
             }
         }
     }
-    
+
     private getDruidDimensions = (allFields: Record<string, any>[], timestampKey: string, partitionKey: string | undefined) => {
 
         const dataFields = _.cloneDeep(allFields);
-        if(partitionKey) { // Move the partition column to the top of the dimensions
-            const partitionCol = _.remove(dataFields, {name: partitionKey})
-            if(partitionCol && _.size(partitionCol) > 0) {
+        if (partitionKey) { // Move the partition column to the top of the dimensions
+            const partitionCol = _.remove(dataFields, { name: partitionKey })
+            if (partitionCol && _.size(partitionCol) > 0) {
                 dataFields.unshift(partitionCol[0])
             }
         }
-        _.remove(dataFields, {name: timestampKey})
-        const instance = this;
+        _.remove(dataFields, { name: timestampKey })
         return _.union(
             _.map(dataFields, (field) => {
                 return {
-                    "type": instance.getDruidDimensionType(field.data_type),
+                    "type": this.getDruidDimensionType(field.data_type),
                     "name": field.name
                 }
             }),
@@ -132,7 +130,7 @@ class TableGenerator extends BaseTableGenerator {
         )
     }
 
-    private getDruidDimensionType = (data_type: string):string => {
+    private getDruidDimensionType = (data_type: string): string => {
         switch (data_type) {
             case "number": return "double";
             case "integer": return "long";
@@ -188,7 +186,7 @@ class TableGenerator extends BaseTableGenerator {
         const oldColumnSpec = existingHudiSpec.schema.columnSpec;
         let currIndex = _.get(_.maxBy(oldColumnSpec, "index"), "index") as unknown as number
         const newColumns = _.differenceBy(newColumnSpec, oldColumnSpec, "name");
-        if(_.size(newColumns) > 0) {
+        if (_.size(newColumns) > 0) {
             _.each(newColumns, (col) => {
                 oldColumnSpec.push({
                     "type": col.type,
@@ -201,17 +199,16 @@ class TableGenerator extends BaseTableGenerator {
         return newHudiSpec;
     }
 
-    private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string) : Record<string, any>[] => {
+    private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string): Record<string, any>[] => {
 
-        const instance = this;
         const dataFields = _.cloneDeep(allFields);
-        _.remove(dataFields, {name: primaryKey})
-        _.remove(dataFields, {name: partitionKey})
-        _.remove(dataFields, {name: timestampKey})
+        _.remove(dataFields, { name: primaryKey })
+        _.remove(dataFields, { name: partitionKey })
+        _.remove(dataFields, { name: timestampKey })
         let index = 1;
-        const transformFields = _.map(dataFields, (field) => { 
+        const transformFields = _.map(dataFields, (field) => {
             return {
-                "type": instance.getHudiColumnType(field),
+                "type": this.getHudiColumnType(field),
                 "name": field.name,
                 "index": index++
             }
@@ -226,12 +223,12 @@ class TableGenerator extends BaseTableGenerator {
         return transformFields;
     }
 
-    private getHudiColumnType = (field: Record<string, any>) : string => {
-        if(field.data_type === "array" && field.arrival_format !== "array") {
+    private getHudiColumnType = (field: Record<string, any>): string => {
+        if (field.data_type === "array" && field.arrival_format !== "array") {
             return "array";
         }
-        if(field.data_type === "array" && field.arrival_format === "array") {
-            switch(field.type) {
+        if (field.data_type === "array" && field.arrival_format === "array") {
+            switch (field.type) {
                 case "string":
                     return "array<string>"
                 case "number":
@@ -244,11 +241,11 @@ class TableGenerator extends BaseTableGenerator {
                     return "array<object>"
             }
         }
-        switch(field.arrival_format) {
+        switch (field.arrival_format) {
             case "text":
                 return "string"
             case "number":
-                switch(field.data_type) {
+                switch (field.data_type) {
                     case "integer":
                         return "int"
                     case "epoch":
@@ -260,7 +257,7 @@ class TableGenerator extends BaseTableGenerator {
                     case "long":
                         return "long"
                     default:
-                        return "double"   
+                        return "double"
                 }
             case "integer":
                 return "int"
@@ -271,13 +268,15 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
-    private getHudiFields = (allFields: Record<string, any>[]) : Record<string, any>[] => {
+    private getHudiFields = (allFields: Record<string, any>[]): Record<string, any>[] => {
 
+        const regexString = "[\\[\\]'\\*]";
+        const regex = new RegExp(regexString, "g");
         return _.union(
             _.map(allFields, (field) => {
                 return {
                     type: "path",
-                    expr: _.replace(field.expr, /[\[\]'\*]/g, ""),
+                    expr: _.replace(field.expr, regex, ""),
                     name: field.name
                 }
             }),
@@ -285,15 +284,15 @@ class TableGenerator extends BaseTableGenerator {
         )
     }
 
-    private getPrimaryKey = (dataset: Record<string, any>) : string => {
+    private getPrimaryKey = (dataset: Record<string, any>): string => {
         return dataset.dataset_config.keys_config.data_key;
     }
 
-    private getHudiPartitionKey = (dataset: Record<string, any>) : string => {
+    private getHudiPartitionKey = (dataset: Record<string, any>): string => {
         return dataset.dataset_config.keys_config.partition_key || dataset.dataset_config.keys_config.timestamp_key;
     }
 
-    private getTimestampKey = (dataset: Record<string, any>) : string => {
+    private getTimestampKey = (dataset: Record<string, any>): string => {
         return dataset.dataset_config.keys_config.timestamp_key;
     }
 }

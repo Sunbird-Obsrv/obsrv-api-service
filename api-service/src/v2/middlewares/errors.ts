@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import logger from "../logger";
 import { ResponseHandler } from "../helpers/ResponseHandler";
 import _ from "lodash";

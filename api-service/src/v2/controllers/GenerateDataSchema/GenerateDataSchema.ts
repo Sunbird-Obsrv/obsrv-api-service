@@ -80,7 +80,7 @@ const checkJsonSchema = (sample: Map<string, any>): boolean => {
 
 const removeNonIndexColumns = (schema: any) => {
     if (schema.properties) {
-        Object.entries(schema.properties).map(([key, property]: any) => {
+        Object.entries(schema.properties).map(([, property]: any) => {
             _.unset(schema, "required");
             removeNonIndexColumns(property)
         });
@@ -95,7 +95,7 @@ const removeNonIndexColumns = (schema: any) => {
 
 const removeFormats = (schema: any) => {
     if (schema.properties) {
-        Object.entries(schema.properties).map(([key, property]: any) => {
+        Object.entries(schema.properties).map(([, property]: any) => {
             // Removing format to avoid schema validation issues
             const isDateTypeField = ["date-time", "date", "epoch"].includes((property as any).format);
             if (isDateTypeField && _.get(property, "data_type") === "string") {

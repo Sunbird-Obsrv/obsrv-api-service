@@ -31,12 +31,12 @@ export class ConfigSuggestor {
 
     private analyzeConflicts(conflicts: ConflictTypes[]): DataSetConfig {
         const typeFormatsConflict: ConflictTypes[] = _.filter(conflicts, (o) => !_.isEmpty(o.formats));
-        const ingestionConfig: IngestionConfig = this.ingestionConfig(typeFormatsConflict)
+        const ingestionConfig: IngestionConfig = this.ingestionConfig()
         const processingConfig: DatasetProcessing = this.processingConfig(typeFormatsConflict)
         return <DataSetConfig>{ "indexConfiguration": ingestionConfig, "processing": processingConfig }
     }
 
-    private ingestionConfig(conflicts: ConflictTypes[]): any {
+    private ingestionConfig(): any {
         return { "index": Object.assign(ingestionConfig.indexCol), "rollupSuggestions": this.rollupInfo };
     }
 
