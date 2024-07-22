@@ -3,8 +3,7 @@ info:
   title: Obsrv api documentation
   version: 1.0.0
 servers:
-  - url: localhost:3000
-  - url: http://localhost:3007
+  - url: http://localhost:3000
 tags:
   - name: Dataset api's
 paths:
