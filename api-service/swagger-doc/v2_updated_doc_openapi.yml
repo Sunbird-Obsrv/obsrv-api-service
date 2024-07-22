@@ -16,61 +16,74 @@ paths:
       requestBody:
         content:
           application/json:
-            schema:
-              type: object
-              example:
-                id: api.datasets.create
-                ver: v1
-                ts: '2024-04-10T16:10:50+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                request:
-                  type: event
-                  name: sb-telemetry
-                  validation_config:
-                    validate: true
-                    mode: Strict
-                  extraction_config:
-                    is_batch_event: true
-                    extraction_key: events
-                    dedup_config:
-                      drop_duplicates: true
-                      dedup_key: id
-                  dedup_config:
-                    drop_duplicates: true
-                    dedup_key: mid
-                  data_schema:
-                    $schema: https://json-schema.org/draft/2020-12/schema
-                    type: object
-                    properties:
-                      mid:
-                        type: string
-                        arrival_format: text
-                        data_type: string
-                      ets:
-                        type: integer
-                        arrival_format: number
-                        data_type: epoch
-                      eid:
-                        type: string
-                        arrival_format: text
-                        data_type: string
-                    additionalProperties: true
-                  denorm_config:
-                    denorm_fields:
-                      - denorm_key: eid
-                        denorm_out_field: userdata
-                        dataset_id: master-telemetry
-                  transformations_config:
-                    - field_key: email
-                      transformation_function:
-                        type: mask
-                        expr: mid
-                        datatype: string
-                        category: pii
-                      mode: Strict
-                  tags:
-                    - tag1
+              examples:
+                example1:
+                  summary: Request Body
+                  value:
+                    id: api.datasets.create
+                    ver: v1
+                    ts: '2024-04-10T16:10:50+05:30'
+                    params:
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                    request:
+                      type: event
+                      name: sb-telemetry
+                      validation_config:
+                        validate: true
+                        mode: Strict
+                      extraction_config:
+                        is_batch_event: true
+                        extraction_key: events
+                        dedup_config:
+                          drop_duplicates: true
+                          dedup_key: id
+                      dedup_config:
+                        drop_duplicates: true
+                        dedup_key: mid
+                      data_schema:
+                        $schema: https://json-schema.org/draft/2020-12/schema
+                        type: object
+                        properties:
+                          mid:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          ets:
+                            type: integer
+                            arrival_format: number
+                            data_type: epoch
+                          eid:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                        additionalProperties: true
+                      denorm_config:
+                        denorm_fields:
+                          - denorm_key: eid
+                            denorm_out_field: userdata
+                            dataset_id: master-telemetry
+                      transformations_config:
+                        - field_key: email
+                          transformation_function:
+                            type: mask
+                            expr: mid
+                            datatype: string
+                            category: pii
+                          mode: Strict
+                      tags:
+                        - tag1
+                example2:
+                  summary: Minimal Request Body
+                  value:
+                    id: api.datasets.create
+                    ver: v1
+                    ts: '2024-04-10T16:10:50+05:30'
+                    params:
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                    request:
+                      dataset_id: telemetry_events,
+                      type: event
+                      name: sb-telemetry
       parameters:
         - name: Content-Type
           in: header
@@ -207,19 +220,33 @@ paths:
       requestBody:
         content:
           application/json:
-            schema:
-              type: object
-              example:
-                id: api.files.generate-url
-                ver: v1
-                ts: '2024-04-19T12:58:47+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
-                request:
-                  files:
-                    - telemetry.json
-                    - school_data.json
-                  access: write
+            examples:
+              example1:
+                summary: Request body for put url
+                value:
+                  id: api.files.generate-url
+                  ver: v1
+                  ts: '2024-04-19T12:58:47+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                  request:
+                    files:
+                      - telemetry.json
+                      - school_data.json
+                    access: write
+              example2:
+                  summary: Request body for get url
+                  value:
+                    id: api.files.generate-url
+                    ver: v1
+                    ts: '2024-04-19T12:58:47+05:30'
+                    params:
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6
+                    request:
+                      files:
+                        - telemetry.json
+                        - school_data.json
+                      access: read
       parameters:
         - name: Content-Type
           in: header
@@ -2067,100 +2094,116 @@ paths:
       requestBody:
         content:
           application/json:
-            schema:
-              type: object
-              example:
-                id: api.datasets.update
-                ver: v1
-                ts: '2024-04-10T16:10:50+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                request:
-                  dataset_id: telemetry_record-t4
-                  version_key: '1721135455988'
-                  name: sb-telemetry
-                  validation_config:
-                    validate: true
-                    mode: Strict
-                  extraction_config:
-                    is_batch_event: true
-                    extraction_key: events
+            examples:
+              example1:
+                summary: Request Body
+                value:      
+                  id: api.datasets.update
+                  ver: v1
+                  ts: '2024-04-10T16:10:50+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  request:
+                    dataset_id: telemetry_record-t4
+                    version_key: '1721135455988'
+                    name: sb-telemetry
+                    validation_config:
+                      validate: true
+                      mode: Strict
+                    extraction_config:
+                      is_batch_event: true
+                      extraction_key: events
+                      dedup_config:
+                        drop_duplicates: true
+                        dedup_key: ipid
                     dedup_config:
                       drop_duplicates: true
-                      dedup_key: ipid
-                  dedup_config:
-                    drop_duplicates: true
-                    dedup_key: mid
-                  data_schema:
-                    $schema: https://json-schema.org/draft/2020-12/schema
-                    type: object
-                    properties:
-                      midpid:
-                        type: string
-                        arrival_format: text
-                        data_type: string
-                      miduwi:
-                        type: integer
-                        arrival_format: number
-                        data_type: epoch
-                      mid:
-                        type: string
-                        arrival_format: text
-                        data_type: string
-                      sid:
-                        type: string
-                        arrival_format: text
-                        data_type: string
-                    additionalProperties: true
-                  denorm_config:
-                    denorm_fields:
+                      dedup_key: mid
+                    data_schema:
+                      $schema: https://json-schema.org/draft/2020-12/schema
+                      type: object
+                      properties:
+                        midpid:
+                          type: string
+                          arrival_format: text
+                          data_type: string
+                        miduwi:
+                          type: integer
+                          arrival_format: number
+                          data_type: epoch
+                        mid:
+                          type: string
+                          arrival_format: text
+                          data_type: string
+                        sid:
+                          type: string
+                          arrival_format: text
+                          data_type: string
+                      additionalProperties: true
+                    denorm_config:
+                      denorm_fields:
+                        - value:
+                            denorm_key: eid
+                            denorm_out_field: userdata
+                          action: remove
+                        - value:
+                            denorm_key: eid
+                            denorm_out_field: edata
+                            dataset_id: trip-details
+                          action: upsert
+                    transformations_config:
                       - value:
-                          denorm_key: eid
-                          denorm_out_field: userdata
-                        action: remove
-                      - value:
-                          denorm_key: eid
-                          denorm_out_field: edata
-                          dataset_id: trip-details
+                          field_key: email
+                          transformation_function:
+                            type: mask
+                            expr: mid
+                            datatype: string
+                            category: pii
+                          mode: Strict
                         action: upsert
-                  transformations_config:
-                    - value:
-                        field_key: email
-                        transformation_function:
-                          type: mask
-                          expr: mid
-                          datatype: string
-                          category: pii
-                        mode: Strict
-                      action: upsert
-                    - value:
-                        field_key: email_id
-                        transformation_function:
-                          type: mask
-                          expr: mid
-                          datatype: string
-                          category: pii
-                        mode: Strict
-                      action: remove
-                  tags: []
-                  connectors_config:
-                    - value:
-                        connector_id: jdbc
-                        connector_config:
-                          source_database_type: postgresql
-                          source_database_host: postgresql-hl.postgresql.svc.cluster.local.master
-                          source_database_port: 5432
-                          source_database_name: obsrv_sample_datasets_1
-                          source_database_username: postgres
-                          source_database_pwd: postgres
-                          table: new_york_taxi_data
-                          timestamp-column: tpep_pickup_datetime
-                          batch-size: 100
-                          max-batches: 2
-                        operations_config:
-                          polling_interval: periodic
-                          schedule: twice
-                      action: upsert
+                      - value:
+                          field_key: email_id
+                          transformation_function:
+                            type: mask
+                            expr: mid
+                            datatype: string
+                            category: pii
+                          mode: Strict
+                        action: remove
+                    tags: []
+                    connectors_config:
+                      - value:
+                          connector_id: jdbc
+                          connector_config:
+                            source_database_type: postgresql
+                            source_database_host: postgresql-hl.postgresql.svc.cluster.local.master
+                            source_database_port: 5432
+                            source_database_name: obsrv_sample_datasets_1
+                            source_database_username: postgres
+                            source_database_pwd: postgres
+                            table: new_york_taxi_data
+                            timestamp-column: tpep_pickup_datetime
+                            batch-size: 100
+                            max-batches: 2
+                          operations_config:
+                            polling_interval: periodic
+                            schedule: twice
+                        action: upsert
+              example2:
+                summary: Minimal request body
+                value:  
+                  id: api.datasets.update
+                  ver: v1
+                  ts: '2024-04-10T16:10:50+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  request:
+                    dataset_id: telemetry_record-t4
+                    version_key: '1721135455988'
+                    name: sb-telemetry
+                    validation_config:
+                      validate: true
+                      mode: Strict
       parameters:
         - name: Content-Type
           in: header
@@ -2472,18 +2515,51 @@ paths:
       requestBody:
         content:
           application/json:
-            schema:
-              type: object
-              example:
-                id: api.datasets.list
-                ver: v1
-                ts: '2024-04-10T16:10:50+05:30'
-                params:
-                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
-                request:
-                  filters:
-                    status:
-                      - Live
+            examples:
+              example1:
+                summary: Filter based on status of type array
+                value:
+                  id: api.datasets.list
+                  ver: v1
+                  ts: '2024-04-10T16:10:50+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  request:
+                    filters:
+                      status:
+                        - Live
+              example2:
+                summary: No filters provided
+                value:
+                  id: api.datasets.list
+                  ver: v1
+                  ts: '2024-04-10T16:10:50+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  request: {}
+              example3:
+                summary: Filter based on status of type string
+                value:
+                  id: api.datasets.list
+                  ver: v1
+                  ts: '2024-04-10T16:10:50+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  request:
+                    filters:
+                      status: ReadyToPublish
+              example4:
+                summary: Filter based on dataset type
+                value:
+                  id: api.datasets.list
+                  ver: v1
+                  ts: '2024-04-10T16:10:50+05:30'
+                  params:
+                    msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  request:
+                    filters:
+                      status: Live
+                      type: master
       responses:
         '200':
           description: OK
@@ -4984,3 +5060,828 @@ paths:
                   message: >-
                     #properties/params/required must have required property
                     'msgid'
+  /v2/datasets/dataschema:
+    post:
+      tags:
+        - Dataset api's
+      summary: Data schema generator
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                id: api.datasets.dataschema
+                ver: v2
+                ts: '2024-04-10T16:10:50+05:30'
+                params:
+                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                request:
+                  data:
+                    - eid: IMPRESSION
+                      ets: 1672657002221
+                      ver: '3.0'
+                      mid: IMPRESSION:2b5834e196f485c17c4e49d292af43c0
+                      actor:
+                        id: 0c45959486f579c24854d40a225d6161
+                        type: User
+                      context:
+                        channel: '01268904781886259221'
+                        pdata:
+                          id: staging.diksha.portal
+                          ver: 5.1.0
+                          pid: sunbird-portal
+                        env: public
+                        sid: 23850c90-8a8c-11ed-95d0-276800e1048c
+                        did: 0c45959486f579c24854d40a225d6161
+                        cdata: []
+                        rollup:
+                          l1: '01268904781886259221'
+                        uid: anonymous
+                      object: {}
+                      tags:
+                        - '01268904781886259221'
+                      edata:
+                        type: view
+                        pageid: login
+                        subtype: pageexit
+                        uri: >-
+                          https://staging.sunbirded.org/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=254efd70-6b89-4f7d-868b-5c957f54174e&redirect_uri=https%253A%252F%252Fstaging.sunbirded.org%252Fresources%253Fboard%253DState%252520(Andhra%252520Pradesh)%2526medium%253DEnglish%2526gradeLevel%253DClass%2525201%2526%2526id%253Dap_k-12_1%2526selectedTab%253Dhome%2526auth_callback%253D1&scope=openid&response_type=code&version=4
+                        visits: []
+                      syncts: 1672657005814
+                      '@timestamp': '2023-01-02T10:56:45.814Z'
+                      flags:
+                        ex_processed: true
+                    - eid: IMPRESSION
+                      ets: 1672656997928
+                      ver: '3.0'
+                      mid: 50263f0f-c2d5-4b15-95f4-5384c537f6cc
+                      actor:
+                        id: internal
+                        type: Consumer
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: Organisation
+                        cdata:
+                          - id: 50263f0f-c2d5-4b15-95f4-5384c537f6cc
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: ''
+                        params:
+                          - method: POST
+                          - url: /v1/org/search
+                          - duration: 0
+                          - status: OK
+                    - eid: LOG
+                      ets: 1672656998024
+                      ver: '3.0'
+                      mid: 4a340ad0-0665-49b6-a1fa-a581dcac4550
+                      actor:
+                        id: internal
+                        type: Consumer
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: Organisation
+                        cdata:
+                          - id: 4a340ad0-0665-49b6-a1fa-a581dcac4550
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: >-
+                          {eid='LOG', edata={level=trace,
+                          requestid=4a340ad0-0665-49b6-a1fa-a581dcac4550,
+                          type=system, message=EXIT LOG: method : POST, url:
+                          /v1/org/search , For Operation : orgSearch,
+                          params=[{msgid=4a340ad0-0665-49b6-a1fa-a581dcac4550,
+                          errmsg=Invalid value null for parameter hashTagId.
+                          Please provide a valid value.,
+                          resmsgid=4a340ad0-0665-49b6-a1fa-a581dcac4550,
+                          err=UOS_ORGSER0017, status=FAILED,
+                          responseCode=400}]}}
+                        params: []
+                    - eid: LOG
+                      ets: 1672657004961
+                      ver: '3.0'
+                      mid: f34112c7242a3e3a26f0015796b029c2
+                      actor:
+                        id: internal
+                        type: Consumer
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: Organisation
+                        cdata:
+                          - id: f34112c7242a3e3a26f0015796b029c2
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: >-
+                          ElasticSearchRestHighImpl:search: calling search for
+                          index org_alias, with query =
+                          {"from":0,"size":250,"query":{"bool":{"must":[{"term":{"isTenant.raw":{"value":true,"boost":1.0}}},{"term":{"slug.raw":{"value":"ntp","boost":1.0}}}],"adjust_pure_negative":true,"boost":1.0}},"_source":{"includes":[],"excludes":[]}}
+                        params: []
+                    - eid: LOG
+                      ets: 1672657006595
+                      ver: '3.0'
+                      mid: d23ff123-40f0-4262-a69b-b75b46d315a1
+                      actor:
+                        id: 930a3994-cbe7-4e84-936f-4974096af6f2
+                        type: Consumer
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: User
+                        cdata:
+                          - id: d23ff123-40f0-4262-a69b-b75b46d315a1
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: >-
+                          {eid='LOG', edata={level=trace,
+                          requestid=d23ff123-40f0-4262-a69b-b75b46d315a1,
+                          type=system, message=ENTRY LOG: method : GET, url:
+                          /v1/user/role/read/6ab35eea-01fd-4de0-8902-f68722caf859
+                          , For Operation : getUserRolesById, params=[{id=null,
+                          userId=6ab35eea-01fd-4de0-8902-f68722caf859}]}}
+                        params: []
+                    - eid: LOG
+                      ets: 1672657006611
+                      ver: '3.0'
+                      mid: 7d944b1c-a906-4082-b42a-905aa6b78a4e
+                      actor:
+                        id: 6ab35eea-01fd-4de0-8902-f68722caf859
+                        type: User
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: User
+                        cdata:
+                          - id: 7d944b1c-a906-4082-b42a-905aa6b78a4e
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: >-
+                          {eid='LOG', edata={level=trace,
+                          requestid=7d944b1c-a906-4082-b42a-905aa6b78a4e,
+                          type=system, message=ENTRY LOG: method : GET, url:
+                          /v5/user/read/6ab35eea-01fd-4de0-8902-f68722caf859 ,
+                          For Operation : getUserProfileV5, params=[{id=null,
+                          userId=6ab35eea-01fd-4de0-8902-f68722caf859}]}}
+                        params: []
+                    - eid: LOG
+                      ets: 1672657006620
+                      ver: '3.0'
+                      mid: 7d944b1c-a906-4082-b42a-905aa6b78a4e
+                      actor:
+                        id: 6ab35eea-01fd-4de0-8902-f68722caf859
+                        type: User
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: User
+                        cdata:
+                          - id: 7d944b1c-a906-4082-b42a-905aa6b78a4e
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: >-
+                          Cassandra query : SELECT * FROM sunbird.user_roles
+                          WHERE userId=?;
+                        params: []
+                    - eid: LOG
+                      ets: 1672657006645
+                      ver: '3.0'
+                      mid: 7d944b1c-a906-4082-b42a-905aa6b78a4e
+                      actor:
+                        id: 6ab35eea-01fd-4de0-8902-f68722caf859
+                        type: User
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.learning.service
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: User
+                        cdata:
+                          - id: 7d944b1c-a906-4082-b42a-905aa6b78a4e
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: ''
+                        params:
+                          - method: GET
+                          - url: /v5/user/read/6ab35eea-01fd-4de0-8902-f68722caf859
+                          - duration: 0
+                          - status: OK
+                    - eid: LOG
+                      ets: 1672657007238
+                      ver: '3.0'
+                      mid: d4d34fde-c407-efb6-03bd-9f892ca0f114
+                      actor:
+                        id: 6ab35eea-01fd-4de0-8902-f68722caf859
+                        type: User
+                      context:
+                        channel: '0126796199493140480'
+                        pdata:
+                          id: staging.sunbird.portal
+                          pid: learner-service
+                          ver: 5.0.0
+                        env: User
+                        did: d904c90d9f81ddac20141b94ddd606a0
+                        cdata:
+                          - id: d4d34fde-c407-efb6-03bd-9f892ca0f114
+                            type: Request
+                        rollup: {}
+                      edata:
+                        level: info
+                        type: Api_access
+                        message: >-
+                          Cassandra query : SELECT * FROM sunbird.user WHERE
+                          id=?;
+                        params: []
+                  config:
+                    dataset: financial_transactions
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: api.datasets.dataschema
+                ver: v1
+                ts: '2024-07-22T12:32:50+05:30'
+                params:
+                  status: SUCCESS
+                  msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                  resmsgid: 1309aea0-9a97-46e9-bc5e-a16a8a7fb624
+                responseCode: OK
+                result:
+                  schema:
+                    $schema: https://json-schema.org/draft/2020-12/schema
+                    type: object
+                    properties:
+                      eid:
+                        type: string
+                        arrival_format: text
+                        data_type: string
+                      ets:
+                        type: integer
+                        suggestions:
+                          - message: >-
+                              The Property 'ets' appears to be 'epoch' format
+                              type.
+                            severity: ''
+                            path: properties.ets
+                        arrival_format: number
+                        data_type: epoch
+                      ver:
+                        type: string
+                        arrival_format: text
+                        data_type: string
+                      mid:
+                        type: string
+                        suggestions:
+                          - message: >-
+                              The Property 'mid' appears to be 'uuid' format
+                              type.
+                            advice: Suggest to not to index the high cardinal columns
+                            resolutionType: DEDUP
+                            severity: LOW
+                            path: properties.mid
+                        arrival_format: text
+                        data_type: string
+                      actor:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            suggestions:
+                              - message: >-
+                                  The Property 'actor.id' appears to be 'uuid'
+                                  format type.
+                                advice: >-
+                                  Suggest to not to index the high cardinal
+                                  columns
+                                resolutionType: DEDUP
+                                severity: LOW
+                                path: properties.actor.properties.id
+                            arrival_format: text
+                            data_type: string
+                          type:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                        arrival_format: object
+                        data_type: object
+                      context:
+                        type: object
+                        properties:
+                          channel:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          pdata:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                arrival_format: text
+                                data_type: string
+                              ver:
+                                type: string
+                                arrival_format: text
+                                data_type: string
+                              pid:
+                                type: string
+                                arrival_format: text
+                                data_type: string
+                            arrival_format: object
+                            data_type: object
+                          env:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          sid:
+                            type: string
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'sid'. The property sid: only 1 time(s)
+                                  appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.context.properties.sid
+                              - message: >-
+                                  The Property 'context.sid' appears to be
+                                  'uuid' format type.
+                                advice: >-
+                                  Suggest to not to index the high cardinal
+                                  columns
+                                resolutionType: DEDUP
+                                severity: LOW
+                                path: properties.context.properties.sid
+                            arrival_format: text
+                            data_type: string
+                          did:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          cdata:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  suggestions:
+                                    - message: >-
+                                        The Property 'context.cdata[*].id'
+                                        appears to be 'uuid' format type.
+                                      advice: >-
+                                        Suggest to not to index the high
+                                        cardinal columns
+                                      resolutionType: DEDUP
+                                      severity: LOW
+                                      path: >-
+                                        properties.context.properties.cdata.items.properties.id
+                                  arrival_format: text
+                                  data_type: string
+                                type:
+                                  type: string
+                                  arrival_format: text
+                                  data_type: string
+                            arrival_format: array
+                            data_type: array
+                          rollup:
+                            type: object
+                            properties:
+                              l1:
+                                type: string
+                                suggestions:
+                                  - message: >-
+                                      Conflict in the Schema Generation at
+                                      property: 'l1'. The property l1: only 1
+                                      time(s) appeared 
+                                    advice: >-
+                                      The Property looks to be Optional. System
+                                      has updated the property schema to
+                                      optional
+                                    resolutionType: OPTIONAL
+                                    severity: MEDIUM
+                                    path: >-
+                                      properties.context.properties.rollup.properties.l1
+                                arrival_format: text
+                                data_type: string
+                            arrival_format: object
+                            data_type: object
+                          uid:
+                            type: string
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'uid'. The property uid: only 1 time(s)
+                                  appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.context.properties.uid
+                            arrival_format: text
+                            data_type: string
+                        arrival_format: object
+                        data_type: object
+                      object:
+                        type: object
+                        suggestions:
+                          - message: >-
+                              Conflict in the Schema Generation at property:
+                              'object'. The property object: only 1 time(s)
+                              appeared 
+                            advice: >-
+                              The Property looks to be Optional. System has
+                              updated the property schema to optional
+                            resolutionType: OPTIONAL
+                            severity: MEDIUM
+                            path: properties.object
+                        arrival_format: object
+                        data_type: object
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        suggestions:
+                          - message: >-
+                              Conflict in the Schema Generation at property:
+                              'tags'. The property tags: only 1 time(s)
+                              appeared 
+                            advice: >-
+                              The Property looks to be Optional. System has
+                              updated the property schema to optional
+                            resolutionType: OPTIONAL
+                            severity: MEDIUM
+                            path: properties.tags
+                        arrival_format: array
+                        data_type: array
+                      edata:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          pageid:
+                            type: string
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'pageid'. The property pageid: only 1 time(s)
+                                  appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.edata.properties.pageid
+                            arrival_format: text
+                            data_type: string
+                          subtype:
+                            type: string
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'subtype'. The property subtype: only 1
+                                  time(s) appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.edata.properties.subtype
+                            arrival_format: text
+                            data_type: string
+                          uri:
+                            type: string
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'uri'. The property uri: only 1 time(s)
+                                  appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.edata.properties.uri
+                              - message: >-
+                                  The Property 'edata.uri' appears to be 'uri'
+                                  format type.
+                                severity: ''
+                                path: properties.edata.properties.uri
+                            arrival_format: text
+                            data_type: string
+                          visits:
+                            type: array
+                            items: {}
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'visits'. The property visits: only 1 time(s)
+                                  appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.edata.properties.visits
+                            arrival_format: array
+                            data_type: array
+                          level:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          message:
+                            type: string
+                            arrival_format: text
+                            data_type: string
+                          params:
+                            type: array
+                            items: {}
+                            arrival_format: array
+                            data_type: array
+                        arrival_format: object
+                        data_type: object
+                      syncts:
+                        type: integer
+                        suggestions:
+                          - message: >-
+                              Conflict in the Schema Generation at property:
+                              'syncts'. The property syncts: only 1 time(s)
+                              appeared 
+                            advice: >-
+                              The Property looks to be Optional. System has
+                              updated the property schema to optional
+                            resolutionType: OPTIONAL
+                            severity: MEDIUM
+                            path: properties.syncts
+                          - message: >-
+                              The Property 'syncts' appears to be 'epoch' format
+                              type.
+                            severity: ''
+                            path: properties.syncts
+                        arrival_format: number
+                        data_type: epoch
+                      '@timestamp':
+                        type: string
+                        suggestions:
+                          - message: >-
+                              Conflict in the Schema Generation at property:
+                              '@timestamp'. The property @timestamp: only 1
+                              time(s) appeared 
+                            advice: >-
+                              The Property looks to be Optional. System has
+                              updated the property schema to optional
+                            resolutionType: OPTIONAL
+                            severity: MEDIUM
+                            path: properties.@timestamp
+                          - message: >-
+                              The Property '@timestamp' appears to be
+                              'date-time' format type.
+                            advice: The System can index all data on this column
+                            resolutionType: INDEX
+                            severity: LOW
+                            path: properties.@timestamp
+                        arrival_format: text
+                        data_type: date-time
+                      flags:
+                        type: object
+                        properties:
+                          ex_processed:
+                            type: boolean
+                            suggestions:
+                              - message: >-
+                                  Conflict in the Schema Generation at property:
+                                  'ex_processed'. The property ex_processed:
+                                  only 1 time(s) appeared 
+                                advice: >-
+                                  The Property looks to be Optional. System has
+                                  updated the property schema to optional
+                                resolutionType: OPTIONAL
+                                severity: MEDIUM
+                                path: properties.flags.properties.ex_processed
+                            arrival_format: boolean
+                            data_type: boolean
+                        suggestions:
+                          - message: >-
+                              Conflict in the Schema Generation at property:
+                              'flags'. The property flags: only 1 time(s)
+                              appeared 
+                            advice: >-
+                              The Property looks to be Optional. System has
+                              updated the property schema to optional
+                            resolutionType: OPTIONAL
+                            severity: MEDIUM
+                            path: properties.flags
+                        arrival_format: object
+                        data_type: object
+                    additionalProperties: true
+                  configurations:
+                    indexConfiguration:
+                      index:
+                        Event Arrival Time: obsrv_meta.syncts
+                      rollupSuggestions:
+                        summary:
+                          mid:
+                            path: $.mid
+                            cardinality: 67
+                            index: false
+                          actor.id:
+                            path: $.actor.properties.id
+                            cardinality: 56
+                            index: false
+                          context.sid:
+                            path: $.context.properties.sid
+                            cardinality: 11
+                            index: true
+                          edata.uri:
+                            path: $.edata.properties.uri
+                            cardinality: 11
+                            index: true
+                          context.cdata[*].id:
+                            path: $.context.properties.cdata.items.properties.id
+                            cardinality: 62
+                            index: false
+                    processing:
+                      dedupKeys:
+                        - mid
+                        - context.cdata[*].id
+                        - actor.id
+                      dropDuplicates:
+                        - 'Yes'
+                        - 'No'
+                  dataMappings:
+                    text:
+                      arrival_format:
+                        - string
+                      store_format:
+                        string:
+                          jsonSchema: string
+                          datasource: string
+                        date-time:
+                          jsonSchema: string
+                          datasource: string
+                        date:
+                          jsonSchema: string
+                          datasource: string
+                        boolean:
+                          jsonSchema: string
+                          datasource: boolean
+                        epoch:
+                          jsonSchema: string
+                          datasource: integer
+                        long:
+                          jsonSchema: string
+                          datasource: long
+                        double:
+                          jsonSchema: string
+                          datasource: double
+                        bigdecimal:
+                          jsonSchema: string
+                          datasource: double
+                        integer:
+                          jsonSchema: string
+                          datasource: long
+                    number:
+                      arrival_format:
+                        - number
+                        - integer
+                      store_format:
+                        integer:
+                          jsonSchema: integer
+                          datasource: long
+                        float:
+                          jsonSchema: number
+                          datasource: double
+                        long:
+                          jsonSchema: integer
+                          datasource: long
+                        double:
+                          jsonSchema: number
+                          datasource: double
+                        bigdecimal:
+                          jsonSchema: number
+                          datasource: double
+                        epoch:
+                          jsonSchema: integer
+                          datasource: long
+                        number:
+                          jsonSchema: number
+                          datasource: double
+                    object:
+                      arrival_format:
+                        - object
+                      store_format:
+                        object:
+                          jsonSchema: object
+                          datasource: json
+                    array:
+                      arrival_format:
+                        - array
+                      store_format:
+                        array:
+                          jsonSchema: array
+                          datasource: array
+                    boolean:
+                      arrival_format:
+                        - boolean
+                      store_format:
+                        boolean:
+                          jsonSchema: boolean
+                          datasource: boolean
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: 'Failure: Invalid request body'
+                  value:
+                    id: api.datasets.dataschema
+                    ver: v1
+                    ts: '2024-07-22T12:33:47+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                      resmsgid: bbcc86c2-042d-4f77-bb6e-e1c9116df570
+                    responseCode: BAD_REQUEST
+                    result: {}
+                    error:
+                      code: DATA_SCHEMA_INVALID_INPUT
+                      message: >-
+                        #properties/request/required must have required property
+                        'data'
+                example-1:
+                  summary: 'Failure: Invalid request (config not provided)'
+                  value:
+                    id: api.datasets.dataschema
+                    ver: v1
+                    ts: '2024-07-22T12:35:36+05:30'
+                    params:
+                      status: FAILED
+                      msgid: 4a7f14c3-d61e-4d4f-be78-181834eeff6d
+                      resmsgid: 1f856c5e-37f0-41e9-96fb-642471228da2
+                    responseCode: BAD_REQUEST
+                    result: {}
+                    error:
+                      code: DATA_SCHEMA_INVALID_INPUT
+                      message: >-
+                        #properties/request/required must have required property
+                        'config'
