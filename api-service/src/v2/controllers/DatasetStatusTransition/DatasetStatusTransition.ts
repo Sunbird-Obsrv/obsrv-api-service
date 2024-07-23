@@ -34,7 +34,7 @@ const validateRequest =  (req: Request, datasetId: any) => {
 const validateDataset = (dataset: any, datasetId: any, action: string) => {
     
     if (_.isEmpty(dataset)) {
-        throw obsrvError(datasetId, datasetNotFound, `Dataset not found for dataset: ${dataset.id}`, "NOT_FOUND", 404)
+        throw obsrvError(datasetId, datasetNotFound, `Dataset not found for dataset: ${datasetId}`, "NOT_FOUND", 404)
     }
 
     if (dataset.api_version !== "v2" && _.includes(["ReadyToPublish", "Live"], action)) {
@@ -54,7 +54,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     const { dataset_id, status } = _.get(req.body, "request");
     validateRequest(req, dataset_id);
 
-    const dataset:Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type"])
+    const dataset:Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
     validateDataset(dataset, dataset_id, status);
 
     switch(status) {

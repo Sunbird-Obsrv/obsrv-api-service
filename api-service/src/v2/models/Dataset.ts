@@ -71,6 +71,10 @@ export const Dataset = sequelize.define("datasets", {
     sample_data: {
         type: DataTypes.JSON,
         defaultValue: {}
+    },
+    entry_topic: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
     tableName: "datasets",

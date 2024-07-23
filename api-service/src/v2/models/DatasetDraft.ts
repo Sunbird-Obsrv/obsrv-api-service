@@ -99,8 +99,12 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     defaultValue: "v2"
   },
   sample_data: {
-      type: DataTypes.JSON,
-      defaultValue: {}
+    type: DataTypes.JSON,
+    defaultValue: {}
+  },
+  entry_topic: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   timestamps: true,
