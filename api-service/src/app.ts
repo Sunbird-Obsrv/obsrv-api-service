@@ -10,6 +10,7 @@ import { interceptAuditEvents } from "./v1/services/telemetry";
 import { queryService } from "./v1/routes/Router";
 import { routesConfig } from "./v1/configs/RoutesConfig";
 import { QueryValidator } from "./v1/validators/QueryValidator";
+import { errorHandler, obsrvErrorHandler } from "./v2/middlewares/errors";
 const app: Application = express();
 const queryValidator = new QueryValidator();
 
@@ -23,6 +24,7 @@ const services = {
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
+app.use(errorHandler)
 app.set("queryServices", services);
 
 loadExtensions(app)
@@ -32,7 +34,7 @@ loadExtensions(app)
     app.use("/", router);
     app.use("/", metricsRouter);
     app.use("*", ResponseHandler.routeNotFound);
-    app.use(ResponseHandler.errorResponse);
+    app.use(obsrvErrorHandler);
 
     app.listen(config.api_port, () => {
       console.log(`listening on port ${config.api_port}`);

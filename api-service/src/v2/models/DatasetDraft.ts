@@ -55,6 +55,16 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     allowNull: true,
     defaultValue: {}
   },
+  transformations_config: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: {}
+  },
+  connectors_config: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: {}
+  },
   tags: {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     allowNull: true,
@@ -80,14 +90,6 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     allowNull: false,
     defaultValue: "SYSTEM",
   },
-  published_date: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  client_state: {
-    type: DataTypes.JSON,
-    defaultValue: {}
-  },
   version_key: {
     type: DataTypes.STRING,
     allowNull: false
@@ -95,6 +97,14 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
   api_version: {
     type: DataTypes.STRING,
     defaultValue: "v2"
+  },
+  sample_data: {
+    type: DataTypes.JSON,
+    defaultValue: {}
+  },
+  entry_topic: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   timestamps: true,

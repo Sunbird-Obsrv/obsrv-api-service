@@ -33,6 +33,15 @@ export const onFailure = (req: any, res: Response) => {
     incrementFailedApiCalls({ labels });
 }
 
+export const onGone = (req: any, res: Response) => {
+    const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
+    const { statusCode = 410 } = res
+    const labels = { ...metricLabels, status: statusCode }
+    duration && setQueryResponseTime({ duration, labels });
+    incrementApiCalls({ labels })
+    incrementFailedApiCalls({ labels });
+}
+
 const getMetricLabels = (req: any, res: Response) => {
     const { id, entity, url, startTime } = req;
     const { statusCode = 200 } = res

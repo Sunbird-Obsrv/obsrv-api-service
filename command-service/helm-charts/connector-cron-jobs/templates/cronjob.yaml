@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ .Values.instance-id }}-cronjob"
+spec:
+  schedule: "{{ .Values.schedule }}"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: spark-submit-container
+            image: bitnami/kubectl:latest
+            pullPolicy: IfNotPresent
+            command:
+            {{- if eq .Values.technology "scala" }}
+            - /bin/sh
+            - -c
+            - |
+              # Wait for the Spark pod to be ready
+              SPARK_POD=$(kubectl get pods -l app.kubernetes.io/name=spark,app.kubernetes.io/component=master -o jsonpath='{.items[0].metadata.name}')
+              kubectl exec -it $SPARK_POD -- bash -c "/opt/bitnami/spark/bin/spark-submit --master={{ .Values.spark.master.host }} --jars /data/connectors/{{ .Values.connector-source }}/libs/\*.jar --class {{ .Values.main_class }} /data/connectors/{{ .Values.connector-source }}/{{ .Values.main_file }} -c {{ .Values.instance-id }}"
+            {{- else if eq .Values.technology "python" }}
+            - /bin/sh
+            - -c
+            - |
+              # Wait for the Spark pod to be ready
+              SPARK_POD=$(kubectl get pods -l app.kubernetes.io/name=spark,app.kubernetes.io/component=master -o jsonpath='{.items[0].metadata.name}')
+              kubectl exec -it $SPARK_POD -- bash -c "/opt/bitnami/spark/bin/spark-submit --master={{ .Values.spark.master.host }} --conf spark.pyspark.driver.python={{ .Values.python_path }} --conf spark.pyspark.python={{ .Values.python_path }} --jars /data/connectors/{{ .Values.connector-source }}/libs/\* /data/connectors/{{ .Values.connector-source }}/{{ .Values.main_file }} -c {{ .Values.instance-id }}"
+            {{- end }}
+
+          # - name: connector-cron-jobs
+          #   image: alpine/curl
+          #   command: ["/bin/sh",  "-c"]
+          #   args:
+          #     - >
+          #       CURRENT_TIME=$(date +%Y-%m-%dT%H:%M:%S.%sZ) && curl -vi --location
+          #       "{{ .Values.spark.host }}"
+          #       --header "Content-Type: application/json"
+          #       --data
+          #       '{
+          #           "file": "{{ .Values.file.path }}",
+          #           "args": ["{{ .Values.args }}"],
+          #           "name": "{{ .Values.job.name }}-'"$CURRENT_TIME"'",
+          #           "className": "{{ .Values.class.name }}",
+          #           "executorCores": 1,
+          #           "executorMemory": "1G",
+          #           "numExecutors": 1,
+          #           "conf": {
+          #               "spark.driver.extraJavaOptions": "{{ .Values.spark.driver.extraJavaOptions }}",
+          #               "spark.executor.extraJavaOptions": "{{ .Values.spark.executor.extraJavaOptions }}",
+          #               "spark.master": "spark://{{ .Values.spark.master.host }}:{{ .Values.spark.master.port }}"
+          #           }
+          #       }'

@@ -35,8 +35,14 @@ export const globalCache: any = new Map()
 export const healthService = new HealthService(dbConnector, kafkaConnector, httpDruidConnector)
 export const router = express.Router()
 dbConnector.init()
-/** Query API(s) */
 
+router.all("/datasets/v1/*", ResponseHandler.goneResponse)
+router.all("/dataset/v1/*", ResponseHandler.goneResponse)
+router.all("/datasources/v1/*", ResponseHandler.goneResponse)
+router.all("/data/v1/*", ResponseHandler.goneResponse)
+router.all("/template/v1/*", ResponseHandler.goneResponse)
+
+/** Query API(s) */
 router.post([`${routesConfig.query.native_query.path}`, `${routesConfig.query.native_query_with_params.path}`,], ResponseHandler.setApiId(routesConfig.query.native_query.api_id), telemetryAuditStart({ action: telemetryActions.nativeQuery, operationType: OperationType.GET }), onRequest({ entity: Entity.Data_out }), validationService.validateRequestBody, validationService.validateQuery, queryService.executeNativeQuery);
 router.post([`${routesConfig.query.sql_query.path}`, `${routesConfig.query.sql_query_with_params.path}`,], ResponseHandler.setApiId(routesConfig.query.sql_query.api_id), telemetryAuditStart({ action: telemetryActions.sqlQuery, operationType: OperationType.GET }), onRequest({ entity: Entity.Data_out }), validationService.validateRequestBody, validationService.validateQuery, queryService.executeSqlQuery);
 

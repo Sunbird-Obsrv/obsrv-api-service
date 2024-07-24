@@ -30,7 +30,7 @@
         },
         "type": {
           "type": "string",
-          "enum": ["dataset", "master-dataset"]
+          "enum": ["event", "transaction", "master"]
         },
         "name": {
           "type": "string",
@@ -40,11 +40,13 @@
           "type": "object",
           "properties": {
             "validate": {
-              "type": "boolean"
+              "type": "boolean",
+              "default": true
             },
             "mode": {
               "type": "string",
-              "enum": ["Strict", "IgnoreNewFields"]
+              "enum": ["Strict", "IgnoreNewFields"],
+              "default": "Strict"
             }
           },
           "required": ["validate", "mode"],
@@ -54,17 +56,20 @@
           "type": "object",
           "properties": {
             "is_batch_event": {
-              "type": "boolean"
+              "type": "boolean",
+              "default": true
             },
             "extraction_key": {
               "type": "string",
+              "default": "events",
               "minLength": 1
             },
             "dedup_config": {
               "type": "object",
               "properties": {
                 "drop_duplicates": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "default": false
                 },
                 "dedup_key": {
                   "type": "string",
@@ -82,7 +87,8 @@
           "type": "object",
           "properties": {
             "drop_duplicates": {
-              "type": "boolean"
+              "type": "boolean",
+              "default": true
             },
             "dedup_key": {
               "type": "string",
@@ -115,50 +121,58 @@
           "required": ["$schema", "type", "properties", "additionalProperties"],
           "additionalProperties": false
         },
-        "denorm_config": {
-          "type": "object",
-          "properties": {
-            "denorm_fields": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "denorm_key": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "denorm_out_field": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": ["denorm_key", "denorm_out_field"],
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": ["denorm_fields"],
-          "additionalProperties": false
-        },
         "dataset_config": {
           "type": "object",
           "properties": {
-            "data_key": {
-              "type": "string"
-            },
-            "timestamp_key": {
-              "type": "string",
-              "minLength": 1
-            },
             "file_upload_path": {
               "type": "array",
               "items": {
                 "type": "string",
                 "minLength": 1
               }
+            },
+            "dataset_tz": {
+              "type": "string"
+            },
+            "indexing_config": {
+              "type": "object",
+              "properties": {
+                "olap_store_enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "lakehouse_enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "cache_enabled": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            }, 
+            "keys_config": {
+              "type": "object",
+              "properties": {
+                "data_key": {
+                  "type": "string"
+                },
+                "partition_key": {
+                  "type": "string"
+                },
+                "timestamp_key": {
+                  "type": "string"
+                },
+                "timestamp_format": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
             }
           },
-          "required": ["data_key", "timestamp_key"],
+          "required": ["indexing_config", "keys_config"],
           "additionalProperties": false
         },
         "transformations_config": {
@@ -171,7 +185,41 @@
                 "minLength": 1
               },
               "transformation_function": {
-                "type": "object"
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expr": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "condition": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "expr": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": ["type", "expr"],
+                    "additionalProperties": false
+                  },
+                  "datatype": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": ["pii", "transform", "derived"]
+                  }
+                },
+                "required": ["type", "expr"],
+                "additionalProperties": false
               },
               "mode": {
                 "type": "string",
@@ -179,18 +227,70 @@
                   "Strict",
                   "Lenient"
                 ]
+              }
+            },
+            "additionalProperties": false,
+            "required": ["field_key", "transformation_function", "mode"]
+          }
+        },
+        "denorm_config": {
+          "type": "object",
+          "properties": {
+            "denorm_fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "dataset_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "denorm_key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "denorm_out_field": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "jsonata_expr": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "oneOf": [
+                  {
+                    "required": ["dataset_id", "denorm_out_field", "denorm_key"]
+                  },
+                  {
+                    "required": ["dataset_id", "denorm_out_field", "jsonata_expr"]
+                  }
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["denorm_fields"],
+          "additionalProperties": false
+        },
+        "connectors_config": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "connector_id": {
+                "type": "string",
+                "minLength": 1
               },
-              "metadata": {
+              "connector_config": {
+                "type": "object"
+              },
+              "operations_config": {
                 "type": "object"
               }
             },
             "additionalProperties": false,
-            "required": [
-              "field_key",
-              "transformation_function",
-              "mode",
-              "metadata"
-            ]
+            "required": ["connector_id", "connector_config"]
           }
         },
         "tags": {
@@ -199,9 +299,12 @@
             "type": "string",
             "minLength":1
           }
+        },
+        "sample_data": {
+          "type": "object"
         }
       },
-      "required": ["dataset_id", "type", "name", "data_schema"],
+      "required": ["dataset_id", "name"],
       "additionalProperties": false
     }
   },

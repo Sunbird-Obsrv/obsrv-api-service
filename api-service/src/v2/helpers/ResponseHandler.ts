@@ -4,6 +4,7 @@ import { IResponse, Result } from "../types/DatasetModels";
 import { onFailure, onSuccess } from "../metrics/prometheus/helpers";
 import moment from "moment";
 import _ from "lodash";
+import { ObsrvError } from "../types/ObsrvError";
 
 const ResponseHandler = {
   successResponse: (req: Request, res: Response, result: Result) => {
@@ -31,6 +32,16 @@ const ResponseHandler = {
     const response = ResponseHandler.refactorResponse({ id, msgid, params: { status: "FAILED" }, responseCode: errCode || httpStatus["500_NAME"], resmsgid })
     const modifiedErrorResponse = _.omit(response, ["result"]);
     res.status(statusCode || httpStatus.INTERNAL_SERVER_ERROR).json({ ...modifiedErrorResponse, error: { code, message, trace } });
+    entity && onFailure(req, res)
+  },
+
+  obsrvErrorResponse: (error: ObsrvError, req: Request, res: Response) => {
+    const { statusCode, message, errCode, code = "INTERNAL_SERVER_ERROR", data } = error;
+    const { id, entity, body } = req as any;
+    const msgid = _.get(body, ["params", "msgid"])
+    const resmsgid = _.get(res, "resmsgid")
+    const response = ResponseHandler.refactorResponse({ id, msgid, params: { status: "FAILED" }, responseCode: errCode || httpStatus["500_NAME"], resmsgid, result: data })
+    res.status(statusCode || httpStatus.INTERNAL_SERVER_ERROR).json({ ...response, error: { code, message } });
     entity && onFailure(req, res)
   },
 

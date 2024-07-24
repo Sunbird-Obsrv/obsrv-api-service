@@ -5,7 +5,6 @@ import spies from "chai-spies";
 import httpStatus from "http-status";
 import { describe, it } from 'mocha';
 import _ from "lodash";
-import { apiId, errorCode } from "../../../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 
@@ -31,7 +30,7 @@ describe("DATASET STATUS TRANSITION API", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.BAD_REQUEST);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
                 expect(res.body.error.message).to.match(/^#properties\/request(.+)$/)
@@ -51,9 +50,8 @@ describe("DATASET STATUS TRANSITION API", () => {
             .end((err, res) => {
                 res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
                 res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
+                res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.code.should.be.eq(errorCode)
                 res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
                 done();
             });

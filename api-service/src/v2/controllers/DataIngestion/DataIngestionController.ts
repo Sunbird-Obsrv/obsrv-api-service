@@ -4,7 +4,7 @@ import validationSchema from "./validationSchema.json";
 import { schemaValidation } from "../../services/ValidationService";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { send } from "../../connections/kafkaConnection";
-import { getDataset, setReqDatasetId } from "../../services/DatasetService";
+import { datasetService } from "../../services/DatasetService";
 import logger from "../../logger";
 import { config } from "../../configs/Config";
 
@@ -29,14 +29,13 @@ const dataIn = async (req: Request, res: Response) => {
     try {
         const requestBody = req.body;
         const datasetId = req.params.datasetId.trim();
-        setReqDatasetId(req, datasetId)
         
         const isValidSchema = schemaValidation(requestBody, validationSchema)
         if (!isValidSchema?.isValid) {
             logger.error({ apiId, message: isValidSchema?.message, code: "DATA_INGESTION_INVALID_INPUT" })
             return ResponseHandler.errorResponse({ message: isValidSchema?.message, statusCode: 400, errCode: "BAD_REQUEST", code: "DATA_INGESTION_INVALID_INPUT" }, req, res);
         }
-        const dataset = await getDataset(datasetId)
+        const dataset = await datasetService.getDataset(datasetId, ["id"], true)
         if (!dataset) {
             logger.error({ apiId, message: `Dataset with id ${datasetId} not found in live table`, code: "DATASET_NOT_FOUND" })
             return ResponseHandler.errorResponse(errorObject.datasetNotFound, req, res);

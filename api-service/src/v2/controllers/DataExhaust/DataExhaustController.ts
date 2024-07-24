@@ -4,7 +4,7 @@ import httpStatus from "http-status";
 import { getDateRange, isValidDateRange } from "../../utils/common";
 import { config } from "../../configs/Config";
 import moment from "moment";
-import { getDataset, setReqDatasetId } from "../../services/DatasetService";
+import { datasetService } from "../../services/DatasetService";
 import * as _ from "lodash";
 import logger from "../../logger";
 import { cloudProvider } from "../../services/CloudServices";
@@ -14,10 +14,9 @@ export const dataExhaust = async (req: Request, res: Response) => {
     const { datasetId } = params;
     const { type }: any = req.query;
     const momentFormat = "YYYY-MM-DD";
-    setReqDatasetId(req, datasetId)
 
     const verifyDatasetExists = async (datasetId: string) => {
-        const dataset = await getDataset(datasetId)
+        const dataset = await datasetService.getDataset(datasetId, ["id"], true)
         return dataset;
     }
 

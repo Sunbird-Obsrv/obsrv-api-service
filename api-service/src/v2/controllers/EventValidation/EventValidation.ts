@@ -4,7 +4,7 @@ import { schemaValidation } from "../../services/ValidationService";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import validationSchema from "./RequestValidationSchema.json"
 import logger from "../../logger";
-import { getDataset, getDraftDataset } from "../../services/DatasetService";
+import { datasetService } from "../../services/DatasetService";
 const apiId = "api.schema.validator";
 
 export const eventValidation = async (req: Request, res: Response) => {
@@ -25,12 +25,12 @@ export const eventValidation = async (req: Request, res: Response) => {
         }
 
         if (isLive) {
-            dataset = await getDataset(datasetId, true);
+            dataset = await datasetService.getDataset(datasetId, undefined, true);
             schema = _.get(dataset, "data_schema")
         }
 
         if (!isLive) {
-            dataset = await getDraftDataset(datasetId);
+            dataset = await datasetService.getDraftDataset(datasetId);
             schema = _.get(dataset, "data_schema")
         }
 
