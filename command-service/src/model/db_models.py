@@ -41,13 +41,13 @@ class DatasetsDraft:
     dataset_config: dict
     status: str
     api_version: str
-    transformations_config: dict | None = None
-    connectors_config: dict | None = None
-    denorm_config: dict | None = None
-    sample_data: dict
     entry_topic: str
     created_by: str
     created_date: datetime
+    sample_data: dict | None = None
+    transformations_config: dict | None = None
+    connectors_config: dict | None = None
+    denorm_config: dict | None = None
     tags: list[str] | None = None
     updated_by: str | None = None
     updated_date: datetime | None = None
@@ -80,9 +80,9 @@ class DatasetConnectorConfigDraft:
     id: str
     connector_id: str
     connector_config: dict
+    version: str
     operations_config: dict | None = None
     data_format: str | None = 'json'
-    version: str 
 
 
 @dataclass
@@ -115,6 +115,7 @@ class ConnectorRegsitryv2:
     ui_spec: dict | None = None
     updated_by: str | None = None
     livedate: datetime | None = None
+
 
 @dataclass
 class ConnectorInstance:
