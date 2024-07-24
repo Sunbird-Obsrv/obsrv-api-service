@@ -113,9 +113,10 @@ class DatasetService {
                 category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
             }
         })
-        const connectors = await this.getDraftConnectors(datasetId, ["connector_type", "connector_config"]);
+        const connectors = await this.getDraftConnectors(datasetId, ["id", "connector_type", "connector_config"]);
         draftDataset["connectors_config"] = _.map(connectors, (config) => {
             return {
+                id: _.get(config, ["id"]),
                 connector_id: _.get(config, ["connector_type"]),
                 connector_config: _.get(config, ["connector_config"]),
                 version: "v1"
@@ -158,9 +159,10 @@ class DatasetService {
                 keys_config: {data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key},
                 cache_config: {redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db}
             }
-            const connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["connector_type", "connector_config"]);
+            const connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["id", "connector_type", "connector_config"]);
             draftDataset["connectors_config"] = _.map(connectors, (config) => {
                 return {
+                    id: _.get(config, "id"),
                     connector_id: _.get(config, "connector_type"),
                     connector_config: _.get(config, "connector_config"),
                     version: "v1"
@@ -178,7 +180,7 @@ class DatasetService {
             })
             draftDataset["api_version"] = "v2"
         } else {
-            const connectors = await this.getConnectors(draftDataset.dataset_id, ["connector_id", "connector_config", "operations_config"]);
+            const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
             draftDataset["connectors_config"] = connectors
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "datatype", "category"]);
             draftDataset["transformations_config"] = transformations

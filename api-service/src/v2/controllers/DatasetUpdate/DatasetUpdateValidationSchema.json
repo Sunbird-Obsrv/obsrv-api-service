@@ -327,6 +327,10 @@
               "value": {
                 "type": "object",
                 "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
                   "connector_id": {
                     "type": "string",
                     "minLength": 1
@@ -336,9 +340,12 @@
                   },
                   "operations_config": {
                     "type": "object"
+                  },
+                  "version": {
+                    "type": "string"
                   }
                 },
-                "required": ["connector_id"],
+                "required": ["id"],
                 "additionalProperties": false
               },
               "action": {
@@ -358,7 +365,7 @@
             "then": {
               "properties": {
                 "value": {
-                  "required": ["connector_config"]
+                  "required": ["connector_id", "connector_config"]
                 }
               }
             }

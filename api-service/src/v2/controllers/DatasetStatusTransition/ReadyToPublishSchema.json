@@ -367,6 +367,10 @@
       "items": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
           "connector_id": {
             "type": "string",
             "minLength": 1
@@ -376,10 +380,14 @@
           },
           "operations_config": {
             "type": "object"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "additionalProperties": false,
-        "required": ["connector_id", "connector_config"]
+        "required": ["id", "connector_id", "connector_config", "version"]
       }
     }
   },
