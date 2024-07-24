@@ -49,8 +49,18 @@
               "default": "Strict"
             }
           },
-          "required": ["validate", "mode"],
-          "additionalProperties": false
+          "required": ["validate"],
+          "additionalProperties": false,
+          "if": {
+            "properties": {
+              "validate": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": ["mode"]
+          }
         },
         "extraction_config": {
           "type": "object",
@@ -76,12 +86,37 @@
                   "minLength": 1
                 }
               },
-              "required": ["drop_duplicates", "dedup_key"],
+              "if": {
+                "properties": {
+                  "drop_duplicates": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "dedup_key": {
+                    "minLength": 1
+                  }
+                },
+                "required": ["dedup_key"]
+              },
+              "required": ["drop_duplicates"],
               "additionalProperties": false
             }
           },
-          "required": ["is_batch_event", "extraction_key", "dedup_config"],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": ["is_batch_event"],
+          "if": {
+            "properties": {
+              "is_batch_event": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": ["extraction_key", "dedup_config"]
+          }
         },
         "dedup_config": {
           "type": "object",
@@ -95,7 +130,22 @@
               "minLength": 1
             }
           },
-          "required": ["drop_duplicates", "dedup_key"],
+          "if": {
+            "properties": {
+              "drop_duplicates": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "dedup_key": {
+                "minLength": 1
+              }
+            },
+            "required": ["dedup_key"]
+          },
+          "required": ["drop_duplicates"],
           "additionalProperties": false
         },
         "data_schema": {
@@ -304,7 +354,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength":1
+            "minLength": 1
           }
         },
         "sample_data": {

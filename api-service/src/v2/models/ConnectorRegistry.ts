@@ -81,6 +81,5 @@ export const ConnectorRegistry = sequelize.define("connector_registry", {
     tableName: "connector_registry",
     timestamps: true,
     createdAt: "created_date",
-    updatedAt: "updated_date",
-    paranoid: true
+    updatedAt: "updated_date"
 })

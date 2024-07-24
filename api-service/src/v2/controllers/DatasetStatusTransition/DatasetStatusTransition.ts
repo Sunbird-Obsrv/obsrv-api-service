@@ -38,11 +38,11 @@ const validateDataset = (dataset: any, datasetId: any, action: string) => {
     }
 
     if (dataset.api_version !== "v2" && _.includes(["ReadyToPublish", "Live"], action)) {
-        throw obsrvError(datasetId, "DATASET_API_VERSION_MISMATCH", "Draft dataset api version is not v2. Perform a read api call with mode=edit to migrate the dataset", "NOT_FOUND", 404)
+        throw obsrvError(datasetId, "DATASET_API_VERSION_MISMATCH", "Draft dataset api version is not v2. Perform a read api call with mode=edit to migrate the dataset", "BAD_REQUEST", 400)
     }
 
     if(!_.includes(allowedTransitions[action], dataset.status)) {
-        throw obsrvError(datasetId, `DATASET_${_.toUpper(action)}_FAILURE`, `Transition failed for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}`, "NOT_FOUND", 404)
+        throw obsrvError(datasetId, `DATASET_${_.toUpper(action)}_FAILURE`, `Transition failed for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}`, "CONFLICT", 409)
     }
 
     return true;
@@ -134,7 +134,7 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
             throw {
                 code: "SELF_REFERENCING_MASTER_DATA",
                 message: `The denorm master dataset is self-referencing itself`,
-                errCode: "SELF_REFERENCING_MASTER_DATA",
+                errCode: "CONFLICT",
                 statusCode: 409
             }
         }
@@ -145,12 +145,14 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
                 dataset_id: denormField.dataset_id,
                 exists: (md) ? true : false,
                 isLive:  (md) ? md.status === "Live" : false,
-                status: md.status
+                status: (md) ? md.status : false
             }
-            if(md.api_version === "v2")
-                datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
-            else 
-                datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+            if(!_.isEmpty(md)){
+                if(md.api_version === "v2")
+                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
+                else 
+                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+            }
 
             return datasetStatus;
         })
@@ -160,7 +162,7 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
             throw {
                 code: "DEPENDENT_MASTER_DATA_NOT_LIVE",
                 message: `The datasets with id:${invalidIds} are not in published status`,
-                errCode: "DEPENDENT_MASTER_DATA_NOT_LIVE",
+                errCode: "PRECONDITION_REQUIRED",
                 statusCode: 428
             }
         }
@@ -182,7 +184,7 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
                 throw {
                     code: "REDIS_DB_INDEX_FETCH_FAILED",
                     message: `Unable to fetch the redis db index for the master data`,
-                    errCode: "REDIS_DB_INDEX_FETCH_FAILED",
+                    errCode: "INTERNAL_SERVER_ERROR",
                     statusCode: 500
                 }
             }
