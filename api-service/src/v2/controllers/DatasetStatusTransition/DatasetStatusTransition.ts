@@ -145,12 +145,14 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
                 dataset_id: denormField.dataset_id,
                 exists: (md) ? true : false,
                 isLive:  (md) ? md.status === "Live" : false,
-                status: md.status
+                status: (md) ? md.status : false
             }
-            if(md.api_version === "v2")
-                datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
-            else 
-                datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+            if(!_.isEmpty(md)){
+                if(md.api_version === "v2")
+                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
+                else 
+                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+            }
 
             return datasetStatus;
         })
