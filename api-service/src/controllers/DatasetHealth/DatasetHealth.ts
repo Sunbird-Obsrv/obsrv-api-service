@@ -4,7 +4,7 @@ import { schemaValidation } from "../../services/ValidationService";
 import DatasetHealthRequestSchema from "./DatasetHealthValidationSchema.json"
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetStatus } from "../../types/DatasetModels";
-import { getDatasetHealth, getInfraHealth } from "../../services/HealthService";
+import { getDatasetHealth, getInfraHealth } from "../../services/DatasetHealthService";
 import { obsrvError } from "../../types/ObsrvError";
 import httpStatus from "http-status";
 import { datasetService } from "../../services/DatasetService";
