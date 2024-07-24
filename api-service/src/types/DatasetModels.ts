@@ -63,3 +63,11 @@ export enum DatasetType {
 export enum DatasetAction {
     Retire = "Retire", Delete = "Delete", ReadyToPublish = "ReadyToPublish", Live="Live"
 }
+
+export enum HealthStatus {
+    Healthy = "Healthy", UnHealthy= "UnHealthy"
+}
+
+export enum DataSourceType {
+    druid = "druid"
+}

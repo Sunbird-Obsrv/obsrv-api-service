@@ -8,6 +8,7 @@ import _ from "lodash";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { commandHttpService } from "../../../connections/commandServiceConnection";
+import { sequelize } from "../../../connections/databaseConnection";
 
 chai.use(spies);
 chai.should();
@@ -26,6 +27,12 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             return Promise.resolve({ dataset_id: "telemetry", status: "ReadyToPublish" })
         })
         chai.spy.on(commandHttpService, "post", () => {
+            return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
             return Promise.resolve({})
         })
         chai
@@ -71,6 +78,12 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         })
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.reject()
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "rollback", () => {
+            return Promise.resolve({})
         })
         chai
             .request(app)
