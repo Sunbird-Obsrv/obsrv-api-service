@@ -25,7 +25,7 @@
     "request": {
       "type": "object",
       "properties": {
-        "dataset": {
+        "dataset_id": {
           "type": "string",
           "minLength": 1
         },
@@ -46,7 +46,7 @@
         }
       },
       "required": [
-        "categories"
+        "categories", "dataset_id"
       ]
     }
   }

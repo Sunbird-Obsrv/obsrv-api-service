@@ -12,40 +12,23 @@ import { SystemConfig } from "./SystemConfig";
 import { datasetService } from "./DatasetService";
 const dateFormat = "YYYY-MM-DDT00:00:00+05:30"
 
-const prometheusInstance = axios.create({ baseURL: config?.query_api?.prometheus?.url, headers: { "Content-Type": "application/json" } });
-let isRedisDenormHealthy = false;
-let isRedisDedupHealthy = false;
-const init = async () => {
-  createClient({
-    url: `redis://${config.redis_config.denorm_redis_host}:${config.redis_config.denorm_redis_port}`
-  })
-    .on("error", (err: any) => {
-      logger.error("unable to connect to denorm redis client", err)
-      isRedisDenormHealthy = false
-    })
-    .on("ready", () => {
-      isRedisDenormHealthy = true
-    })
-    .connect();
+const prometheusInstance = axios.create({ baseURL: config?.query_api?.prometheus?.url, headers: { "Content-Type": "application/json" } })
 
-  createClient({
-    url: `redis://${config.redis_config.dedup_redis_host}:${config.redis_config.dedup_redis_port}`
-  })
-    .on("ready", () => {
-      isRedisDedupHealthy = true
-    })
-    .on("error", (err: any) => {
-      isRedisDedupHealthy = false
-      logger.error("unable to connect to dedup redis client", err)
-    })
-    .connect();
+const prometheusQueries = {
+  validationFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_DATASETID_validator_failed_count[1d]))",
+  dedupFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_DATASETID_dedup_failed_count[1d]))",
+  denormFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_DenormalizerJob_DATASETID_denorm_failed[1d]))",
+  transformationFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_TransformerJob_DATASETID_transform_failed_count[1d]))",
+  queriesCount: 'sum(sum_over_time(node_total_api_calls{entity="data-out", dataset_id="DATASETID"}[1d]))',
+  avgQueryResponseTimeInSec: 'avg(avg_over_time(node_query_response_time{entity="data-out", dataset_id="DATASETID"}[1d]))/1000',
+  queriesFailedCount: 'sum(sum_over_time(node_failed_api_calls{entity="data-out", dataset_id="DATASETID"}[1d]))'
 }
 
 export const getDatasetHealth = async (categories: any, dataset: any) => {
 
   const details = []
   if (categories.includes("infra")) {
-    const isMasterDataset = _.get(dataset, "[0].type") == DatasetType.master;
+    const isMasterDataset = _.get(dataset, "type") == DatasetType.master;
     const { components, status } = await getInfraHealth(isMasterDataset)
     details.push({
       "category": "infra",
@@ -54,7 +37,7 @@ export const getDatasetHealth = async (categories: any, dataset: any) => {
     })
   }
   if (categories.includes("processing")) {
-    const { components, status } = await getProcessingHealth(dataset[0])
+    const { components, status } = await getProcessingHealth(dataset)
     details.push({
       "category": "processing",
       "status": status,
@@ -64,7 +47,7 @@ export const getDatasetHealth = async (categories: any, dataset: any) => {
 
   if (categories.includes("query")) {
     const datasources = await datasetService.findDatasources({ dataset_id: dataset.id, type: DataSourceType.druid }, ["dataset_id", "datasource"])
-    const { components, status } = await getQueryHealth(datasources, dataset[0])
+    const { components, status } = await getQueryHealth(datasources, dataset)
     details.push({
       "category": "query",
       "status": status,
@@ -86,8 +69,16 @@ const getDatasetIdForMetrics = (datasetId: string) => {
   return datasetId;
 }
 
-const queryMetrics = (params: Record<string, any> | string) => {
-  return prometheusInstance.get("/api/v1/query", { params })
+const queryMetrics = async (datasetId: string, query: string) => {
+  const queryWithDatasetId = query.replace("DATASETID", getDatasetIdForMetrics(datasetId))
+  try { 
+    const { data } = await prometheusInstance.get("/api/v1/query", { params: {query: queryWithDatasetId} })
+    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
+  } catch (error) {
+    logger.error(error)
+    return { count: 0, health: HealthStatus.UnHealthy }
+  }
+  
 }
 
 export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ components: any, status: string }> => {
@@ -103,7 +94,7 @@ export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ compon
     { "type": "flink", "status": flink }
   ]
   if (isMasterDataset) {
-    redis = await getRedisStatus()
+    redis = await getRedisHealthStatus()
     components.push({ "type": "redis", "status": redis })
   }
   const status = [postgres, redis, kafka, druid, flink].includes(HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy
@@ -112,7 +103,7 @@ export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ compon
 
 export const getProcessingHealth = async (dataset: any): Promise<{ components: any, status: string }> => {
   const dataset_id = _.get(dataset, "dataset_id")
-  const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
+  const isMasterDataset = _.get(dataset, "type") == DatasetType.master;
   const flink = await getFlinkHealthStaus()
   const { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
   const processingDefaultThreshold = await SystemConfig.getThresholds("processing")
@@ -123,16 +114,16 @@ export const getProcessingHealth = async (dataset: any): Promise<{ components: a
       avgHealth = HealthStatus.UnHealthy
     }
   }
-  const failure = await getValidationFailure(dataset_id)
+  const failure = await queryMetrics(dataset_id, prometheusQueries.validationFailure)
   failure.health = getProcessingComponentHealth(failure, count, processingDefaultThreshold?.validationFailuresCount)
 
-  const dedupFailure = await getDedupFailure(dataset_id)
+  const dedupFailure = await queryMetrics(dataset_id, prometheusQueries.dedupFailure)
   dedupFailure.health = getProcessingComponentHealth(dedupFailure, count, processingDefaultThreshold?.dedupFailuresCount)
 
-  const denormFailure = await getDenormFailure(dataset_id)
+  const denormFailure = await queryMetrics(dataset_id, prometheusQueries.denormFailure)
   denormFailure.health = getProcessingComponentHealth(denormFailure, count, processingDefaultThreshold?.denormFailureCount)
 
-  const transformFailure = await getTransformFailure(dataset_id)
+  const transformFailure = await queryMetrics(dataset_id, prometheusQueries.transformationFailure)
   denormFailure.health = getProcessingComponentHealth(transformFailure, count, processingDefaultThreshold?.transformFailureCount)
 
   const components = [
@@ -197,7 +188,7 @@ const getProcessingComponentHealth = (info: any, count: any, threshold: any) => 
 export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ components: any, status: string }> => {
 
   const components: any = [];
-  const isMasterDataset = _.get(dataset, "type") == DatasetType.MasterDataset;
+  const isMasterDataset = _.get(dataset, "type") == DatasetType.master;
   let status = HealthStatus.Healthy;
   if (!isMasterDataset) {
     if (!_.isEmpty(datasources)) {
@@ -223,7 +214,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
   }
 
 
-  const queriesCount = await getQuriesStatus(dataset?.dataset_id)
+  const queriesCount = await queryMetrics(dataset?.dataset_id, prometheusQueries.queriesCount)
   const defaultThresholds = await SystemConfig.getThresholds("query")
 
   components.push({
@@ -232,7 +223,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
     "status": queriesCount.health
   })
 
-  const avgQueryReponseTimeInSec = await getAvgQueryReponseTimeInSec(dataset?.dataset_id)
+  const avgQueryReponseTimeInSec = await queryMetrics(dataset?.dataset_id, prometheusQueries.avgQueryResponseTimeInSec)
   if (avgQueryReponseTimeInSec.count > defaultThresholds?.avgQueryReponseTimeInSec) {
     avgQueryReponseTimeInSec.health = HealthStatus.UnHealthy
   }
@@ -242,7 +233,7 @@ export const getQueryHealth = async (datasources: any, dataset: any): Promise<{ 
     "status": avgQueryReponseTimeInSec.health
   })
 
-  const queriesFailed = await getQueriesFailedCount(dataset?.dataset_id)
+  const queriesFailed = await queryMetrics(dataset?.dataset_id, prometheusQueries.queriesFailedCount)
   if (queriesCount.count == 0 && queriesFailed.count > 0) {
     queriesFailed.health = HealthStatus.UnHealthy
   } else {
@@ -300,17 +291,38 @@ const getDruidDataourceStatus = async (datasourceId: string) => {
 
 const getPostgresStatus = async (): Promise<HealthStatus> => {
   try {
-    const postgresStatus = await postgresHealth()
-    logger.debug(postgresStatus)
+    await postgresHealth()
   } catch (error) {
-    logger.error("errr: ", error)
+    logger.error(error)
     return HealthStatus.UnHealthy
   }
   return HealthStatus.Healthy
 }
 
-const getRedisStatus = async () => {
-  return isRedisDenormHealthy && isRedisDedupHealthy ? HealthStatus.Healthy : HealthStatus.UnHealthy
+const connectToRedis = async (url: string) => {
+  return new Promise((resolve, reject) => {
+    createClient({
+      url
+    })
+    .on("error", (err: any) => {
+      reject(err)
+    })
+    .on("connect", () => {
+      resolve("connected")
+    })
+    .connect();
+  })
+}
+
+const getRedisHealthStatus = async () => {
+  try {
+    await Promise.all([connectToRedis(`redis://${config.redis_config.denorm_redis_host}:${config.redis_config.denorm_redis_port}`),
+      connectToRedis(`redis://${config.redis_config.dedup_redis_host}:${config.redis_config.dedup_redis_port}`)]);
+       return HealthStatus.Healthy;
+  } catch (error) {
+    logger.error(error)
+  }
+  return HealthStatus.UnHealthy;
 }
 
 const getKafkaHealthStatus = async () => {
@@ -345,7 +357,7 @@ const getDruidHealthStatus = async () => {
     const { data = false } = await druidHttpService.get("/status/health")
     return data ? HealthStatus.Healthy : HealthStatus.UnHealthy
   } catch (error) {
-    logger.error("druid health check", error)
+    logger.error(error)
     return HealthStatus.UnHealthy
   }
 }
@@ -471,85 +483,3 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
     return { count: 0, health: HealthStatus.UnHealthy }
   }
 }
-
-const getValidationFailure = async (datasetId: string) => {
-  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_validator_failed_count[1d]))`
-  try {
-    const { data } = await queryMetrics({ query })
-    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-const getDedupFailure = async (datasetId: string) => {
-  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_${getDatasetIdForMetrics(datasetId)}_dedup_failed_count[1d]))`;
-  try {
-    const { data } = await queryMetrics({ query })
-    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-const getDenormFailure = async (datasetId: string) => {
-  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_DenormalizerJob_${getDatasetIdForMetrics(datasetId)}_denorm_failed[1d]))`;
-  try {
-    const { data } = await queryMetrics({ query })
-    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-const getTransformFailure = async (datasetId: string) => {
-  const query = `sum(sum_over_time(flink_taskmanager_job_task_operator_TransformerJob_${getDatasetIdForMetrics(datasetId)}_transform_failed_count[1d]))`;
-  try {
-    const { data } = await queryMetrics({ query })
-    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-const getQuriesStatus = async (datasetId: string) => {
-  const query = `sum(sum_over_time(node_total_api_calls{entity="data-out", dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))`;
-  try {
-    const { data } = await queryMetrics({ query })
-    logger.debug(data)
-    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-const getAvgQueryReponseTimeInSec = async (datasetId: string) => {
-  const query = `avg(avg_over_time(node_query_response_time{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))/1000`;
-  try {
-    const { data } = await queryMetrics({ query })
-    logger.debug(data)
-    return { count: +(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-const getQueriesFailedCount = async (datasetId: string) => {
-  const query = `sum(sum_over_time(node_failed_api_calls{entity='data-out', dataset_id="${getDatasetIdForMetrics(datasetId)}"}[1d]))`;
-  try {
-    const { data } = await queryMetrics({ query })
-    logger.debug(data)
-    return { count: _.toInteger(_.get(data, "data.result[0].value[1]", "0")) || 0, health: HealthStatus.Healthy }
-  } catch (error) {
-    logger.error(error)
-    return { count: 0, health: HealthStatus.UnHealthy }
-  }
-}
-
-init().catch(err => logger.error(err))
