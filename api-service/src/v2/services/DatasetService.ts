@@ -225,6 +225,10 @@ class DatasetService {
         }
     }
 
+    findDatasources = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
+        return Datasource.findAll({where, attributes, order, raw: true})
+    }
+
     private deleteDruidSupervisors = async (dataset: Record<string, any>) => {
 
         try {

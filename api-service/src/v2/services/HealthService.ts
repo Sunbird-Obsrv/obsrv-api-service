@@ -2,15 +2,14 @@ import axios from "axios";
 import { config } from "../configs/Config";
 import { logger } from "@project-sunbird/logger";
 import { health as postgresHealth } from "../connections/databaseConnection";
-import { DatasetType, HealthStatus } from "../types/DatasetModels";
+import { DatasetType, DataSourceType, HealthStatus } from "../types/DatasetModels";
 import { createClient } from "redis";
 import { isHealthy as isKafkaHealthy } from "../connections/kafkaConnection";
 import { druidHttpService, executeNativeQuery } from "../connections/druidConnection";
 import _ from "lodash";
 import moment from "moment";
 import { SystemConfig } from "./SystemConfig";
-
-
+import { datasetService } from "./DatasetService";
 const dateFormat = "YYYY-MM-DDT00:00:00+05:30"
 
 const prometheusInstance = axios.create({ baseURL: config?.query_api?.prometheus?.url, headers: { "Content-Type": "application/json" } });
@@ -20,7 +19,7 @@ const init = async () => {
   createClient({
     url: `redis://${config.redis_config.denorm_redis_host}:${config.redis_config.denorm_redis_port}`
   })
-    .on("error", err => {
+    .on("error", (err: any) => {
       logger.error("unable to connect to denorm redis client", err)
       isRedisDenormHealthy = false
     })
@@ -35,13 +34,50 @@ const init = async () => {
     .on("ready", () => {
       isRedisDedupHealthy = true
     })
-    .on("error", err => {
+    .on("error", (err: any) => {
       isRedisDedupHealthy = false
       logger.error("unable to connect to dedup redis client", err)
     })
     .connect();
 }
 
+export const getDatasetHealth = async (categories: any, dataset: any) => {
+
+  const details = []
+  if (categories.includes("infra")) {
+    const isMasterDataset = _.get(dataset, "[0].type") == DatasetType.master;
+    const { components, status } = await getInfraHealth(isMasterDataset)
+    details.push({
+      "category": "infra",
+      "status": status,
+      "components": components
+    })
+  }
+  if (categories.includes("processing")) {
+    const { components, status } = await getProcessingHealth(dataset[0])
+    details.push({
+      "category": "processing",
+      "status": status,
+      "components": components
+    })
+  }
+
+  if (categories.includes("query")) {
+    const datasources = await datasetService.findDatasources({ dataset_id: dataset.id, type: DataSourceType.druid }, ["dataset_id", "datasource"])
+    const { components, status } = await getQueryHealth(datasources, dataset[0])
+    details.push({
+      "category": "query",
+      "status": status,
+      "components": components
+    })
+  }
+
+  const allStatus = _.includes(_.map(details, (detail) => detail?.status), HealthStatus.UnHealthy) ? HealthStatus.UnHealthy : HealthStatus.Healthy
+  return {
+    "status": allStatus,
+    "details": details
+  }
+}
 const getDatasetIdForMetrics = (datasetId: string) => {
   datasetId = datasetId.replace(/-/g, "_")
     .replace(/\./g, "_")
@@ -515,7 +551,5 @@ const getQueriesFailedCount = async (datasetId: string) => {
     return { count: 0, health: HealthStatus.UnHealthy }
   }
 }
-
-
 
 init().catch(err => logger.error(err))

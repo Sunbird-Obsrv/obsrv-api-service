@@ -67,3 +67,7 @@ export enum DatasetAction {
 export enum HealthStatus {
     Healthy = "Healthy", UnHealthy= "UnHealthy"
 }
+
+export enum DataSourceType {
+    druid = "druid"
+}
