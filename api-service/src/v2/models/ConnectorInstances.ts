@@ -49,6 +49,5 @@ export const ConnectorInstances = sequelize.define("connector_instances", {
     tableName: "connector_instances",
     timestamps: true,
     createdAt: "created_date",
-    updatedAt: "updated_date",
-    paranoid: true
+    updatedAt: "updated_date"
 })

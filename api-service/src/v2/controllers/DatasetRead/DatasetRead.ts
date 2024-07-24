@@ -43,7 +43,7 @@ const datasetRead = async (req: Request, res: Response) => {
 
 const readDraftDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
     
-    const attrs = _.union(attributes, ["dataset_config", "api_version", "type"])
+    const attrs = _.union(attributes, ["dataset_config", "api_version", "type", "id"])
     const draftDataset = await datasetService.getDraftDataset(datasetId, attrs);
     if(draftDataset) { // Contains a draft
         const apiVersion = _.get(draftDataset, ["api_version"]);

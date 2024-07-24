@@ -92,18 +92,20 @@ class DatasetService {
         return responseData;
     }
 
-    migrateDraftDataset = async (datasetId: string, dataset: Model<any, any>): Promise<any> => {
+    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>): Promise<any> => {
 
-        let draftDataset : Record<string, any> = {
-            api_version: "v2"
+        let draftDataset: Record<string, any> = {
+            api_version: "v2",
+            version_key: Date.now().toString()
         }
-        const dataset_config:any = _.get(dataset, "dataset_config");
+        const dataset_id = _.get(dataset, "id")
+        const dataset_config: any = _.get(dataset, "dataset_config");
         draftDataset["dataset_config"] = {
             indexing_config: {olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master")},
             keys_config: {data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key},
             cache_config: {redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db}
         }
-        const transformations = await this.getDraftTransformations(datasetId, ["field_key", "transformation_function", "mode", "metadata"]);
+        const transformations = await this.getDraftTransformations(dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
         draftDataset["transformations_config"] = _.map(transformations, (config) => {
             return {
                 field_key: _.get(config, ["field_key"]),
@@ -113,7 +115,7 @@ class DatasetService {
                 category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
             }
         })
-        const connectors = await this.getDraftConnectors(datasetId, ["connector_type", "connector_config"]);
+        const connectors = await this.getDraftConnectors(dataset_id, ["connector_type", "connector_config"]);
         draftDataset["connectors_config"] = _.map(connectors, (config) => {
             return {
                 connector_id: _.get(config, ["connector_type"]),
@@ -124,9 +126,9 @@ class DatasetService {
         
         const transaction = await sequelize.transaction();
         try {
-            await DatasetDraft.update(draftDataset, { where: { id: datasetId }, transaction});
-            await DatasetTransformationsDraft.destroy({ where: { dataset_id: datasetId }, transaction });
-            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: datasetId }, transaction });
+            await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
+            await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
+            await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction });
             await transaction.commit();
         } catch (err) {
             await transaction.rollback();
@@ -166,7 +168,7 @@ class DatasetService {
                     version: "v1"
                 }
             })
-            const transformations = await this.getDraftTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
+            const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
             draftDataset["transformations_config"] = _.map(transformations, (config) => {
                 return {
                     field_key: _.get(config, "field_key"),
@@ -180,11 +182,12 @@ class DatasetService {
         } else {
             const connectors = await this.getConnectors(draftDataset.dataset_id, ["connector_id", "connector_config", "operations_config"]);
             draftDataset["connectors_config"] = connectors
-            const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "datatype", "category"]);
+            const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
+        draftDataset["status"] = DatasetStatus.Draft
         await DatasetDraft.create(draftDataset);
         return await this.getDraftDataset(draftDataset.dataset_id);
     }
@@ -259,11 +262,11 @@ class DatasetService {
                 }
             }
             await transaction.commit()
-            await executeCommand(draftDataset.id, "PUBLISH_DATASET");
         } catch(err:any) {
             await transaction.rollback()
             throw obsrvError(draftDataset.id, "FAILED_TO_PUBLISH_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
+        await executeCommand(draftDataset.id, "PUBLISH_DATASET");
         
     }
 
