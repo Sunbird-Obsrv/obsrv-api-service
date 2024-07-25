@@ -191,7 +191,7 @@ class DBCommand(ICommand):
                         '{connector_config.id}',
                         '{dataset_id}',
                         '{connector_config.connector_id}',
-                        '{connector_config.connector_config}',
+                        '{json.dumps(connector_config.connector_config).replace("'", "''")}',
                         '{json.dumps(connector_config.operations_config).replace("'", "''")}',
                         '{connector_config.data_format}',
                         '{DatasetStatusType.Live.name}',
