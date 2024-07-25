@@ -107,5 +107,10 @@ export const config = {
   "encryption_config": {
     "encryption_key": process.env.encryption_key || "strong_encryption_key_to_encrypt",
     "encryption_algorithm": process.env.encryption_algorithm || "aes-256-ecb",
+  },
+  "grafana_config": {
+    "dialect": process.env.dialet || 'postgres',
+    "url": process.env.grafana_url || "http://localhost:8000",
+    "access_token": process.env.grafana_token || ""
   }
 }
