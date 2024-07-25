@@ -481,3 +481,33 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
     return { count: 0, health: HealthStatus.UnHealthy }
   }
 }
+
+export const getDruidIndexers = async (datasources: any, status = HealthStatus.Healthy) => {
+  const results = await Promise.all(_.map(datasources, (datasource) => getDruidDataourceStatus(datasource["datasource"])))
+  const indexers: any = []
+  _.forEach(results, (result: any) => {
+    logger.debug({ result })
+    const sourceStatus = _.get(result, "payload.state") == "RUNNING" ? HealthStatus.Healthy : HealthStatus.UnHealthy
+    logger.debug({ sourceStatus })
+    if (sourceStatus == status) {
+      indexers.push(
+        {
+          "type": "druid",
+          "datasource": _.get(result, "id"),
+          "status": sourceStatus,
+          "state": _.get(result, "payload.state")
+        }
+      )
+    }
+  })
+  return indexers
+}
+
+const restartDruidSupervisors = async (datasourceId: string) => {
+const { data } = await druidHttpService.post(`/druid/indexer/v1/supervisor/${datasourceId}/resume`)
+return data;
+}
+
+export const restartDruidIndexers = async (datasources: any) => {
+  await Promise.all(_.map(datasources, (datasource) => restartDruidSupervisors(datasource["datasource"])))
+}

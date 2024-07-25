@@ -7,7 +7,7 @@ import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetStatus, DatasetType, HealthStatus } from "../../types/DatasetModels";
 import { Dataset } from "../../models/Dataset";
 import logger from "../../logger";
-import {  getDruidIndexers, getFlinkHealthStatus, restartDruidIndexers } from "../../services/HealthService";
+import {  getDruidIndexers, getFlinkHealthStatus, restartDruidIndexers } from "../../services/DatasetHealthService";
 import { Datasource } from "../../models/Datasource";
 import { restartPipeline } from "../DatasetStatusTransition/DatasetStatusTransition";
 
@@ -48,7 +48,7 @@ const datasetReset = async (req: Request, res: Response) => {
             } as ErrorObject, req, res);
         }
         logger.debug(apiId, msgid, resmsgid, "dataset", dataset, category)
-        const isMasterDataset = _.get(dataset, "[0].type") == DatasetType.MasterDataset;
+        const isMasterDataset = _.get(dataset, "[0].type") == DatasetType.master;
         if(category == "processing") {
             const pipeLineStatus = await getFlinkHealthStatus()
             logger.debug({pipeLineStatus})
