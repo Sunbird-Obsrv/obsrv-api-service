@@ -171,8 +171,9 @@ class DBCommand(ICommand):
         return result
 
     def _insert_connector_instances(self, dataset_id, draft_dataset_record):
-        emptyJson, result = {}
-        draft_connectors_config_record = draft_dataset_record.connectors_config
+        emptyJson = {}
+        result = {}
+        draft_connectors_config_record = draft_dataset_record.get('connectors_config')
         if draft_connectors_config_record is None:
             return result
         
@@ -190,14 +191,14 @@ class DBCommand(ICommand):
                         '{connector_config.id}',
                         '{dataset_id}',
                         '{connector_config.connector_id}',
-                        '{json.dumps(connector_config.connector_config).replace("'", "''")}',
+                        '{connector_config.connector_config}',
                         '{json.dumps(connector_config.operations_config).replace("'", "''")}',
                         '{connector_config.data_format}',
                         '{DatasetStatusType.Live.name}',
                         '{json.dumps(emptyJson)}',
                         '{json.dumps(emptyJson)}',
-                        '{draft_dataset_record.created_by}',
-                        '{draft_dataset_record.updated_by}',
+                        '{draft_dataset_record.get('created_by')}',
+                        '{draft_dataset_record.get('updated_by')}',
                         '{current_timestamp}',
                         '{current_timestamp}',
                         '{current_timestamp}'
@@ -206,7 +207,7 @@ class DBCommand(ICommand):
                     SET connector_config = '{json.dumps(connector_config.connector_config).replace("'", "''")}',
                     operations_config = '{json.dumps(connector_config.operations_config).replace("'", "''")}',
                     data_format = '{connector_config.data_format}', 
-                    updated_by = '{draft_dataset_record.updated_by}',
+                    updated_by = '{draft_dataset_record.get('updated_by')}',
                     updated_date = '{current_timestamp}',
                     published_date = '{current_timestamp}',
                     status = '{DatasetStatusType.Live.name}';
@@ -225,15 +226,15 @@ class DBCommand(ICommand):
                         '{connector_config.connector_id}',
                         '{json.dumps(connector_config.connector_config).replace("'", "''")}',
                         '{DatasetStatusType.Live.name}',
-                        '{draft_dataset_record.created_by}',
-                        '{draft_dataset_record.updated_by}',
+                        '{draft_dataset_record.get('created_by')}',
+                        '{draft_dataset_record.get('updated_by')}',
                         '{current_timestamp}',
                         '{current_timestamp}',
                         '{current_timestamp}'
                     )
                     ON CONFLICT (id) DO UPDATE
                     SET connector_config = '{json.dumps(connector_config.connector_config).replace("'", "''")}',
-                    updated_by = '{draft_dataset_record.updated_by}',
+                    updated_by = '{draft_dataset_record.get('updated_by')}',
                     updated_date = '{current_timestamp}',
                     published_date = '{current_timestamp}',
                     status = '{DatasetStatusType.Live.name}';
@@ -247,7 +248,7 @@ class DBCommand(ICommand):
 
     def _insert_dataset_transformations(self, dataset_id, draft_dataset_record):
 
-        draft_dataset_transformations_record = draft_dataset_record.transformations_config
+        draft_dataset_transformations_record = draft_dataset_record.get('transformations_config')
         result = {}
         current_timestamp = dt.now()
         # Delete existing transformations
@@ -263,7 +264,7 @@ class DBCommand(ICommand):
             )
             insert_query = f"""
                 INSERT INTO dataset_transformations(id, dataset_id, field_key, transformation_function,
-                status, mode, created_by, updated_by, created_date, updated_date, published_date, metadata)
+                status, mode, created_by, updated_by, created_date, updated_date, published_date)
                 VALUES (
                     '{dataset_id + '_' + transformation.field_key}',
                     '{dataset_id}',
@@ -271,12 +272,11 @@ class DBCommand(ICommand):
                     '{json.dumps(transformation.transformation_function).replace("'", "''")}',
                     '{DatasetStatusType.Live.name}',
                     '{transformation.mode}',
-                    '{transformation.created_by}',
-                    '{transformation.updated_by}',
+                    '{draft_dataset_record.get('created_by')}',
+                    '{draft_dataset_record.get('updated_by')}',
                     '{current_timestamp}',
                     '{current_timestamp}',
-                    '{current_timestamp}',
-                    '{json.dumps(transformation.metadata).replace("'", "''")}'
+                    '{current_timestamp}'
                 )
             """
             result = self.db_service.execute_upsert(insert_query)

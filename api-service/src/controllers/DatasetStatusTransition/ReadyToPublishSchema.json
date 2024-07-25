@@ -376,7 +376,7 @@
             "minLength": 1
           },
           "connector_config": {
-            "type": "object"
+            "type": "string"
           },
           "operations_config": {
             "type": "object"
@@ -402,11 +402,15 @@
     "properties": {
       "dataset_config": {
         "properties": {
-          "data_key": {
-            "minLength": 1
+          "keys_config": {
+            "properties": {
+              "data_key": {
+                "minLength": 1
+              }
+            },
+            "required": ["data_key"]
           }
-        },
-        "required": ["data_key"]
+        }
       }
     }
   },
