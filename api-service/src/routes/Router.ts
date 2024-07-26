@@ -21,6 +21,7 @@ import { sqlQuery } from "../controllers/QueryWrapper/SqlQueryWrapper";
 import DatasetStatusTansition from "../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import datasetHealth from "../controllers/DatasetHealth/DatasetHealth";
 import DataSchemaGenerator from "../controllers/GenerateDataSchema/GenerateDataSchema";
+import datasetReset from "../controllers/DatasetReset/DatasetReset";
 import DatasetExport from "../controllers/DatasetExport/DatasetExport";
 import DatasetCopy from "../controllers/DatasetCopy/DatasetCopy";
 
@@ -43,6 +44,7 @@ router.post("/template/query/:templateId", setDataToRequestObject("api.query.tem
 router.post("/files/generate-url", setDataToRequestObject("api.files.generate-url"), onRequest({ entity: Entity.Management }), GenerateSignedURL);
 router.post("/datasets/status-transition", setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), DatasetStatusTansition);
 router.post("/dataset/health", setDataToRequestObject("api.dataset.health"), onRequest({ entity: Entity.Management }), datasetHealth);
+router.post("/dataset/reset/:datasetId", setDataToRequestObject("api.dataset.reset"), onRequest({ entity: Entity.Management }), datasetReset);
 router.post("/datasets/dataschema", setDataToRequestObject("api.datasets.dataschema"), onRequest({ entity: Entity.Management }), DataSchemaGenerator);
 router.get("/datasets/export/:dataset_id", setDataToRequestObject("api.datasets.export"), onRequest({ entity: Entity.Management }), DatasetExport);
 router.post("/datasets/copy", setDataToRequestObject("api.datasets.copy"), onRequest({ entity: Entity.Management }), DatasetCopy);
