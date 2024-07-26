@@ -24,7 +24,7 @@ const allowedTransitions: Record<string, any> = {
 }
 const liveDatasetActions = ["Retire", "Archive", "Purge"]
 
-const validateRequest =  (req: Request, datasetId: any) => {
+const validateRequest = (req: Request, datasetId: any) => {
     const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
     if (!isRequestValid.isValid) {
         throw obsrvError(datasetId, invalidRequest, isRequestValid.message, "BAD_REQUEST", 400)
@@ -91,8 +91,11 @@ const deleteDataset = async (dataset: Record<string, any>) => {
 
 
 const readyForPublish = async (dataset: Record<string, any>) => {
-    
-    const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
+
+    let draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
+    let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
+    defaultConfigs = _.omit(defaultConfigs, ["router_config"])
+    _.merge(draftDataset, defaultConfigs)
     const datasetValid: Record<string, any> = schemaValidation(draftDataset, ReadyToPublishSchema)
     if (!datasetValid.isValid) {
         throw {
@@ -180,7 +183,7 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
     if(draftDataset.type === 'master') {
         if(draftDataset.dataset_config.cache_config.redis_db === 0) {
             const { results }: any = await datasetService.getNextRedisDBIndex()
-            if(_.isEmpty(results)) {
+            if (_.isEmpty(results)) {
                 throw {
                     code: "REDIS_DB_INDEX_FETCH_FAILED",
                     message: `Unable to fetch the redis db index for the master data`,

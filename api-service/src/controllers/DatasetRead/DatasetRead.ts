@@ -5,6 +5,7 @@ import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetDraft } from "../../models/DatasetDraft";
 import { datasetService } from "../../services/DatasetService";
 import { obsrvError } from "../../types/ObsrvError";
+import { cipherService } from "../../services/CipherService";
 
 export const apiId = "api.datasets.read";
 export const errorCode = "DATASET_READ_FAILURE"
@@ -16,7 +17,7 @@ const validateRequest = (req: Request) => {
 
     const { dataset_id } = req.params;
     const fields = req.query.fields;
-    if(fields && typeof fields !== 'string') {
+    if (fields && typeof fields !== 'string') {
         throw obsrvError(dataset_id, "DATASET_INVALID_FIELDS_VAL", `The specified fields [${fields}] in the query param is not a string.`, "BAD_REQUEST", 400);
     }
     const fieldValues = fields ? _.split(fields, ",") : [];
@@ -34,7 +35,14 @@ const datasetRead = async (req: Request, res: Response) => {
     const { fields, mode } = req.query;
     const attributes = !fields ? defaultFields : _.split(<string>fields, ",");
     const dataset = (mode == "edit") ? await readDraftDataset(dataset_id, attributes) : await readDataset(dataset_id, attributes)
-    if(!dataset) {
+    if (dataset.connectors_config) {
+        dataset.connectors_config = dataset.connectors_config.map((connector: any) => ({
+            ...connector,
+            connector_config: JSON.parse(cipherService.decrypt(connector.connector_config))
+        }));
+    }
+
+    if (!dataset) {
         throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
     } else {
         ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
