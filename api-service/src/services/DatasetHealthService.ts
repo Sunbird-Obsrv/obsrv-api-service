@@ -104,7 +104,7 @@ export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ compon
 export const getProcessingHealth = async (dataset: any): Promise<{ components: any, status: string }> => {
   const dataset_id = _.get(dataset, "dataset_id")
   const isMasterDataset = _.get(dataset, "type") == DatasetType.master;
-  const flink = await getKafkaHealthStatus()
+  const flink = await getFlinkHealthStatus()
   const { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
   const processingDefaultThreshold = await SystemConfig.getThresholds("processing")
   // eslint-disable-next-line prefer-const
