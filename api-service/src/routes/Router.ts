@@ -21,6 +21,7 @@ import { sqlQuery } from "../controllers/QueryWrapper/SqlQueryWrapper";
 import DatasetStatusTansition from "../controllers/DatasetStatusTransition/DatasetStatusTransition";
 import datasetHealth from "../controllers/DatasetHealth/DatasetHealth";
 import DataSchemaGenerator from "../controllers/GenerateDataSchema/GenerateDataSchema";
+import datasetReset from "../controllers/DatasetReset/DatasetReset";
 
 export const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post("/template/query/:templateId", setDataToRequestObject("api.query.tem
 router.post("/files/generate-url", setDataToRequestObject("api.files.generate-url"), onRequest({ entity: Entity.Management }), GenerateSignedURL);
 router.post("/datasets/status-transition", setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), DatasetStatusTansition);
 router.post("/dataset/health", setDataToRequestObject("api.dataset.health"), onRequest({ entity: Entity.Management }), datasetHealth);
+router.post("/dataset/reset/:datasetId", setDataToRequestObject("api.dataset.reset"), onRequest({ entity: Entity.Management }), datasetReset);
 router.post("/datasets/dataschema", setDataToRequestObject("api.datasets.dataschema"), onRequest({ entity: Entity.Management }), DataSchemaGenerator);
 
 
