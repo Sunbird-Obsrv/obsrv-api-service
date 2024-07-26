@@ -31,21 +31,8 @@ const validateDataset = async (req: Request) => {
 const datasetExport = async (req: Request, res: Response) => {
 
     const datasetRecord = await validateDataset(req)
-    const updateDataset = transformConnectorsConfig(datasetRecord)
-    ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: updateDataset });
+    ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: datasetRecord });
 
-}
-
-const transformConnectorsConfig = (dataset: Record<string, any>) => {
-    const connectorConfig = _.get(dataset, "connectors_config")
-    if (!_.isEmpty(connectorConfig)) {
-        const updatedConnectorConfig = _.map(connectorConfig, config => {
-            const { id, connector_id, operations_config, version } = config
-            return { id, connector_id, connector_config: {}, operations_config, version }
-        })
-        return { ...dataset, connectors_config: updatedConnectorConfig }
-    }
-    return dataset
 }
 
 export default datasetExport;
