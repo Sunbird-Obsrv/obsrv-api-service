@@ -23,7 +23,7 @@ const fetchDataset = async (req: Request, newDatasetId: string) => {
     const isLive = _.get(req, "body.request.source.isLive");
 
     let dataset = isLive ? await getLiveDatasetConfigs(datasetId) : await datasetService.getDraftDataset(datasetId)
-    if (dataset === null) {
+    if (!dataset) {
         throw obsrvError(datasetId, "DATASET_NOT_EXISTS", `Dataset ${datasetId} does not exists`, "NOT_FOUND", 404);
     }
 
