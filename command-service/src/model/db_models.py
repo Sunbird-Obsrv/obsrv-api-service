@@ -45,8 +45,8 @@ class DatasetsDraft:
     created_by: str
     created_date: datetime
     sample_data: dict | None = None
-    transformations_config: dict | None = None
-    connectors_config: dict | None = None
+    transformations_config: list[dict] | None = None
+    connectors_config: list[dict] | None = None
     denorm_config: dict | None = None
     tags: list[str] | None = None
     updated_by: str | None = None
@@ -79,7 +79,7 @@ class DatasourcesDraft:
 class DatasetConnectorConfigDraft:
     id: str
     connector_id: str
-    connector_config: dict
+    connector_config: str | None
     version: str
     operations_config: dict | None = None
     data_format: str | None = 'json'

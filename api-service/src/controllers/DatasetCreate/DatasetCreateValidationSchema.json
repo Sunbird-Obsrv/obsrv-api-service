@@ -71,8 +71,7 @@
             },
             "extraction_key": {
               "type": "string",
-              "default": "events",
-              "minLength": 1
+              "default": "events"
             },
             "dedup_config": {
               "type": "object",
@@ -82,8 +81,7 @@
                   "default": false
                 },
                 "dedup_key": {
-                  "type": "string",
-                  "minLength": 1
+                  "type": "string"
                 }
               },
               "if": {
@@ -115,6 +113,11 @@
             }
           },
           "then": {
+            "properties": {
+              "extraction_key": {
+                "minLength": 1
+              }
+            },
             "required": ["extraction_key", "dedup_config"]
           }
         },
@@ -126,8 +129,7 @@
               "default": true
             },
             "dedup_key": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             }
           },
           "if": {

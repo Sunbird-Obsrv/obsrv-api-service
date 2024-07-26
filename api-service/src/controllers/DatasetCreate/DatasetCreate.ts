@@ -69,9 +69,11 @@ const getDatasetConnectors = (connectorConfigs: Array<Record<string, any>>): Arr
         })
         return _.map(uniqueConnectors, (config) => {
             return {
+                id: config.id,
                 connector_id: config.connector_id,
                 connector_config: cipherService.encrypt(JSON.stringify(config.connector_config)),
-                operations_config: config.operations_config
+                operations_config: config.operations_config,
+                version: config.version
             }
         })
     }

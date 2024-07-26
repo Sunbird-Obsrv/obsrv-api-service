@@ -7,6 +7,7 @@ import bodyParser from "body-parser";
 import { errorHandler, obsrvErrorHandler } from "./middlewares/errors";
 import { ResponseHandler } from "./helpers/ResponseHandler";
 import { config } from "./configs/Config";
+import { alertsRouter } from "./routes/AlertsRouter";
 
 const app: Application = express();
  
@@ -17,6 +18,7 @@ app.use(errorHandler)
 
 app.use("/v2/", v2Router);
 app.use("/", druidProxyRouter);
+app.use("/alerts/v1", alertsRouter);
 app.use("/", metricRouter);
 app.use("*", ResponseHandler.routeNotFound);
 app.use(obsrvErrorHandler);
