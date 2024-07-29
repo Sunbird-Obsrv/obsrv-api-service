@@ -68,7 +68,7 @@ class DatasetService {
         return DatasetSourceConfig.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
-    getConnectors = async (dataset_id: string, attributes?: string[]) => {
+    getConnectors = async (dataset_id: string, attributes?: string[]): Promise<Record<string,any>> => {
         return ConnectorInstances.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
@@ -93,12 +93,26 @@ class DatasetService {
     }
 
     migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>): Promise<any> => {
+        const dataset_id = _.get(dataset, "id")
+        const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
+        const transaction = await sequelize.transaction();
+        try {
+            await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
+            await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
+            await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction });
+            await transaction.commit();
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+        return await this.getDraftDataset(datasetId);
+    }
 
+    migrateDatasetV1= async (dataset_id: string, dataset: Record<string, any>): Promise<any> => {
         let draftDataset: Record<string, any> = {
             api_version: "v2",
             version_key: Date.now().toString()
         }
-        const dataset_id = _.get(dataset, "id")
         const dataset_config: any = _.get(dataset, "dataset_config");
         draftDataset["dataset_config"] = {
             indexing_config: {olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master")},
@@ -124,18 +138,7 @@ class DatasetService {
                 version: "v1"
             }
         })
-        
-        const transaction = await sequelize.transaction();
-        try {
-            await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
-            await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
-            await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction });
-            await transaction.commit();
-        } catch (err) {
-            await transaction.rollback();
-            throw err;
-        }
-        return await this.getDraftDataset(datasetId);
+        return draftDataset;
     }
 
     private getTransformationCategory = (section: string):string => {
@@ -317,6 +320,21 @@ class DatasetService {
         }
     }
 
+}
+
+export const getLiveDatasetConfigs = async (dataset_id: string) => {
+    
+    let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
+    const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
+    const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+
+    if(!_.isEmpty(transformations)){
+        datasetRecord["transformations_config"] = transformations
+    }
+    if(!_.isEmpty(connectors)){
+        datasetRecord["connectors_config"] = connectors
+    }
+    return datasetRecord;
 }
 
 export const datasetService = new DatasetService();
