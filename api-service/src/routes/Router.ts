@@ -24,6 +24,7 @@ import DataSchemaGenerator from "../controllers/GenerateDataSchema/GenerateDataS
 import datasetReset from "../controllers/DatasetReset/DatasetReset";
 import DatasetExport from "../controllers/DatasetExport/DatasetExport";
 import DatasetCopy from "../controllers/DatasetCopy/DatasetCopy";
+import DatasetImport from "../controllers/DatasetImport/DatasetImport";
 
 export const router = express.Router();
 
@@ -48,6 +49,7 @@ router.post("/dataset/reset/:datasetId", setDataToRequestObject("api.dataset.res
 router.post("/datasets/dataschema", setDataToRequestObject("api.datasets.dataschema"), onRequest({ entity: Entity.Management }), DataSchemaGenerator);
 router.get("/datasets/export/:dataset_id", setDataToRequestObject("api.datasets.export"), onRequest({ entity: Entity.Management }), DatasetExport);
 router.post("/datasets/copy", setDataToRequestObject("api.datasets.copy"), onRequest({ entity: Entity.Management }), DatasetCopy);
+router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), onRequest({ entity: Entity.Management }), DatasetImport);
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
