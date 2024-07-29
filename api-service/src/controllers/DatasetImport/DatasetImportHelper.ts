@@ -1,4 +1,3 @@
-import Ajv from "ajv";
 import _ from "lodash";
 import { obsrvError } from "../../types/ObsrvError";
 import ValidationSchema from "./RequestValidationSchema.json"
@@ -6,7 +5,6 @@ import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
 import { schemaValidation } from "../../services/ValidationService";
 import { DatasetStatus, DatasetType } from "../../types/DatasetModels";
 import { datasetService } from "../../services/DatasetService";
-const validator = new Ajv();
 
 const reqBodySchema = ValidationSchema.request_body
 const transformationSchema = ValidationSchema.transformations_config
@@ -18,12 +16,11 @@ const validateConfigs = (schema: any, configs: any[]): { valid: any[], ignored: 
     const ignoredConfigs: any[] = [];
 
     for (const config of configs) {
-        if (validator.validate(schema, config)) {
+        const isConfig = schemaValidation(config, schema)
+        if (isConfig.isValid) {
             validConfigs.push(config);
         } else {
-            const error: any = validator.errors;
-            const errorMessage = error[0]?.schemaPath?.replace("/", "") + " " + error[0]?.message || "Invalid Request Body";
-            ignoredConfigs.push({ config, details: errorMessage });
+            ignoredConfigs.push({ config, details: isConfig.message });
         }
     }
 
