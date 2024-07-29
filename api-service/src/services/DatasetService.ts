@@ -123,10 +123,12 @@ class DatasetService {
         draftDataset["transformations_config"] = _.map(transformations, (config) => {
             return {
                 field_key: _.get(config, ["field_key"]),
-                transformation_function: _.get(config, ["transformation_function"]),
-                mode: _.get(config, ["mode"]),
-                datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
-                category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                transformation_function: {
+                    ..._.get(config, ["transformation_function"]),
+                    datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
+                    category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                },
+                mode: _.get(config, ["mode"])
             }
         })
         const connectors = await this.getDraftConnectors(dataset_id, ["id", "connector_type", "connector_config"]);
@@ -138,10 +140,11 @@ class DatasetService {
                 version: "v1"
             }
         })
+        draftDataset["status"] = DatasetStatus.Draft
         return draftDataset;
     }
 
-    private getTransformationCategory = (section: string):string => {
+    getTransformationCategory = (section: string):string => {
 
         switch(section) {
             case "pii":

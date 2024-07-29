@@ -13,7 +13,7 @@ const transformationSchema = ValidationSchema.transformations_config
 const connectorSchema = ValidationSchema.connectors_config
 const denormSchema = ValidationSchema.denorm_config
 
-const validateConfigs = (schema: any, configs: any[], validKey: string): { valid: any[], ignored: any[] } => {
+const validateConfigs = (schema: any, configs: any[]): { valid: any[], ignored: any[] } => {
     const validConfigs: any[] = [];
     const ignoredConfigs: any[] = [];
 
@@ -23,7 +23,7 @@ const validateConfigs = (schema: any, configs: any[], validKey: string): { valid
         } else {
             const error: any = validator.errors;
             const errorMessage = error[0]?.schemaPath?.replace("/", "") + " " + error[0]?.message || "Invalid Request Body";
-            ignoredConfigs.push({ config, reason: errorMessage });
+            ignoredConfigs.push({ config, details: errorMessage });
         }
     }
 
@@ -43,9 +43,9 @@ export const datasetImportValidation = async (payload: Record<string, any>): Pro
     const denormConfig = _.get(datasetConfig, "denorm_config", { denorm_fields: [] });
     const { validDenorms, invalidDenorms } = await validateDenorms(denormConfig)
 
-    const { valid: resultantConnectors, ignored: ignoredConnectors } = validateConfigs(connectorSchema, connectors, 'connector_id');
-    const { valid: resultantTransformations, ignored: ignoredTransformations } = validateConfigs(transformationSchema, transformations, 'field_key');
-    const { valid: resultantDenorms, ignored: ignoredDenorms } = validateConfigs(denormSchema, validDenorms, 'denorm_out_field');
+    const { valid: resultantConnectors, ignored: ignoredConnectors } = validateConfigs(connectorSchema, connectors);
+    const { valid: resultantTransformations, ignored: ignoredTransformations } = validateConfigs(transformationSchema, transformations);
+    const { valid: resultantDenorms, ignored: ignoredDenorms } = validateConfigs(denormSchema, validDenorms);
 
     datasetConfig["connectors_config"] = resultantConnectors;
     datasetConfig["transformations_config"] = resultantTransformations;
@@ -67,7 +67,7 @@ const validateDenorms = async (denormConfig: Record<string, any>): Promise<Recor
     const validDenorms: any[] = [];
 
     if (denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
-        const masterDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live, type: "master" }, ["id", "dataset_id", "status", "dataset_config", "api_version"]);
+        const masterDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live, type: DatasetType.master }, ["id", "dataset_id", "status", "dataset_config", "api_version"]);
 
         for (const field of denormConfig.denorm_fields) {
             const { redis_db, dataset_id, denorm_out_field, denorm_key } = field;
@@ -83,7 +83,7 @@ const validateDenorms = async (denormConfig: Record<string, any>): Promise<Recor
             if (masterDataset) {
                 validDenorms.push(denormFields);
             } else {
-                invalidDenorms.push({ config: denormFields, reason: `Master dataset does not exist` });
+                invalidDenorms.push({ config: denormFields, details: `Master dataset does not exist` });
             }
         }
     }
