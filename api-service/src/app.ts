@@ -8,9 +8,11 @@ import { errorHandler, obsrvErrorHandler } from "./middlewares/errors";
 import { ResponseHandler } from "./helpers/ResponseHandler";
 import { config } from "./configs/Config";
 import { alertsRouter } from "./routes/AlertsRouter";
+// import cors from "cors";
+const cors = require("cors");
 
 const app: Application = express();
- 
+app.use(cors());
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
