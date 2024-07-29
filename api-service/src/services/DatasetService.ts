@@ -140,7 +140,6 @@ class DatasetService {
                 version: "v1"
             }
         })
-        draftDataset["status"] = DatasetStatus.Draft
         return draftDataset;
     }
 
