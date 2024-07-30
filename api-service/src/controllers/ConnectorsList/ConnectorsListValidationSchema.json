@@ -3,7 +3,9 @@
   "properties": {
     "id": {
       "type": "string",
-      "enum": ["api.connectors.list"]
+      "enum": [
+        "api.connectors.list"
+      ]
     },
     "ver": {
       "type": "string"
@@ -18,7 +20,9 @@
           "type": "string"
         }
       },
-      "required": ["msgid"],
+      "required": [
+        "msgid"
+      ],
       "additionalProperties": false
     },
     "request": {
@@ -29,27 +33,41 @@
           "properties": {
             "status": {
               "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["Draft", "InValidation", "Live", "Retired"]
-                },
-                "minItems": 1
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Draft",
+                  "InValidation",
+                  "Live",
+                  "Retired"
+                ]
               },
+              "minItems": 1
+            },
             "category": {
               "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": ["Database", "File"]
-                },
-                "minItems": 1
-              }
-            },
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Database",
+                  "File"
+                ]
+              },
+              "minItems": 1
+            }
+          },
           "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   },
-  "required": ["id", "ver", "ts", "params", "request"],
+  "required": [
+    "id",
+    "ver",
+    "ts",
+    "params",
+    "request"
+  ],
   "additionalProperties": false
 }
