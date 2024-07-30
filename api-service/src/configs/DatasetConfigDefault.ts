@@ -51,6 +51,7 @@ export const defaultDatasetConfig = {
     "entry_topic": config.telemetry_service_config.kafka.topics.createDataset,
     "status": DatasetStatus.Draft,
     "api_version": "v2",
+    "sample_data":{},
     "version": 1,
     "created_by": "SYSTEM",
     "updated_by": "SYSTEM"

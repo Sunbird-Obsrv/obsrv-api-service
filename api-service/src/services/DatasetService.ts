@@ -130,6 +130,7 @@ class DatasetService {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
             await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
             await DatasetSourceConfigDraft.destroy({ where: { dataset_id }, transaction });
+            await DatasourceDraft.destroy({ where: { dataset_id }, transaction });
             await transaction.commit();
         } catch (err) {
             await transaction.rollback();
@@ -187,6 +188,25 @@ class DatasetService {
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
+        const denormConfig = _.get(draftDataset, "denorm_config")
+        if (denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
+            const masterDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live, type: "master" }, ["id","dataset_id", "status", "dataset_config", "api_version"])
+            if (_.isEmpty(masterDatasets)) {
+                throw { code: "DEPENDENT_MASTER_DATA_NOT_FOUND", message: `The dependent dataset not found`, errCode: "NOT_FOUND", statusCode: 404 }
+            }
+            const updatedDenormFields = _.map(denormConfig.denorm_fields, field => {
+                const { redis_db, denorm_out_field, denorm_key } = field
+                let masterConfig = _.find(masterDatasets, data => _.get(data, "dataset_config.cache_config.redis_db") === redis_db)
+                if(!masterConfig){
+                    masterConfig = _.find(masterDatasets, data => _.get(data, "dataset_config.redis_db") === redis_db)
+                }
+                if (_.isEmpty(masterConfig)) {
+                    throw { code: "DEPENDENT_MASTER_DATA_NOT_LIVE", message: `The dependent master dataset is not published`, errCode: "PRECONDITION_REQUIRED", statusCode: 428 }
+                }
+                return { denorm_key, denorm_out_field, dataset_id: _.get(masterConfig, "dataset_id") }
+            })
+            draftDataset["denorm_config"] = { ...denormConfig, denorm_fields: updatedDenormFields }
+        }
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
@@ -203,12 +223,12 @@ class DatasetService {
         const { id } = dataset
         const transaction = await sequelize.transaction()
         try {
-            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id } , transaction})
-            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id } , transaction})
-            await DatasourceDraft.destroy({ where: { dataset_id: id } , transaction})
-            await DatasetDraft.destroy({ where: { id } , transaction})
+            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id }, transaction })
+            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id }, transaction })
+            await DatasourceDraft.destroy({ where: { dataset_id: id }, transaction })
+            await DatasetDraft.destroy({ where: { id }, transaction })
             await transaction.commit()
-        } catch (err:any) {
+        } catch (err: any) {
             await transaction.rollback()
             throw obsrvError(dataset.id, "FAILED_TO_DELETE_DATASET", err.message, "SERVER_ERROR", 500, err)
         }
@@ -260,8 +280,9 @@ class DatasetService {
                 await this.createDruidDataSource(draftDataset, transaction);
             }
             if(indexingConfig.lakehouse_enabled) {
-                const liveDataset = await this.getDataset(draftDataset.dataset_id, ["id"], true);
-                if(liveDataset) {
+                const liveDataset = await this.getDataset(draftDataset.dataset_id, ["id", "api_version"], true);
+
+                if(liveDataset && liveDataset.api_version === "v2") {
                     await this.updateHudiDataSource(draftDataset, transaction)
                 } else {
                     await this.createHudiDataSource(draftDataset, transaction)
@@ -300,7 +321,7 @@ class DatasetService {
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const dsId = _.join([draftDataset.dataset_id,"events","hudi"], "_")
         const liveDatasource = await Datasource.findOne({where: {id: dsId}, attributes: ["ingestion_spec"], raw: true}) as unknown as Record<string,any>
-        const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource.ingestion_spec, allFields, draftDatasource.datasource_ref);
+        const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
         _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
