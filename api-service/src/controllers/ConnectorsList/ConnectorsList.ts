@@ -3,7 +3,6 @@ import ConnectorListSchema from "./ConnectorsListValidationSchema.json";
 import { obsrvError } from "../../types/ObsrvError";
 import { schemaValidation } from "../../services/ValidationService";
 import _ from "lodash";
-import logger from "../../logger";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import httpStatus from "http-status";
 import { connectorService } from "../../services/ConnectorService";
@@ -19,28 +18,21 @@ const validateRequest = (req: Request) => {
 
 const connectorsList = async (req: Request, res: Response) => {
     validateRequest(req);
-
-    const connectorBody = req.body.request;
+    const connectorBody = _.get(req, ["body", "request"]);
     const connectorList = await listConnectors(connectorBody)
     const responseData = { data: connectorList, count: _.size(connectorList) }
-    logger.info({ req: req.body, resmsgid: _.get(res, "resmsgid"), message: `Connectors are listed successfully with a connectors count (${_.size(connectorList)})` })
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: responseData });
 }
 
 const listConnectors = async (request: Record<string, any>): Promise<Record<string, any>> => {
     const { filters = {} } = request || {};
-    const connectorStatus = _.get(filters, "status");
-    const connectorCategory = _.get(filters, "category");
+    const status = _.get(filters, "status");
+    const category = _.get(filters, "category");
     const filterOptions: any = {};
-    if (!_.isEmpty(connectorStatus)) {
-        filterOptions["status"] = connectorStatus
-    }
-
-    if (!_.isEmpty(connectorCategory)) {
-        filterOptions["category"] = connectorCategory
-    }
-    const filteredconnectorList = await connectorService.findConnectors(filterOptions, defaultFields);
-    return filteredconnectorList;
+    if (!_.isEmpty(status))  filterOptions["status"] = status;
+    if (!_.isEmpty(category)) filterOptions["category"] = category;
+    return connectorService.findConnectors(filterOptions, defaultFields);
+    
 }
 
 export default connectorsList;
