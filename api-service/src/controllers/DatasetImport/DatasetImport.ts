@@ -26,7 +26,9 @@ const importDataset = async (dataset: Record<string, any>, overwrite: string | a
     const response = await datasetService.createDraftDataset(dataset).catch(err => { return err })
     if (response?.name === 'SequelizeUniqueConstraintError') {
         if (overwrite == "true") {
-            const overwriteRes = await datasetService.updateDraftDataset(dataset)
+            const overwriteRes = await datasetService.updateDraftDataset(dataset).catch(err=>{
+                throw obsrvError("", "DATASET_IMPORT_FAILURE", `Failed to import dataset`, "INTERNAL_SERVER_ERROR", 500);
+            })
             return _.omit(overwriteRes, ["message"])
         }
     }
