@@ -24,7 +24,7 @@ const allowedTransitions: Record<string, any> = {
 }
 const liveDatasetActions = ["Retire", "Archive", "Purge"]
 
-const validateRequest = (req: Request, datasetId: any) => {
+const validateRequest =  (req: Request, datasetId: any) => {
     const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
     if (!isRequestValid.isValid) {
         throw obsrvError(datasetId, invalidRequest, isRequestValid.message, "BAD_REQUEST", 400)
@@ -54,7 +54,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     const { dataset_id, status } = _.get(req.body, "request");
     validateRequest(req, dataset_id);
 
-    const dataset: Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
+    const dataset:Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
     validateDataset(dataset, dataset_id, status);
 
     switch(status) {
@@ -144,7 +144,7 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
                 statusCode: 409
             }
         }
-        const masterDatasets = await datasetService.findDatasets({ id: datasetIds, type: "master" }, ["id", "status", "dataset_config", "api_version"])
+        const masterDatasets = await datasetService.findDatasets({id: datasetIds, type: "master"}, ["id", "status", "dataset_config", "api_version"])
         const masterDatasetsStatus = _.map(denormConfig.denorm_fields, (denormField) => {
             const md = _.find(masterDatasets, (master) => { return denormField.dataset_id === master.id })
             let datasetStatus : Record<string, any> = {
@@ -190,7 +190,7 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
         draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
         if (draftDataset.dataset_config.cache_config.redis_db === 0) {
             const { results }: any = await datasetService.getNextRedisDBIndex()
-            if (_.isEmpty(results)) {
+            if(_.isEmpty(results)) {
                 throw {
                     code: "REDIS_DB_INDEX_FETCH_FAILED",
                     message: `Unable to fetch the redis db index for the master data`,

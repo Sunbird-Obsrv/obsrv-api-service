@@ -223,12 +223,12 @@ class DatasetService {
         const { id } = dataset
         const transaction = await sequelize.transaction()
         try {
-            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id }, transaction })
-            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id }, transaction })
-            await DatasourceDraft.destroy({ where: { dataset_id: id }, transaction })
-            await DatasetDraft.destroy({ where: { id }, transaction })
+            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id } , transaction})
+            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id } , transaction})
+            await DatasourceDraft.destroy({ where: { dataset_id: id } , transaction})
+            await DatasetDraft.destroy({ where: { id } , transaction})
             await transaction.commit()
-        } catch (err: any) {
+        } catch (err:any) {
             await transaction.rollback()
             throw obsrvError(dataset.id, "FAILED_TO_DELETE_DATASET", err.message, "SERVER_ERROR", 500, err)
         }
