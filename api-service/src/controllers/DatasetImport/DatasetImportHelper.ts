@@ -1,15 +1,16 @@
 import _ from "lodash";
 import { obsrvError } from "../../types/ObsrvError";
-import ValidationSchema from "./RequestValidationSchema.json"
+import ValidationSchemaV2 from "./RequestValidationSchemaV2.json"
+import ValidationSchemaV1 from "./RequestValidationSchemaV1.json"
 import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
 import { schemaValidation } from "../../services/ValidationService";
 import { DatasetStatus, DatasetType } from "../../types/DatasetModels";
 import { datasetService } from "../../services/DatasetService";
 
-const reqBodySchema = ValidationSchema.request_body
-const transformationSchema = ValidationSchema.transformations_config
-const connectorSchema = ValidationSchema.connectors_config
-const denormSchema = ValidationSchema.denorm_config
+const reqBodySchema = ValidationSchemaV2.request_body
+const transformationSchema = ValidationSchemaV2.transformations_config
+const connectorSchema = ValidationSchemaV2.connectors_config
+const denormSchema = ValidationSchemaV2.denorm_config
 
 const validateConfigs = (schema: any, configs: any[]): { valid: any[], ignored: any[] } => {
     const validConfigs: any[] = [];
@@ -88,8 +89,13 @@ const validateDenorms = async (denormConfig: Record<string, any>): Promise<Recor
     return { validDenorms, invalidDenorms };
 };
 
-export const migrateExportedDatasetV1 = (datasetPayload: Record<string, any>) => {
+export const migrateExportedDatasetV1 = (requestPayload: Record<string, any>) => {
 
+    const v1Config = schemaValidation(requestPayload, ValidationSchemaV1);
+    if (!v1Config.isValid) {
+        throw obsrvError("", "DATASET_V1_CONFIGS_INVALID", v1Config.message, "BAD_REQUEST", 400)
+    }
+    const datasetPayload = requestPayload.request
     const { dataset_id, timestamp_key = "", data_key = "", type: datasetType } = _.get(datasetPayload, "data.metadata")
     const type = datasetType === "master-dataset" ? DatasetType.master : DatasetType.event
 

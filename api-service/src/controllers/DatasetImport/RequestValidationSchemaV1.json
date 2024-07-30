@@ -1,0 +1,235 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": ["api.datasets.import"]
+    },
+    "ver": {
+      "type": "string"
+    },
+    "ts": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "properties": {
+        "msgid": {
+          "type": "string"
+        }
+      },
+      "required": ["msgid"],
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "env_variables": {
+          "type": "object",
+          "properties": {
+            "input_sources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": ["id", "type"]
+              }
+            }
+          },
+          "required": ["input_sources"]
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "dataset_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["dataset", "master-dataset"]
+                },
+                "timestamp_key": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "data_key": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["id", "dataset_id", "type"]
+            },
+            "data_schema": {
+              "type": "object",
+              "properties": {
+                "$schema": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "properties": {
+                  "type": "object"
+                },
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["$schema", "type", "properties"]
+            },
+            "config": {
+              "type": "object",
+              "properties": {
+                "batch": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "extraction_key": {
+                      "type": "string"
+                    },
+                    "drop_duplicates": {
+                      "type": "boolean"
+                    },
+                    "dedup_period": {
+                      "type": "integer"
+                    },
+                    "dedup_key": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "id",
+                    "extraction_key",
+                    "drop_duplicates",
+                    "dedup_key"
+                  ]
+                },
+                "dedup": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "dedup_key": {
+                      "type": "string"
+                    },
+                    "dedup_period": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["enabled", "dedup_key"]
+                },
+                "router": {
+                  "type": "object",
+                  "properties": {
+                    "topic": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "validation": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "mode": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["enabled", "mode"]
+                }
+              },
+              "required": ["batch", "dedup", "validation"]
+            },
+            "transformations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "expr": {
+                    "type": "string"
+                  },
+                  "mode": {
+                    "type": "string"
+                  },
+                  "dataType": {
+                    "type": "string"
+                  },
+                  "section": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "expr",
+                  "mode",
+                  "dataType",
+                  "section"
+                ]
+              }
+            },
+            "denorm": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "master_dataset_id": {
+                    "type": "string"
+                  },
+                  "denorm_key": {
+                    "type": "string"
+                  },
+                  "out": {
+                    "type": "string"
+                  }
+                },
+                "required": ["master_dataset_id", "denorm_key", "out"]
+              }
+            }
+          },
+          "required": ["metadata", "data_schema"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["data"]
+    }
+  },
+  "required": ["id", "ver", "ts", "params", "request"],
+  "additionalProperties": false
+}

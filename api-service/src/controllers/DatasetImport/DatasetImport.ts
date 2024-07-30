@@ -8,22 +8,38 @@ import { obsrvError } from "../../types/ObsrvError";
 
 const datasetImport = async (req: Request, res: Response) => {
 
+    const { overwrite = "true" } = req.query;
     const requestBody = req.body
     let datasetPayload = requestBody.request;
     if (_.get(datasetPayload, "api_version") !== "v2") {
-        const migratedConfigs = migrateExportedDatasetV1(datasetPayload)
+        const migratedConfigs = migrateExportedDatasetV1(requestBody)
         datasetPayload = migratedConfigs;
     }
-    const dataset_id = _.get(datasetPayload, "dataset_id")
-    const { updatedDataset, ignoredFields } =await datasetImportValidation({ ...requestBody, "request": datasetPayload })
+    const { updatedDataset, ignoredFields } = await datasetImportValidation({ ...requestBody, "request": datasetPayload })
     const { successMsg, partialIgnored } = getResponseData(ignoredFields)
-    const dataset = await datasetService.createDraftDataset(updatedDataset).catch(err => {
+
+    const dataset = overwrite == "true" ? await overWriteDataset(updatedDataset) : await createNewDataset(updatedDataset)
+    ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: successMsg, data: dataset, ...(!_.isEmpty(partialIgnored) && { ignoredFields: partialIgnored }) } });
+}
+
+const createNewDataset = async (dataset: Record<string, any>) => {
+    return datasetService.createDraftDataset(dataset).catch(err => {
         if (err?.name === 'SequelizeUniqueConstraintError') {
-            throw obsrvError(dataset_id, "DATASET_ALREADY_EXISTS", `Dataset with id ${dataset_id} already exists to import`, "BAD_REQUEST", 400);
+            const dataset_id = _.get(dataset, "dataset_id")
+            throw obsrvError(dataset.dataset_id, "DATASET_ALREADY_EXISTS", `Dataset with id : ${dataset_id} already exists to import`, "BAD_REQUEST", 400);
         }
         throw obsrvError("", "DATASET_IMPORT_FAILURE", `Failed to import dataset`, "INTERNAL_SERVER_ERROR", 500);
     })
-    ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: successMsg, data: dataset, ...(!_.isEmpty(partialIgnored) && { ignoredFields: partialIgnored }) } });
+}
+
+const overWriteDataset = async (dataset: Record<string, any>) => {
+    const dataset_id = _.get(dataset, "dataset_id")
+    const draftDataset = await datasetService.getDraftDataset(dataset_id, ["id"])
+    if (!draftDataset) {
+        throw obsrvError(dataset.dataset_id, "DATASET_NOT_FOUND", `Dataset with dataset_id: ${dataset_id} not found to overwrite`, "NOT_FOUND", 404)
+    }
+    const response = await datasetService.updateDraftDataset(dataset)
+    return _.omit(response, ["message"])
 }
 
 const getResponseData = (ignoredConfigs: Record<string, any>) => {
