@@ -23,17 +23,18 @@ const datasetImport = async (req: Request, res: Response) => {
 }
 
 const importDataset = async (dataset: Record<string, any>, overwrite: string | any) => {
+    const dataset_id = _.get(dataset,"dataset_id")
     const response = await datasetService.createDraftDataset(dataset).catch(err => { return err })
     if (response?.name === 'SequelizeUniqueConstraintError') {
         if (overwrite == "true") {
             const overwriteRes = await datasetService.updateDraftDataset(dataset).catch(err=>{
-                throw obsrvError("", "DATASET_IMPORT_FAILURE", `Failed to import dataset`, "INTERNAL_SERVER_ERROR", 500);
+                throw obsrvError(dataset_id, "DATASET_IMPORT_FAILURE", `Failed to import dataset: ${dataset_id} as overwrite failed`, "INTERNAL_SERVER_ERROR", 500);
             })
             return _.omit(overwriteRes, ["message"])
         }
     }
     if(response?.errors){
-        throw obsrvError("", "DATASET_IMPORT_FAILURE", `Failed to import dataset`, "INTERNAL_SERVER_ERROR", 500);
+        throw obsrvError("", "DATASET_IMPORT_FAILURE", `Failed to import dataset: ${dataset_id}`, "INTERNAL_SERVER_ERROR", 500);
     }
     return response
 }
