@@ -108,18 +108,20 @@ class DatasetService {
         return await this.getDraftDataset(datasetId);
     }
 
-    migrateDatasetV1= async (dataset_id: string, dataset: Record<string, any>): Promise<any> => {
+    migrateDatasetV1 = async (dataset_id: string, dataset: Record<string, any>): Promise<any> => {
+        const status = _.get(dataset, "status")
         let draftDataset: Record<string, any> = {
             api_version: "v2",
             version_key: Date.now().toString()
         }
         const dataset_config: any = _.get(dataset, "dataset_config");
         draftDataset["dataset_config"] = {
-            indexing_config: {olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master")},
-            keys_config: {data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key},
-            cache_config: {redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db}
+            indexing_config: { olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master") },
+            keys_config: { data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key },
+            cache_config: { redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db }
         }
-        const transformations = await this.getDraftTransformations(dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
+        const transformationFields = ["field_key", "transformation_function", "mode", "metadata"]
+        const transformations = _.includes([DatasetStatus.Live], status) ? await this.getTransformations(dataset_id, transformationFields) : await this.getDraftTransformations(dataset_id, transformationFields);
         draftDataset["transformations_config"] = _.map(transformations, (config) => {
             return {
                 field_key: _.get(config, ["field_key"]),
@@ -131,7 +133,8 @@ class DatasetService {
                 mode: _.get(config, ["mode"])
             }
         })
-        const connectors = await this.getDraftConnectors(dataset_id, ["id", "connector_type", "connector_config"]);
+        const connectorsFields = ["id", "connector_type", "connector_config"]
+        const connectors = _.includes([DatasetStatus.Live], status) ? await this.getConnectorsV1(dataset_id, connectorsFields) : await this.getDraftConnectors(dataset_id, connectorsFields);
         draftDataset["connectors_config"] = _.map(connectors, (config) => {
             return {
                 id: _.get(config, ["id"]),
@@ -140,6 +143,7 @@ class DatasetService {
                 version: "v1"
             }
         })
+        draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         return draftDataset;
     }
 
@@ -186,6 +190,7 @@ class DatasetService {
                 }
             })
             draftDataset["api_version"] = "v2"
+            draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
             const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
             draftDataset["connectors_config"] = connectors

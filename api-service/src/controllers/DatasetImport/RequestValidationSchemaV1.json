@@ -223,8 +223,7 @@
               }
             }
           },
-          "required": ["metadata", "data_schema"],
-          "additionalProperties": false
+          "required": ["metadata", "data_schema"]
         }
       },
       "required": ["data"]
