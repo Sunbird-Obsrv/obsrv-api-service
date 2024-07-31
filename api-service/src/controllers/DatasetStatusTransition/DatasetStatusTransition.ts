@@ -184,7 +184,6 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
 
 const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
     if (draftDataset.type === 'master') {
-        // _.set(draftDataset,"datasetConfig.cache_config",datasetDefaultConfig)
         let dataset_config = _.get(draftDataset, "dataset_config")
         const datasetCacheConfig = _.get(defaultDatasetConfig, "dataset_config.cache_config")
         draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
