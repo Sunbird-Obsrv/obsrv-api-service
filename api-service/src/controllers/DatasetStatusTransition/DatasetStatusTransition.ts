@@ -95,10 +95,11 @@ const readyForPublish = async (dataset: Record<string, any>) => {
     let draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
     defaultConfigs = _.omit(defaultConfigs, ["router_config"])
-    if (draftDataset?.type === 'master') {
-        defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
-    }
-    _.merge(draftDataset, defaultConfigs)
+    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue) => {
+        if (_.isBoolean(objValue) && _.isBoolean(srcValue)) {
+            return objValue;
+        }
+    });
     const datasetValid: Record<string, any> = schemaValidation(draftDataset, ReadyToPublishSchema)
     if (!datasetValid.isValid) {
         throw {
