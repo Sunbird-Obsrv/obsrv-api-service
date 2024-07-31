@@ -35,18 +35,16 @@ const datasetRead = async (req: Request, res: Response) => {
     const { fields, mode } = req.query;
     const attributes = !fields ? defaultFields : _.split(<string>fields, ",");
     const dataset = (mode == "edit") ? await readDraftDataset(dataset_id, attributes) : await readDataset(dataset_id, attributes)
+    if (!dataset) {
+        throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
+    }
     if (dataset.connectors_config) {
         dataset.connectors_config = dataset.connectors_config.map((connector: any) => ({
             ...connector,
             connector_config: JSON.parse(cipherService.decrypt(connector.connector_config))
         }));
     }
-
-    if (!dataset) {
-        throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
-    } else {
-        ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
-    }
+    ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
 
 const readDraftDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
