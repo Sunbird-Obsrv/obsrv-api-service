@@ -124,6 +124,7 @@ class DatasetService {
                 version: "v1"
             }
         })
+        draftDataset["sample_data"] = dataset_config?.mergedEvent
         
         const transaction = await sequelize.transaction();
         try {
@@ -182,6 +183,7 @@ class DatasetService {
                 }
             })
             draftDataset["api_version"] = "v2"
+            draftDataset["sample_data"] = dataset_config?.mergedEvent
         } else {
             const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
             draftDataset["connectors_config"] = connectors
