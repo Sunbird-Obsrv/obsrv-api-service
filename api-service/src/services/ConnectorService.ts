@@ -6,12 +6,8 @@ class ConnectorService {
         return ConnectorRegistry.findAll({ where, attributes, raw: true });
     }
 
-    getConnector = async (Id: string, attributes?: string[]): Promise<any> => {
-        return ConnectorRegistry.findOne({ where: { id: Id }, attributes });
-    }
-
-    getDraftConnector = async (Id: string, Status: string, attributes?: string[]): Promise<any> => {
-        return ConnectorRegistry.findOne({ where: { id: Id, status: Status }, attributes });
+    getConnector = async (where?: Record<string, any>, attributes?: string[]): Promise<any> => {
+        return ConnectorRegistry.findOne({ where, attributes, raw: true});
     }
 
 }
