@@ -91,8 +91,18 @@ const deleteDataset = async (dataset: Record<string, any>) => {
 
 
 const readyForPublish = async (dataset: Record<string, any>) => {
-    
-    const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
+
+    let draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
+    let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
+    defaultConfigs = _.omit(defaultConfigs, ["router_config"])
+    if (draftDataset?.type === 'master') {
+        defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
+    }
+    _.mergeWith(draftDataset,defaultConfigs,draftDataset, (objValue, srcValue) => {
+        if (_.isBoolean(objValue) && _.isBoolean(srcValue)) {
+            return objValue;
+        }
+    });
     const datasetValid: Record<string, any> = schemaValidation(draftDataset, ReadyToPublishSchema)
     if (!datasetValid.isValid) {
         throw {
@@ -177,8 +187,11 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
 }
 
 const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
-    if(draftDataset.type === 'master') {
-        if(draftDataset.dataset_config.cache_config.redis_db === 0) {
+    if (draftDataset.type === 'master') {
+        let dataset_config = _.get(draftDataset, "dataset_config")
+        const datasetCacheConfig = _.get(defaultDatasetConfig, "dataset_config.cache_config")
+        draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
+        if (draftDataset.dataset_config.cache_config.redis_db === 0) {
             const { results }: any = await datasetService.getNextRedisDBIndex()
             if(_.isEmpty(results)) {
                 throw {
@@ -206,7 +219,7 @@ const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
 
     if (dataset.type === DatasetType.master) {
 
-        const liveDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live }, ["denorm_config", "id", "status"]) || []
+        const liveDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live }, ["dataset_config", "dataset_id"]) || []
         const draftDatasets = await datasetService.findDraftDatasets({ status: [DatasetStatus.ReadyToPublish, DatasetStatus.Draft] }, ["denorm_config", "id", "status"]) || []
         const allDatasets = _.union(liveDatasets, draftDatasets)
         const extractDenormFields = _.map(allDatasets, function(depDataset) {

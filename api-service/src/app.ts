@@ -10,7 +10,6 @@ import { config } from "./configs/Config";
 import { alertsRouter } from "./routes/AlertsRouter";
 
 const app: Application = express();
- 
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
