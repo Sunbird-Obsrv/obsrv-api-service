@@ -26,6 +26,7 @@ import DatasetExport from "../controllers/DatasetExport/DatasetExport";
 import DatasetCopy from "../controllers/DatasetCopy/DatasetCopy";
 import ConnectorsList from "../controllers/ConnectorsList/ConnectorsList";
 import ConnectorsRead from "../controllers/ConnectorsRead/ConnectorsRead";
+import DatasetImport from "../controllers/DatasetImport/DatasetImport";
 
 export const router = express.Router();
 
@@ -52,6 +53,7 @@ router.get("/datasets/export/:dataset_id", setDataToRequestObject("api.datasets.
 router.post("/datasets/copy", setDataToRequestObject("api.datasets.copy"), onRequest({ entity: Entity.Management }), DatasetCopy);
 router.post("/connectors/list", setDataToRequestObject("api.connectors.list"), onRequest({ entity: Entity.Management }), ConnectorsList);
 router.get("/connectors/read/:id", setDataToRequestObject("api.connectors.read"), onRequest({entity: Entity.Management }), ConnectorsRead);
+router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), onRequest({ entity: Entity.Management }), DatasetImport);
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
