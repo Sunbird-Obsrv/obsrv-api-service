@@ -37,6 +37,25 @@ describe("Connectors Read API", () => {
             });
     });
 
+    it("Connector read success: When valid id is given, but value of mode is not provided", (done) => {
+        chai.spy.on(ConnectorRegistry, "findOne", () => {
+            return Promise.resolve(TestInputsForConnectorsRead.LIVE_CONNECTORS)
+        })
+        chai
+            .request(app)
+            .get("/v2/connectors/read/postgres-connector-1.0.0?mode=")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                const result = JSON.stringify(res.body.result)
+                result.should.be.eq(JSON.stringify(TestInputsForConnectorsRead.LIVE_CONNECTORS))
+                done();
+            });
+    });
+
     it("Connector read success: With mode=edit", (done) => {
         chai.spy.on(ConnectorRegistry, "findOne", () => {
             return Promise.resolve(TestInputsForConnectorsRead.DRAFT_CONNECTORS)
