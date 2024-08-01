@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "99bdb8d0-6d3a-4ba2-9044-ec5263e54c95",
+		"_postman_id": "51471244-e9b6-453e-964d-dccbdac80e72",
 		"name": "V2 docs",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
-		"_exporter_id": "33916975",
-		"_collection_link": "https://speeding-star-177775.postman.co/workspace/sanketika-obsrv~2ce96556-12e2-48bd-8e42-9c1dba428cc8/collection/33916975-99bdb8d0-6d3a-4ba2-9044-ec5263e54c95?action=share&source=collection_link&creator=33916975"
+		"_exporter_id": "37164806"
 	},
 	"item": [
 		{
@@ -2251,6 +2250,290 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"id\": \"api.datasets.dataschema\",\n    \"ver\": \"v1\",\n    \"ts\": \"2024-07-22T12:35:36+05:30\",\n    \"params\": {\n        \"status\": \"FAILED\",\n        \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\",\n        \"resmsgid\": \"1f856c5e-37f0-41e9-96fb-642471228da2\"\n    },\n    \"responseCode\": \"BAD_REQUEST\",\n    \"result\": {},\n    \"error\": {\n        \"code\": \"DATA_SCHEMA_INVALID_INPUT\",\n        \"message\": \"#properties/request/required must have required property 'config'\"\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Connector api's",
+			"item": [
+				{
+					"name": "Connector list",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-04-10T16:10:50+05:30\",\n    \"params\": {\n       \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\"\n    },\n    \"request\": {\n        \"filters\": {\n            \"status\": [\n                \"Draft\"\n            ]\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:3000/v2/connectors/list"
+					},
+					"response": [
+						{
+							"name": "Success: Filtered based on category",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-04-10T16:10:50+05:30\",\n    \"params\": {\n       \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6dc\"\n    },\n    \"request\": {\n        \"filters\": {\n            \"category\":[\n                \"Database\"\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3000/v2/connectors/list"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1908"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"774-58gfxDsxY66h3KZnTg62QbkxcPY\""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 30 Jul 2024 09:37:42 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-30T15:07:42+05:30\",\n    \"params\": {\n        \"status\": \"SUCCESS\",\n        \"msgid\": \"abc\",\n        \"resmsgid\": \"632d3342-fd8a-47f7-afbb-96402a00b92f\"\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"data\": [\n            {\n                \"id\": \"aws-s3-connector-0.1.0\",\n                \"connector_id\": \"aws-s3-connector\",\n                \"name\": \"AWS S3\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The AWS S3 Connector is used to move data from any S3 Bucket to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/b/bc/Amazon-S3-Logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.237Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.237Z\"\n            },\n            {\n                \"id\": \"azure-blob-connector-0.1.0\",\n                \"connector_id\": \"azure-blob-connector\",\n                \"name\": \"Azure Blob Store\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The Azure Blob Store Connector is used to move data from any Azure Blob Container to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.302Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.302Z\"\n            },\n            {\n                \"id\": \"gcs-connector-0.1.0\",\n                \"connector_id\": \"gcs-connector\",\n                \"name\": \"Google Cloud Storage\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The GCS Connector is used to move data from any Google Bucket to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/512px-Google_Cloud_logo.svg.png\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.364Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.364Z\"\n            }\n        ],\n        \"count\": 3\n    }\n}"
+						},
+						{
+							"name": "Failure: Invalid request body, filter option array should not be empty",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-04-10T16:10:50+05:30\",\n    \"params\": {\n       \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\"\n    },\n    \"request\": {\n        \"filters\": {\n            \"category\":[\n                \"File\"\n            ],\n            \"status\": [\n                //\"Live\"\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3000/v2/connectors/list"
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "399"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"18f-Hsau3RTrCuWgbSoS3cqIWuUq45k\""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 30 Jul 2024 09:43:14 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-30T15:13:14+05:30\",\n    \"params\": {\n        \"status\": \"FAILED\",\n        \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\",\n        \"resmsgid\": \"02fadde0-8c59-4420-8ab3-56474b01670b\"\n    },\n    \"responseCode\": \"BAD_REQUEST\",\n    \"result\": {},\n    \"error\": {\n        \"code\": \"CONNECTORS_LIST_INPUT_INVALID\",\n        \"message\": \"#properties/request/properties/filters/properties/status/minItems must NOT have fewer than 1 items\"\n    }\n}"
+						},
+						{
+							"name": "Success: Connectors list with all filter options",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-04-10T16:10:50+05:30\",\n    \"params\": {\n       \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\"\n    },\n    \"request\": {\n        \"filters\": {\n            \"category\":[\n                \"File\",\"Database\"\n            ],\n            \"status\": [\n                \"Live\",\"Draft\",\"InValidation\", \"Retired\"\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3000/v2/connectors/list"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "4107"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"100b-SEJt8xn1TwmZz8DKpFAwkYx6E8s\""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 30 Jul 2024 09:47:51 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-30T15:17:51+05:30\",\n    \"params\": {\n        \"status\": \"SUCCESS\",\n        \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\",\n        \"resmsgid\": \"fffa3ee0-da12-4bea-9b72-365571a62a4e\"\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"data\": [\n            {\n                \"id\": \"postgres-connector-1.0.0\",\n                \"connector_id\": \"postgres-connector\",\n                \"name\": \"PostgreSQL\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The PostgreSQL Connector is used to move data from any Postgres Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.732Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.732Z\"\n            },\n            {\n                \"id\": \"mysql-connector-1.0.0\",\n                \"connector_id\": \"mysql-connector\",\n                \"name\": \"MySQL\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The MySQL Connector is used to move data from any MySQL Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/en/6/62/MySQL.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.834Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.834Z\"\n            },\n            {\n                \"id\": \"oracle-connector-1.0.0\",\n                \"connector_id\": \"oracle-connector\",\n                \"name\": \"Oracle\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The Oracle Connector is used to move data from any Oracle Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.840Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.840Z\"\n            },\n            {\n                \"id\": \"mssql-connector-1.0.0\",\n                \"connector_id\": \"mssql-connector\",\n                \"name\": \"MS SQL\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The MS SQL Connector is used to move data from any MS SQL Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/2/29/Microsoft_SQL_Server_Logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.847Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.847Z\"\n            },\n            {\n                \"id\": \"aws-s3-connector-0.1.0\",\n                \"connector_id\": \"aws-s3-connector\",\n                \"name\": \"AWS S3\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The AWS S3 Connector is used to move data from any S3 Bucket to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/b/bc/Amazon-S3-Logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.237Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.237Z\"\n            },\n            {\n                \"id\": \"azure-blob-connector-0.1.0\",\n                \"connector_id\": \"azure-blob-connector\",\n                \"name\": \"Azure Blob Store\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The Azure Blob Store Connector is used to move data from any Azure Blob Container to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.302Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.302Z\"\n            },\n            {\n                \"id\": \"gcs-connector-0.1.0\",\n                \"connector_id\": \"gcs-connector\",\n                \"name\": \"Google Cloud Storage\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The GCS Connector is used to move data from any Google Bucket to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/512px-Google_Cloud_logo.svg.png\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.364Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.364Z\"\n            }\n        ],\n        \"count\": 7\n    }\n}"
+						},
+						{
+							"name": "Success: Connectors list without filters",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-04-10T16:10:50+05:30\",\n    \"params\": {\n       \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\"\n    },\n    \"request\": {\n        // \"filters\": {\n        //     \"category\":[\n        //         \"File\",\"Database\"\n        //     ],\n        //     \"status\": [\n        //         \"Live\",\"Draft\",\"InValidation\", \"Retired\"\n        //     ]\n        // }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3000/v2/connectors/list"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "4107"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"100b-N8mD4H5+SlIOmnNcq6Fnlq2pwXs\""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 30 Jul 2024 09:50:11 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-30T15:20:11+05:30\",\n    \"params\": {\n        \"status\": \"SUCCESS\",\n        \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\",\n        \"resmsgid\": \"2c527a46-7bfe-4c74-a290-4dcf1a3c5f10\"\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"data\": [\n            {\n                \"id\": \"postgres-connector-1.0.0\",\n                \"connector_id\": \"postgres-connector\",\n                \"name\": \"PostgreSQL\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The PostgreSQL Connector is used to move data from any Postgres Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.732Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.732Z\"\n            },\n            {\n                \"id\": \"mysql-connector-1.0.0\",\n                \"connector_id\": \"mysql-connector\",\n                \"name\": \"MySQL\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The MySQL Connector is used to move data from any MySQL Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/en/6/62/MySQL.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.834Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.834Z\"\n            },\n            {\n                \"id\": \"oracle-connector-1.0.0\",\n                \"connector_id\": \"oracle-connector\",\n                \"name\": \"Oracle\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The Oracle Connector is used to move data from any Oracle Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.840Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.840Z\"\n            },\n            {\n                \"id\": \"mssql-connector-1.0.0\",\n                \"connector_id\": \"mssql-connector\",\n                \"name\": \"MS SQL\",\n                \"type\": \"source\",\n                \"category\": \"Database\",\n                \"version\": \"1.0.0\",\n                \"description\": \"The MS SQL Connector is used to move data from any MS SQL Table to the Obsrv platform\",\n                \"technology\": \"scala\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/2/29/Microsoft_SQL_Server_Logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:38:28.847Z\",\n                \"updated_date\": \"2024-06-25T04:38:28.847Z\"\n            },\n            {\n                \"id\": \"aws-s3-connector-0.1.0\",\n                \"connector_id\": \"aws-s3-connector\",\n                \"name\": \"AWS S3\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The AWS S3 Connector is used to move data from any S3 Bucket to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/b/bc/Amazon-S3-Logo.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.237Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.237Z\"\n            },\n            {\n                \"id\": \"azure-blob-connector-0.1.0\",\n                \"connector_id\": \"azure-blob-connector\",\n                \"name\": \"Azure Blob Store\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The Azure Blob Store Connector is used to move data from any Azure Blob Container to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.302Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.302Z\"\n            },\n            {\n                \"id\": \"gcs-connector-0.1.0\",\n                \"connector_id\": \"gcs-connector\",\n                \"name\": \"Google Cloud Storage\",\n                \"type\": \"source\",\n                \"category\": \"File\",\n                \"version\": \"0.1.0\",\n                \"description\": \"The GCS Connector is used to move data from any Google Bucket to the Obsrv platform\",\n                \"technology\": \"python\",\n                \"runtime\": \"spark\",\n                \"licence\": \"MIT\",\n                \"owner\": \"Sunbird\",\n                \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/512px-Google_Cloud_logo.svg.png\",\n                \"status\": \"Live\",\n                \"created_by\": \"SYSTEM\",\n                \"updated_by\": \"SYSTEM\",\n                \"created_date\": \"2024-06-25T04:39:21.364Z\",\n                \"updated_date\": \"2024-06-25T04:39:21.364Z\"\n            }\n        ],\n        \"count\": 7\n    }\n}"
+						},
+						{
+							"name": "Success: Filtered based on status",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-04-10T16:10:50+05:30\",\n    \"params\": {\n       \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\"\n    },\n    \"request\": {\n        \"filters\": {\n            \"status\": [\n                \"Draft\"\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3000/v2/connectors/list"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "250"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"fa-+eWKIfUxsWBGuJy23qSucgLXke4\""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 30 Jul 2024 09:55:51 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"api.connectors.list\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-30T15:25:51+05:30\",\n    \"params\": {\n        \"status\": \"SUCCESS\",\n        \"msgid\": \"4a7f14c3-d61e-4d4f-be78-181834eeff6d\",\n        \"resmsgid\": \"f506e725-eed4-41df-86dc-2477d5c4d19a\"\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"data\": [],\n        \"count\": 0\n    }\n}"
 						}
 					]
 				}

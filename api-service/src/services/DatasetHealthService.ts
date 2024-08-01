@@ -84,7 +84,7 @@ const queryMetrics = async (datasetId: string, query: string) => {
 export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ components: any, status: string }> => {
   const postgres = await getPostgresStatus()
   const druid = await getDruidHealthStatus()
-  const flink = await getFlinkHealthStaus()
+  const flink = await getFlinkHealthStatus()
   const kafka = await getKafkaHealthStatus()
   let redis = HealthStatus.Healthy
   const components = [
@@ -104,7 +104,7 @@ export const getInfraHealth = async (isMasterDataset: boolean): Promise<{ compon
 export const getProcessingHealth = async (dataset: any): Promise<{ components: any, status: string }> => {
   const dataset_id = _.get(dataset, "dataset_id")
   const isMasterDataset = _.get(dataset, "type") == DatasetType.master;
-  const flink = await getFlinkHealthStaus()
+  const flink = await getFlinkHealthStatus()
   const { count, health } = await getEventsProcessedToday(dataset_id, isMasterDataset)
   const processingDefaultThreshold = await SystemConfig.getThresholds("processing")
   // eslint-disable-next-line prefer-const
@@ -279,8 +279,6 @@ const getDruidIndexerStatus = async (datasources: any,) => {
     logger.error(error)
     return { value: [], status: HealthStatus.UnHealthy }
   }
-
-
 }
 
 const getDruidDataourceStatus = async (datasourceId: string) => {
@@ -335,7 +333,7 @@ const getKafkaHealthStatus = async () => {
 
 }
 
-const getFlinkHealthStaus = async () => {
+export const getFlinkHealthStatus = async () => {
   try {
     const responses = await Promise.all(
       [axios.get(config?.flink_job_configs?.masterdata_processor_job_manager_url as string + "/jobs"),
@@ -482,4 +480,34 @@ const getAvgProcessingSpeedInSec = async (datasetId: string, isMasterDataset: bo
     logger.error(error)
     return { count: 0, health: HealthStatus.UnHealthy }
   }
+}
+
+export const getDruidIndexers = async (datasources: any, status = HealthStatus.Healthy) => {
+  const results = await Promise.all(_.map(datasources, (datasource) => getDruidDataourceStatus(datasource["datasource"])))
+  const indexers: any = []
+  _.forEach(results, (result: any) => {
+    logger.debug({ result })
+    const sourceStatus = _.get(result, "payload.state") == "RUNNING" ? HealthStatus.Healthy : HealthStatus.UnHealthy
+    logger.debug({ sourceStatus })
+    if (sourceStatus == status) {
+      indexers.push(
+        {
+          "type": "druid",
+          "datasource": _.get(result, "id"),
+          "status": sourceStatus,
+          "state": _.get(result, "payload.state")
+        }
+      )
+    }
+  })
+  return indexers
+}
+
+const restartDruidSupervisors = async (datasourceId: string) => {
+const { data } = await druidHttpService.post(`/druid/indexer/v1/supervisor/${datasourceId}/resume`)
+return data;
+}
+
+export const restartDruidIndexers = async (datasources: any) => {
+  await Promise.all(_.map(datasources, (datasource) => restartDruidSupervisors(datasource["datasource"])))
 }

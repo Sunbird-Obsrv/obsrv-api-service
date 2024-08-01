@@ -231,7 +231,7 @@ const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
     }
 }
 
-const restartPipeline = async (dataset: Record<string, any>) => {
+export const restartPipeline = async (dataset: Record<string, any>) => {
     return executeCommand(dataset.id, "RESTART_PIPELINE")
 }
 

@@ -68,7 +68,7 @@ class DatasetService {
         return DatasetSourceConfig.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
-    getConnectors = async (dataset_id: string, attributes?: string[]) => {
+    getConnectors = async (dataset_id: string, attributes?: string[]): Promise<Record<string,any>> => {
         return ConnectorInstances.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
@@ -93,13 +93,11 @@ class DatasetService {
     }
 
     migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>): Promise<any> => {
-
-        let draftDataset: Record<string, any> = {
-            api_version: "v2",
-            version_key: Date.now().toString()
-        }
         const dataset_id = _.get(dataset, "id")
         const dataset_config: any = _.get(dataset, "dataset_config");
+        const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
+        const transaction = await sequelize.transaction();
+
         draftDataset["dataset_config"] = {
             indexing_config: {olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master")},
             keys_config: {data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key},
@@ -126,7 +124,6 @@ class DatasetService {
         })
         draftDataset["sample_data"] = dataset_config?.mergedEvent
         
-        const transaction = await sequelize.transaction();
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
             await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
@@ -140,7 +137,46 @@ class DatasetService {
         return await this.getDraftDataset(datasetId);
     }
 
-    private getTransformationCategory = (section: string):string => {
+    migrateDatasetV1 = async (dataset_id: string, dataset: Record<string, any>): Promise<any> => {
+        const status = _.get(dataset, "status")
+        let draftDataset: Record<string, any> = {
+            api_version: "v2",
+            version_key: Date.now().toString()
+        }
+        const dataset_config: any = _.get(dataset, "dataset_config");
+        draftDataset["dataset_config"] = {
+            indexing_config: { olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master") },
+            keys_config: { data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key },
+            cache_config: { redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db }
+        }
+        const transformationFields = ["field_key", "transformation_function", "mode", "metadata"]
+        const transformations = _.includes([DatasetStatus.Live], status) ? await this.getTransformations(dataset_id, transformationFields) : await this.getDraftTransformations(dataset_id, transformationFields);
+        draftDataset["transformations_config"] = _.map(transformations, (config) => {
+            return {
+                field_key: _.get(config, ["field_key"]),
+                transformation_function: {
+                    ..._.get(config, ["transformation_function"]),
+                    datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
+                    category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                },
+                mode: _.get(config, ["mode"])
+            }
+        })
+        const connectorsFields = ["id", "connector_type", "connector_config"]
+        const connectors = _.includes([DatasetStatus.Live], status) ? await this.getConnectorsV1(dataset_id, connectorsFields) : await this.getDraftConnectors(dataset_id, connectorsFields);
+        draftDataset["connectors_config"] = _.map(connectors, (config) => {
+            return {
+                id: _.get(config, ["id"]),
+                connector_id: _.get(config, ["connector_type"]),
+                connector_config: _.get(config, ["connector_config"]),
+                version: "v1"
+            }
+        })
+        draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
+        return draftDataset;
+    }
+
+    getTransformationCategory = (section: string):string => {
 
         switch(section) {
             case "pii":
@@ -184,6 +220,7 @@ class DatasetService {
             })
             draftDataset["api_version"] = "v2"
             draftDataset["sample_data"] = dataset_config?.mergedEvent
+            draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
             const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
             draftDataset["connectors_config"] = connectors
@@ -340,6 +377,21 @@ class DatasetService {
         }
     }
 
+}
+
+export const getLiveDatasetConfigs = async (dataset_id: string) => {
+    
+    let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
+    const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
+    const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+
+    if(!_.isEmpty(transformations)){
+        datasetRecord["transformations_config"] = transformations
+    }
+    if(!_.isEmpty(connectors)){
+        datasetRecord["connectors_config"] = connectors
+    }
+    return datasetRecord;
 }
 
 export const datasetService = new DatasetService();
