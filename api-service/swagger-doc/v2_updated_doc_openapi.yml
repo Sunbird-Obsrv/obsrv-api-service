@@ -4668,284 +4668,213 @@ paths:
       responses:
         '200':
           description: OK
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '3304'
-            ETag:
-              schema:
-                type: string
-                example: W/"ce8-fwSqHq6/kVRau9kWO0rqLFp9a28"
-            Date:
-              schema:
-                type: string
-                example: Wed, 31 Jul 2024 12:47:54 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
                 type: object
-              example:
-                id: api.connectors.read
-                ver: v2
-                ts: '2024-07-31T18:17:54+05:30'
-                params:
-                  status: SUCCESS
-                  resmsgid: 7587f564-c2d7-49a8-9e56-dc56f6808ced
-                responseCode: OK
-                result:
-                  id: postgres-connector-1.0.0
-                  connector_id: postgres-connector
-                  name: PostgreSQL
-                  type: source
-                  category: Database
-                  version: 1.0.0
-                  description: >-
-                    The PostgreSQL Connector is used to move data from any
-                    Postgres Table to the Obsrv platform
-                  licence: MIT
-                  owner: Sunbird
-                  iconurl: >-
-                    https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg
-                  status: Live
-                  ui_spec:
-                    schema:
-                      type: object
-                      properties:
-                        connector_config:
-                          title: Connector Config
-                          type: object
-                          encrypt: true
-                          properties:
-                            databaseType:
-                              type: string
-                              title: Database Type
-                              enum:
-                                - PostgreSQL
-                                - MySQL
-                              fieldDescription:
-                                - type: string
-                                  description: ''
-                          dependencies:
-                            databaseType:
-                              oneOf:
-                                - properties:
-                                    databaseType:
-                                      enum:
-                                        - PostgreSQL
-                                        - MySQL
-                                    connection_info:
-                                      title: Connection Information
-                                      type: object
-                                      properties:
-                                        host:
-                                          type: string
-                                          title: Database Host
-                                          pattern: >-
-                                            /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[^\s]*)?|localhost(?:/[^\s]*)?|((?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                                        port:
-                                          type: number
-                                          title: Database Port
-                                          minimum: 1
-                                          maximum: 65535
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                                        name:
-                                          type: string
-                                          title: Database Name
-                                          pattern: ^[a-zA-Z0-9_]{1,64}$
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                                        username:
-                                          type: string
-                                          title: Database Username
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                                        password:
-                                          type: string
-                                          title: Database Password
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                                    schemaInfo:
-                                      title: Schema Information
-                                      type: object
-                                      properties:
-                                        table:
-                                          title: Table Name
-                                          type: string
-                                          pattern: ^[a-zA-Z_][a-zA-Z0-9_]{0,62}$
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                                        timestampColumn:
-                                          title: Timestamp Column
-                                          type: string
-                                          fieldDescription:
-                                            - type: string
-                                              description: ''
-                        operations_config:
-                          title: Operations Configuration
+              examples:
+                example-0:
+                  summary: 'Success: Read live Connector'
+                  value:
+                    id: api.connectors.read
+                    ver: v2
+                    ts: '2024-07-31T18:17:54+05:30'
+                    params:
+                      status: SUCCESS
+                      resmsgid: 7587f564-c2d7-49a8-9e56-dc56f6808ced
+                    responseCode: OK
+                    result:
+                      id: postgres-connector-1.0.0
+                      connector_id: postgres-connector
+                      name: PostgreSQL
+                      type: source
+                      category: Database
+                      version: 1.0.0
+                      description: >-
+                        The PostgreSQL Connector is used to move data from any
+                        Postgres Table to the Obsrv platform
+                      licence: MIT
+                      owner: Sunbird
+                      iconurl: >-
+                        https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg
+                      status: Live
+                      ui_spec:
+                        schema:
                           type: object
                           properties:
+                            connector_config:
+                              title: Connector Config
+                              type: object
+                              encrypt: true
+                              properties:
+                                databaseType:
+                                  type: string
+                                  title: Database Type
+                                  enum:
+                                    - PostgreSQL
+                                    - MySQL
+                                  fieldDescription:
+                                    - type: string
+                                      description: ''
+                              dependencies:
+                                databaseType:
+                                  oneOf:
+                                    - properties:
+                                        databaseType:
+                                          enum:
+                                            - PostgreSQL
+                                            - MySQL
+                                        connection_info:
+                                          title: Connection Information
+                                          type: object
+                                          properties:
+                                            host:
+                                              type: string
+                                              title: Database Host
+                                              pattern: >-
+                                                /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[^\s]*)?|localhost(?:/[^\s]*)?|((?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                                            port:
+                                              type: number
+                                              title: Database Port
+                                              minimum: 1
+                                              maximum: 65535
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                                            name:
+                                              type: string
+                                              title: Database Name
+                                              pattern: ^[a-zA-Z0-9_]{1,64}$
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                                            username:
+                                              type: string
+                                              title: Database Username
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                                            password:
+                                              type: string
+                                              title: Database Password
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                                        schemaInfo:
+                                          title: Schema Information
+                                          type: object
+                                          properties:
+                                            table:
+                                              title: Table Name
+                                              type: string
+                                              pattern: ^[a-zA-Z_][a-zA-Z0-9_]{0,62}$
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                                            timestampColumn:
+                                              title: Timestamp Column
+                                              type: string
+                                              fieldDescription:
+                                                - type: string
+                                                  description: ''
+                            operations_config:
+                              title: Operations Configuration
+                              type: object
+                              properties:
+                                batch_size:
+                                  type: number
+                                  title: Batch Size
+                                  default: 100
+                                  fieldDescription:
+                                    - type: string
+                                      description: ''
+                                max_batches:
+                                  type: number
+                                  title: Maximum Batches
+                                  default: 10
+                                  fieldDescription:
+                                    - type: string
+                                      description: ''
+                                pollingInterval:
+                                  type: string
+                                  title: Polling Interval
+                                  enum:
+                                    - Once
+                                    - Periodic
+                                  fieldDescription:
+                                    - type: string
+                                      description: Select polling interval
+                              dependencies:
+                                pollingInterval:
+                                  oneOf:
+                                    - properties:
+                                        pollingInterval:
+                                          enum:
+                                            - Periodic
+                                        schedule:
+                                          type: string
+                                          title: Schedule
+                                          enum:
+                                            - Hourly
+                                            - Daily
+                                            - Weekly
+                                            - Monthly
+                                          fieldDescription:
+                                            - type: string
+                                              description: ''
+                                      required:
+                                        - schedule
+                        properties:
+                          connector_config:
+                            connection_info:
+                              password:
+                                ui:widget: password
+                          operations_config:
                             batch_size:
-                              type: number
-                              title: Batch Size
-                              default: 100
-                              fieldDescription:
-                                - type: string
-                                  description: ''
+                              ui:readonly: true
                             max_batches:
-                              type: number
-                              title: Maximum Batches
-                              default: 10
-                              fieldDescription:
-                                - type: string
-                                  description: ''
-                            pollingInterval:
-                              type: string
-                              title: Polling Interval
-                              enum:
-                                - Once
-                                - Periodic
-                              fieldDescription:
-                                - type: string
-                                  description: Select polling interval
-                          dependencies:
-                            pollingInterval:
-                              oneOf:
-                                - properties:
-                                    pollingInterval:
-                                      enum:
-                                        - Periodic
-                                    schedule:
-                                      type: string
-                                      title: Schedule
-                                      enum:
-                                        - Hourly
-                                        - Daily
-                                        - Weekly
-                                        - Monthly
-                                      fieldDescription:
-                                        - type: string
-                                          description: ''
-                                  required:
-                                    - schedule
-                    properties:
-                      connector_config:
-                        connection_info:
-                          password:
-                            ui:widget: password
-                      operations_config:
-                        batch_size:
-                          ui:readonly: true
-                        max_batches:
-                          ui:readonly: true
-                  created_by: SYSTEM
-                  updated_by: SYSTEM
-                  created_date: '2024-06-25T04:38:28.732Z'
-                  updated_date: '2024-06-25T04:38:28.732Z'
-                  live_date: '2024-06-25T04:38:28.732Z'
-        '400':
-          description: Bad Request
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '307'
-            ETag:
-              schema:
-                type: string
-                example: W/"133-NqsLTfEXPavK/auClQsE69MITWw"
-            Date:
-              schema:
-                type: string
-                example: Wed, 31 Jul 2024 13:17:54 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                id: api.connectors.read
-                ver: v2
-                ts: '2024-07-31T18:47:54+05:30'
-                params:
-                  status: FAILED
-                  resmsgid: 5ce8b69d-cda2-4035-8b82-d8b64cf3c574
-                responseCode: BAD_REQUEST
-                result: {}
-                error:
-                  code: DATASET_INVALID_MODE_VALUE
-                  message: The specified mode [23] in the query param is not valid.
+                              ui:readonly: true
+                      created_by: SYSTEM
+                      updated_by: SYSTEM
+                      created_date: '2024-06-25T04:38:28.732Z'
+                      updated_date: '2024-06-25T04:38:28.732Z'
+                      live_date: '2024-06-25T04:38:28.732Z'
+                example-1:
+                  summary: 'Success: Read Draft Connector'
+                  value:
+                    id: api.connectors.read
+                    ver: v2
+                    ts: '2024-08-01T12:47:12+05:30'
+                    params:
+                      status: SUCCESS
+                      resmsgid: b6fcfb05-246c-4a1b-9eb1-27497ee9b80b
+                    responseCode: OK
+                    result:
+                      id: mssql-connector-2.0.0
+                      connector_id: mssql-connector
+                      name: MS SQL
+                      type: source
+                      category: Database
+                      version: 2.0.0
+                      description: >-
+                        The MS SQL Connector is used to move data from any MS
+                        SQL Table to the Obsrv platform
+                      licence: MIT
+                      owner: Sunbird
+                      iconurl: >-
+                        https://upload.wikimedia.org/wikipedia/commons/2/29/Microsoft_SQL_Server_Logo.svg
+                      status: Draft
+                      ui_spec: {}
+                      created_by: SYSTEM
+                      updated_by: SYSTEM
+                      created_date: '2024-06-25T04:38:28.847Z'
+                      updated_date: '2024-06-25T04:38:28.847Z'
+                      live_date: '2024-06-25T04:38:28.847Z'
         '404':
           description: Not Found
-          headers:
-            X-Powered-By:
-              schema:
-                type: string
-                example: Express
-            Content-Type:
-              schema:
-                type: string
-                example: application/json; charset=utf-8
-            Content-Length:
-              schema:
-                type: integer
-                example: '305'
-            ETag:
-              schema:
-                type: string
-                example: W/"131-34hIJjn0HC4sZfrhBno7pcto+x4"
-            Date:
-              schema:
-                type: string
-                example: Wed, 31 Jul 2024 12:49:17 GMT
-            Connection:
-              schema:
-                type: string
-                example: keep-alive
-            Keep-Alive:
-              schema:
-                type: string
-                example: timeout=5
           content:
             application/json:
               schema:
@@ -4953,14 +4882,12 @@ paths:
               example:
                 id: api.connectors.read
                 ver: v2
-                ts: '2024-07-31T18:19:17+05:30'
+                ts: '2024-08-01T15:02:48+05:30'
                 params:
                   status: FAILED
-                  resmsgid: c3333acf-761e-4601-8254-850fd8641494
+                  resmsgid: 712e7298-99f8-4694-9011-4232fcfd664a
                 responseCode: NOT_FOUND
                 result: {}
                 error:
                   code: CONNECTOR_NOT_FOUND
-                  message: >-
-                    Connector with the given id: postgres-connector-1.0.0 not
-                    found
+                  message: 'Connector not found: postgres-conn'

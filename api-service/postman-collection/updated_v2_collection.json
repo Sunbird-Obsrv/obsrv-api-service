@@ -2589,12 +2589,12 @@
 							"body": "{\n    \"id\": \"api.connectors.read\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-31T18:17:54+05:30\",\n    \"params\": {\n        \"status\": \"SUCCESS\",\n        \"resmsgid\": \"7587f564-c2d7-49a8-9e56-dc56f6808ced\"\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"id\": \"postgres-connector-1.0.0\",\n        \"connector_id\": \"postgres-connector\",\n        \"name\": \"PostgreSQL\",\n        \"type\": \"source\",\n        \"category\": \"Database\",\n        \"version\": \"1.0.0\",\n        \"description\": \"The PostgreSQL Connector is used to move data from any Postgres Table to the Obsrv platform\",\n        \"licence\": \"MIT\",\n        \"owner\": \"Sunbird\",\n        \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg\",\n        \"status\": \"Live\",\n        \"ui_spec\": {\n            \"schema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                    \"connector_config\": {\n                        \"title\": \"Connector Config\",\n                        \"type\": \"object\",\n                        \"encrypt\": true,\n                        \"properties\": {\n                            \"databaseType\": {\n                                \"type\": \"string\",\n                                \"title\": \"Database Type\",\n                                \"enum\": [\n                                    \"PostgreSQL\",\n                                    \"MySQL\"\n                                ],\n                                \"fieldDescription\": [\n                                    {\n                                        \"type\": \"string\",\n                                        \"description\": \"\"\n                                    }\n                                ]\n                            }\n                        },\n                        \"dependencies\": {\n                            \"databaseType\": {\n                                \"oneOf\": [\n                                    {\n                                        \"properties\": {\n                                            \"databaseType\": {\n                                                \"enum\": [\n                                                    \"PostgreSQL\",\n                                                    \"MySQL\"\n                                                ]\n                                            },\n                                            \"connection_info\": {\n                                                \"title\": \"Connection Information\",\n                                                \"type\": \"object\",\n                                                \"properties\": {\n                                                    \"host\": {\n                                                        \"type\": \"string\",\n                                                        \"title\": \"Database Host\",\n                                                        \"pattern\": \"/^(?:[a-zA-Z0-9-]+\\\\.)+[a-zA-Z]{2,}(?:/[^\\\\s]*)?|localhost(?:/[^\\\\s]*)?|((?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/\",\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"port\": {\n                                                        \"type\": \"number\",\n                                                        \"title\": \"Database Port\",\n                                                        \"minimum\": 1,\n                                                        \"maximum\": 65535,\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"name\": {\n                                                        \"type\": \"string\",\n                                                        \"title\": \"Database Name\",\n                                                        \"pattern\": \"^[a-zA-Z0-9_]{1,64}$\",\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"username\": {\n                                                        \"type\": \"string\",\n                                                        \"title\": \"Database Username\",\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"password\": {\n                                                        \"type\": \"string\",\n                                                        \"title\": \"Database Password\",\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    }\n                                                }\n                                            },\n                                            \"schemaInfo\": {\n                                                \"title\": \"Schema Information\",\n                                                \"type\": \"object\",\n                                                \"properties\": {\n                                                    \"table\": {\n                                                        \"title\": \"Table Name\",\n                                                        \"type\": \"string\",\n                                                        \"pattern\": \"^[a-zA-Z_][a-zA-Z0-9_]{0,62}$\",\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"timestampColumn\": {\n                                                        \"title\": \"Timestamp Column\",\n                                                        \"type\": \"string\",\n                                                        \"fieldDescription\": [\n                                                            {\n                                                                \"type\": \"string\",\n                                                                \"description\": \"\"\n                                                            }\n                                                        ]\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    },\n                    \"operations_config\": {\n                        \"title\": \"Operations Configuration\",\n                        \"type\": \"object\",\n                        \"properties\": {\n                            \"batch_size\": {\n                                \"type\": \"number\",\n                                \"title\": \"Batch Size\",\n                                \"default\": 100,\n                                \"fieldDescription\": [\n                                    {\n                                        \"type\": \"string\",\n                                        \"description\": \"\"\n                                    }\n                                ]\n                            },\n                            \"max_batches\": {\n                                \"type\": \"number\",\n                                \"title\": \"Maximum Batches\",\n                                \"default\": 10,\n                                \"fieldDescription\": [\n                                    {\n                                        \"type\": \"string\",\n                                        \"description\": \"\"\n                                    }\n                                ]\n                            },\n                            \"pollingInterval\": {\n                                \"type\": \"string\",\n                                \"title\": \"Polling Interval\",\n                                \"enum\": [\n                                    \"Once\",\n                                    \"Periodic\"\n                                ],\n                                \"fieldDescription\": [\n                                    {\n                                        \"type\": \"string\",\n                                        \"description\": \"Select polling interval\"\n                                    }\n                                ]\n                            }\n                        },\n                        \"dependencies\": {\n                            \"pollingInterval\": {\n                                \"oneOf\": [\n                                    {\n                                        \"properties\": {\n                                            \"pollingInterval\": {\n                                                \"enum\": [\n                                                    \"Periodic\"\n                                                ]\n                                            },\n                                            \"schedule\": {\n                                                \"type\": \"string\",\n                                                \"title\": \"Schedule\",\n                                                \"enum\": [\n                                                    \"Hourly\",\n                                                    \"Daily\",\n                                                    \"Weekly\",\n                                                    \"Monthly\"\n                                                ],\n                                                \"fieldDescription\": [\n                                                    {\n                                                        \"type\": \"string\",\n                                                        \"description\": \"\"\n                                                    }\n                                                ]\n                                            }\n                                        },\n                                        \"required\": [\n                                            \"schedule\"\n                                        ]\n                                    }\n                                ]\n                            }\n                        }\n                    }\n                }\n            },\n            \"properties\": {\n                \"connector_config\": {\n                    \"connection_info\": {\n                        \"password\": {\n                            \"ui:widget\": \"password\"\n                        }\n                    }\n                },\n                \"operations_config\": {\n                    \"batch_size\": {\n                        \"ui:readonly\": true\n                    },\n                    \"max_batches\": {\n                        \"ui:readonly\": true\n                    }\n                }\n            }\n        },\n        \"created_by\": \"SYSTEM\",\n        \"updated_by\": \"SYSTEM\",\n        \"created_date\": \"2024-06-25T04:38:28.732Z\",\n        \"updated_date\": \"2024-06-25T04:38:28.732Z\",\n        \"live_date\": \"2024-06-25T04:38:28.732Z\"\n    }\n}"
 						},
 						{
-							"name": "Failure: Connector not found",
+							"name": "Success: Read Draft Connector",
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/v2/connectors/read/postgres-connector-1.0.0?mode=edit",
+									"raw": "http://localhost:3000/v2/connectors/read/mssql-connector-2.0.0?mode=edit",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2604,7 +2604,7 @@
 										"v2",
 										"connectors",
 										"read",
-										"postgres-connector-1.0.0"
+										"mssql-connector-2.0.0"
 									],
 									"query": [
 										{
@@ -2613,6 +2613,49 @@
 										}
 									]
 								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "744"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"2e8-ZECTAoupjwTfEqQmuPSIRUFjF4o\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 01 Aug 2024 07:17:12 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"api.connectors.read\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-08-01T12:47:12+05:30\",\n    \"params\": {\n        \"status\": \"SUCCESS\",\n        \"resmsgid\": \"b6fcfb05-246c-4a1b-9eb1-27497ee9b80b\"\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"id\": \"mssql-connector-2.0.0\",\n        \"connector_id\": \"mssql-connector\",\n        \"name\": \"MS SQL\",\n        \"type\": \"source\",\n        \"category\": \"Database\",\n        \"version\": \"2.0.0\",\n        \"description\": \"The MS SQL Connector is used to move data from any MS SQL Table to the Obsrv platform\",\n        \"licence\": \"MIT\",\n        \"owner\": \"Sunbird\",\n        \"iconurl\": \"https://upload.wikimedia.org/wikipedia/commons/2/29/Microsoft_SQL_Server_Logo.svg\",\n        \"status\": \"Draft\",\n        \"ui_spec\": {},\n        \"created_by\": \"SYSTEM\",\n        \"updated_by\": \"SYSTEM\",\n        \"created_date\": \"2024-06-25T04:38:28.847Z\",\n        \"updated_date\": \"2024-06-25T04:38:28.847Z\",\n        \"live_date\": \"2024-06-25T04:38:28.847Z\"\n    }\n}"
+						},
+						{
+							"name": "Failure: Connector not found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3000/v2/connectors/read/postgres-conn"
 							},
 							"status": "Not Found",
 							"code": 404,
@@ -2628,15 +2671,15 @@
 								},
 								{
 									"key": "Content-Length",
-									"value": "305"
+									"value": "276"
 								},
 								{
 									"key": "ETag",
-									"value": "W/\"131-34hIJjn0HC4sZfrhBno7pcto+x4\""
+									"value": "W/\"114-izVC8DsHdeSfau/USVJvnIqZIMQ\""
 								},
 								{
 									"key": "Date",
-									"value": "Wed, 31 Jul 2024 12:49:17 GMT"
+									"value": "Thu, 01 Aug 2024 09:32:48 GMT"
 								},
 								{
 									"key": "Connection",
@@ -2648,69 +2691,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"id\": \"api.connectors.read\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-31T18:19:17+05:30\",\n    \"params\": {\n        \"status\": \"FAILED\",\n        \"resmsgid\": \"c3333acf-761e-4601-8254-850fd8641494\"\n    },\n    \"responseCode\": \"NOT_FOUND\",\n    \"result\": {},\n    \"error\": {\n        \"code\": \"CONNECTOR_NOT_FOUND\",\n        \"message\": \"Connector with the given id: postgres-connector-1.0.0 not found\"\n    }\n}"
-						},
-						{
-							"name": "Failure: Invalid mode value",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:3000/v2/connectors/read/postgres-connector-1.0.0?mode=23",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"v2",
-										"connectors",
-										"read",
-										"postgres-connector-1.0.0"
-									],
-									"query": [
-										{
-											"key": "mode",
-											"value": "23"
-										}
-									]
-								}
-							},
-							"status": "Bad Request",
-							"code": 400,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "307"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"133-NqsLTfEXPavK/auClQsE69MITWw\""
-								},
-								{
-									"key": "Date",
-									"value": "Wed, 31 Jul 2024 13:17:54 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"id\": \"api.connectors.read\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-07-31T18:47:54+05:30\",\n    \"params\": {\n        \"status\": \"FAILED\",\n        \"resmsgid\": \"5ce8b69d-cda2-4035-8b82-d8b64cf3c574\"\n    },\n    \"responseCode\": \"BAD_REQUEST\",\n    \"result\": {},\n    \"error\": {\n        \"code\": \"DATASET_INVALID_MODE_VALUE\",\n        \"message\": \"The specified mode [23] in the query param is not valid.\"\n    }\n}"
+							"body": "{\n    \"id\": \"api.connectors.read\",\n    \"ver\": \"v2\",\n    \"ts\": \"2024-08-01T15:02:48+05:30\",\n    \"params\": {\n        \"status\": \"FAILED\",\n        \"resmsgid\": \"712e7298-99f8-4694-9011-4232fcfd664a\"\n    },\n    \"responseCode\": \"NOT_FOUND\",\n    \"result\": {},\n    \"error\": {\n        \"code\": \"CONNECTOR_NOT_FOUND\",\n        \"message\": \"Connector not found: postgres-conn\"\n    }\n}"
 						}
 					]
 				}
