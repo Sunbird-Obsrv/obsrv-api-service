@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from "express"
+import { Request, Response } from "express"
 import { ResponseHandler } from "../helpers/ResponseHandler"
 
 class HealthService {
   
-  async checkDruidHealth(req: Request, res: Response, next: NextFunction) {
+  async checkDruidHealth(req: Request, res: Response) {
     ResponseHandler.successResponse(req, res, { status: 200, data: {} })
   }
 

@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai, { expect } from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import _ from "lodash";
 import { apiId } from "../../../controllers/DatasetRead/DatasetRead";
 import { TestInputsForDatasetRead } from "./Fixtures";
@@ -25,7 +25,7 @@ describe("DATASET READ API", () => {
 
     it("Dataset read success: When minimal fields requested", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ 'name': 'sb-telemetry', 'data_version': 1 })
+            return Promise.resolve({ "name": "sb-telemetry", "data_version": 1 })
         })
         chai
             .request(app)
@@ -36,9 +36,9 @@ describe("DATASET READ API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
-                res.body.result.name.should.be.eq('sb-telemetry')
+                res.body.result.name.should.be.eq("sb-telemetry")
                 const result = JSON.stringify(res.body.result)
-                result.should.be.eq(JSON.stringify({ name: 'sb-telemetry', data_version: 1 }))
+                result.should.be.eq(JSON.stringify({ name: "sb-telemetry", data_version: 1 }))
                 done();
             });
     });
@@ -56,8 +56,8 @@ describe("DATASET READ API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
-                res.body.result.type.should.be.eq('event')
-                res.body.result.status.should.be.eq('Draft')
+                res.body.result.type.should.be.eq("event")
+                res.body.result.status.should.be.eq("Draft")
                 const result = JSON.stringify(res.body.result)
                 result.should.be.eq(JSON.stringify({ ...TestInputsForDatasetRead.DRAFT_SCHEMA }))
                 done();
@@ -77,7 +77,7 @@ describe("DATASET READ API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
-                res.body.result.status.should.be.eq('Live')
+                res.body.result.status.should.be.eq("Live")
                 const result = JSON.stringify(res.body.result)
                 result.should.be.eq(JSON.stringify({ ...TestInputsForDatasetRead.LIVE_SCHEMA }))
                 done();
@@ -109,7 +109,7 @@ describe("DATASET READ API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
-                res.body.result.name.should.be.eq('sb-telemetry')
+                res.body.result.name.should.be.eq("sb-telemetry")
                 const result = JSON.stringify(res.body.result)
                 result.should.be.eq(JSON.stringify(TestInputsForDatasetRead.DRAFT_SCHEMA))
                 done();
@@ -141,7 +141,7 @@ describe("DATASET READ API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("SUCCESS")
                 res.body.result.should.be.a("object")
-                res.body.result.name.should.be.eq('sb-telemetry')
+                res.body.result.name.should.be.eq("sb-telemetry")
                 const result = JSON.stringify(res.body.result)
                 result.should.be.eq(JSON.stringify(TestInputsForDatasetRead.DRAFT_SCHEMA))
                 done();

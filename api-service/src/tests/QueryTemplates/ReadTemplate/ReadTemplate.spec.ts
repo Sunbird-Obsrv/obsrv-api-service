@@ -1,10 +1,10 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { QueryTemplate } from "../../../models/QueryTemplate";
-const apiId = 'api.query.template.read'
+const apiId = "api.query.template.read"
 
 chai.use(spies);
 chai.should();
@@ -20,12 +20,12 @@ describe("READ QUERY TEMPLATE API", () => {
         chai.spy.on(QueryTemplate, "findOne", () => {
             return Promise.resolve({
                 dataValues: {
-                    template_id: 'sql1',
-                    template_name: 'sql1',
-                    query: '"SELECT * FROM {{DATASET}} WHERE __time BETWEEN TIMESTAMP {{STARTDATE}} AND TIMESTAMP {{ENDDATE}} LIMIT 1"',
-                    query_type: 'sql',
-                    created_by: 'SYSTEM',
-                    updated_by: 'SYSTEM',
+                    template_id: "sql1",
+                    template_name: "sql1",
+                    query: "\"SELECT * FROM {{DATASET}} WHERE __time BETWEEN TIMESTAMP {{STARTDATE}} AND TIMESTAMP {{ENDDATE}} LIMIT 1\"",
+                    query_type: "sql",
+                    created_by: "SYSTEM",
+                    updated_by: "SYSTEM",
                     created_date: "2024-04-29T11:29:58.759Z",
                     updated_date: "2024-04-29T11:29:58.759Z"
                 }

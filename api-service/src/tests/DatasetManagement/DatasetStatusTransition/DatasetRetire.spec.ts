@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import _ from "lodash";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { Dataset } from "../../../models/Dataset";

@@ -92,10 +92,10 @@ const deleteDataset = async (dataset: Record<string, any>) => {
 
 const readyForPublish = async (dataset: Record<string, any>) => {
 
-    let draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
+    const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
     defaultConfigs = _.omit(defaultConfigs, ["router_config"])
-    if (draftDataset?.type === 'master') {
+    if (draftDataset?.type === "master") {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }
     _.mergeWith(draftDataset,defaultConfigs,draftDataset, (objValue, srcValue) => {
@@ -159,9 +159,9 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
             }
             if(!_.isEmpty(md)){
                 if(md.api_version === "v2")
-                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
+                    datasetStatus["denorm_field"] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
                 else 
-                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+                    datasetStatus["denorm_field"] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
             }
 
             return datasetStatus;
@@ -187,8 +187,8 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
 }
 
 const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
-    if (draftDataset.type === 'master') {
-        let dataset_config = _.get(draftDataset, "dataset_config")
+    if (draftDataset.type === "master") {
+        const dataset_config = _.get(draftDataset, "dataset_config")
         const datasetCacheConfig = _.get(defaultDatasetConfig, "dataset_config.cache_config")
         draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
         if (draftDataset.dataset_config.cache_config.redis_db === 0) {

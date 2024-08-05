@@ -115,7 +115,7 @@ class DatasetService {
 
     migrateDatasetV1 = async (dataset_id: string, dataset: Record<string, any>): Promise<any> => {
         const status = _.get(dataset, "status")
-        let draftDataset: Record<string, any> = {
+        const draftDataset: Record<string, any> = {
             api_version: "v2",
             version_key: Date.now().toString()
         }
@@ -337,7 +337,7 @@ class DatasetService {
         const dsId = _.join([draftDataset.dataset_id,"events","hudi"], "_")
         const liveDatasource = await Datasource.findOne({where: {id: dsId}, attributes: ["ingestion_spec"], raw: true}) as unknown as Record<string,any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, {transaction})
     }
 
@@ -357,7 +357,7 @@ class DatasetService {
 
 export const getLiveDatasetConfigs = async (dataset_id: string) => {
     
-    let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
+    const datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
     const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
 

@@ -61,9 +61,9 @@ export const deleteAlertRule = async (payload: Record<string, any>, hardDelete: 
 
 
 export const deleteSystemRules = async (payload: Record<string, any>) => {
-  const { rules = [], manager } = payload;
+  const { manager } = payload;
   const service = getService(manager);
-  return service.deleteSystemRules(rules);
+  return service.deleteSystemRules();
 }
 
 export const getAlertsMetadata = (payload: Record<string, any>) => {
@@ -125,7 +125,7 @@ export const deleteAlertByDataset = async (payload: Record<string, any>) => {
     const { name } = payload;
     const alertRulePayload = await Alert.findAll({ where: { category: "datasets", "metadata.queryBuilderContext.subComponent": name }, raw: true })
     if (!alertRulePayload) throw new Error(constants.ALERTS_NOT_FOUND)
-    for (let payload of alertRulePayload) {
+    for (const payload of alertRulePayload) {
       await deleteAlertRule(payload, true)
       await retireAlertSilence(_.get(payload, "id") || "")
     }
@@ -140,7 +140,7 @@ export const deleteMetricAliasByDataset = async (payload: Record<string, any>) =
     const { name } = payload;
     const metricAliasPayload = await Metrics.findAll({ where: { component: "datasets", subComponent: name } })
     if (!metricAliasPayload) throw new Error(constants.METRIC_ALIAS_NOT_FOUND)
-    for (let payload of metricAliasPayload) {
+    for (const payload of metricAliasPayload) {
       await payload.destroy()
     }
     return constants.METRIC_ALIAS_DELETED_SUCCESSFULLY;
@@ -173,7 +173,7 @@ export const getAlertMetricsByDataset = async (payload: Record<string, any>) => 
 
 export const createAlertsByDataset = async (payload: any) => {
   try {
-    for (let alerts of payload) {
+    for (const alerts of payload) {
       const alertPayload = _.omit(alerts as any, ["id", "status", "createdAt", "updatedAt", "created_by", "updated_by"])
       await Alert.create(alertPayload)
     }
@@ -184,7 +184,7 @@ export const createAlertsByDataset = async (payload: any) => {
 
 export const createMetricAliasByDataset = async (payload: any) => {
   try {
-    for (let metrics of payload) {
+    for (const metrics of payload) {
       const metricsPayload = _.omit(metrics as any, ["id", "createdAt", "updatedAt"])
       await Metrics.create(metricsPayload)
     }
@@ -198,7 +198,7 @@ export const publishAlertByDataset = async (payload: Record<string, any>) => {
     const { name } = payload;
     const alertRulePayload = await Alert.findAll({ where: { category: "datasets", "metadata.queryBuilderContext.subComponent": name }, raw: true })
     if (!alertRulePayload) throw new Error("Alert rule does not exist")
-    for (let payload of alertRulePayload) {
+    for (const payload of alertRulePayload) {
       await publishAlert(payload)
     }
     return constants.ALERTS_PUBLISHED_SUCCESSFULLY;

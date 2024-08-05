@@ -1,5 +1,4 @@
 import httpStatus from "http-status"
-import _ from "lodash"
 
 export const TestInputsForDatasetCreate = {
     VALID_DATASET: {

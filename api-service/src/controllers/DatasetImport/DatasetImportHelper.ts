@@ -34,7 +34,7 @@ export const datasetImportValidation = async (payload: Record<string, any>): Pro
         throw obsrvError("", "DATASET_IMPORT_INVALID_CONFIGS", isRequestValid.message, "BAD_REQUEST", 400)
     }
 
-    let datasetConfig = payload.request;
+    const datasetConfig = payload.request;
 
     const connectors = _.get(datasetConfig, "connectors_config", []);
     const transformations = _.get(datasetConfig, "transformations_config", []);
@@ -99,7 +99,7 @@ export const migrateExportedDatasetV1 = (requestPayload: Record<string, any>) =>
     const { dataset_id, timestamp_key = "", data_key = "", type: datasetType } = _.get(datasetPayload, "data.metadata")
     const type = datasetType === "master-dataset" ? DatasetType.master : DatasetType.event
 
-    let dataset: Record<string, any> = {
+    const dataset: Record<string, any> = {
         dataset_id, id: dataset_id, name: dataset_id, type,
         version_key: Date.now().toString(),
         api_version: "v2",

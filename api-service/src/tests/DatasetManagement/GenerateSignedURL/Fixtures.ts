@@ -55,21 +55,21 @@ export const TestInputsForGenerateURL = {
     VALID_RESPONSE_FOR_MULTIFILES: [
         {
             "filePath": `container/api-service/user-upload/telemetry.json`,
-            "fileName": 'telemetry.json',
-            "preSignedUrl": 'https://obsrv-data.s3.ap-south-1.amazonaws.com/container/api-service/user-upload/telemetry.json?X-Amz-Algorithm=AWS4-HMAC'
+            "fileName": "telemetry.json",
+            "preSignedUrl": "https://obsrv-data.s3.ap-south-1.amazonaws.com/container/api-service/user-upload/telemetry.json?X-Amz-Algorithm=AWS4-HMAC"
         },
         {
-            "filePath": 'container/api-service/user-upload/school-data.json',
-            "fileName": 'school-data.json',
-            "preSignedUrl": 'https://obsrv-data.s3.ap-south-1.amazonaws.com/container/api-service/user-upload/school-data.json?X-Amz-Algorithm=AWS4-HMAC'
+            "filePath": "container/api-service/user-upload/school-data.json",
+            "fileName": "school-data.json",
+            "preSignedUrl": "https://obsrv-data.s3.ap-south-1.amazonaws.com/container/api-service/user-upload/school-data.json?X-Amz-Algorithm=AWS4-HMAC"
         }
     ],
 
     VALID_RESPONSE_FOR_SINGLE_FILE: [
         {
-            "filePath": 'container/api-service/user-upload/telemetry.json',
-            "fileName": 'telemetry.json',
-            "preSignedUrl": 'https://obsrv-data.s3.ap-south-1.amazonaws.com/container/api-service/user-upload/telemetry.json?X-Amz-Algorithm=AWS4-HMAC'
+            "filePath": "container/api-service/user-upload/telemetry.json",
+            "fileName": "telemetry.json",
+            "preSignedUrl": "https://obsrv-data.s3.ap-south-1.amazonaws.com/container/api-service/user-upload/telemetry.json?X-Amz-Algorithm=AWS4-HMAC"
         }
     ]
 }

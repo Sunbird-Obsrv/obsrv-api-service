@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 export const scrapModules = <Type extends { name: string }>(folderPath: string, basename: string) => {
-    const mapping = new Map<string, Omit<Type, 'name'>>();
+    const mapping = new Map<string, Omit<Type, "name">>();
     fs.readdirSync(folderPath)
         .filter((file) => file !== basename)
         .map((file) => {

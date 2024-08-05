@@ -4,10 +4,9 @@ import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
 import { TestInputsForDatasetCreate, DATASET_CREATE_SUCCESS_FIXTURES, DATASET_FAILURE_DUPLICATE_DENORM_FIXTURES } from "./Fixtures";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { sequelize } from "../../../connections/databaseConnection";
-import _ from "lodash";
 import { apiId } from "../../../controllers/DatasetCreate/DatasetCreate"
 import { Dataset } from "../../../models/Dataset";
 

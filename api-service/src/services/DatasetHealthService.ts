@@ -19,9 +19,9 @@ const prometheusQueries = {
   dedupFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_PipelinePreprocessorJob_DATASETID_dedup_failed_count[1d]))",
   denormFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_DenormalizerJob_DATASETID_denorm_failed[1d]))",
   transformationFailure: "sum(sum_over_time(flink_taskmanager_job_task_operator_TransformerJob_DATASETID_transform_failed_count[1d]))",
-  queriesCount: 'sum(sum_over_time(node_total_api_calls{entity="data-out", dataset_id="DATASETID"}[1d]))',
-  avgQueryResponseTimeInSec: 'avg(avg_over_time(node_query_response_time{entity="data-out", dataset_id="DATASETID"}[1d]))/1000',
-  queriesFailedCount: 'sum(sum_over_time(node_failed_api_calls{entity="data-out", dataset_id="DATASETID"}[1d]))'
+  queriesCount: "sum(sum_over_time(node_total_api_calls{entity=\"data-out\", dataset_id=\"DATASETID\"}[1d]))",
+  avgQueryResponseTimeInSec: "avg(avg_over_time(node_query_response_time{entity=\"data-out\", dataset_id=\"DATASETID\"}[1d]))/1000",
+  queriesFailedCount: "sum(sum_over_time(node_failed_api_calls{entity=\"data-out\", dataset_id=\"DATASETID\"}[1d]))"
 }
 
 export const getDatasetHealth = async (categories: any, dataset: any) => {

@@ -57,7 +57,7 @@ const ResponseHandler = {
   },
 
   goneResponse: (req: Request, res: Response) => {
-    const { id, entity } = req as any;
+    const { id } = req as any;
     res.status(httpStatus.GONE).json({ id: id, ver: "v1", ts: Date.now(), params: { status: "FAILED", errmsg: "v1 APIs have been replace by /v2 APIs. Please refer to this link <addLink> for more information" }, responseCode: httpStatus["410_NAME"] })
   }
 }
