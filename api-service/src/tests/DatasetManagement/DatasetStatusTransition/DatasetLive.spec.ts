@@ -9,6 +9,8 @@ import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { commandHttpService } from "../../../connections/commandServiceConnection";
 import { sequelize } from "../../../connections/databaseConnection";
+import { DatasourceDraft } from "../../../models/DatasourceDraft";
+import { Dataset } from "../../../models/Dataset";
 
 chai.use(spies);
 chai.should();
@@ -24,15 +26,27 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
 
     it("Dataset status transition success: When the action is to set dataset live", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "ReadyToPublish" })
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH)
         })
-        chai.spy.on(commandHttpService, "post", () => {
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "id": "master-dataset", "status": "Live", "dataset_config": { "cache_config": { "redis_db": 21 } }, "api_version": "v2" }])
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
+        })
+        chai.spy.on(DatasourceDraft, "create", () => {
             return Promise.resolve({})
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)
         })
         chai.spy.on(t, "commit", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})
         })
         chai
@@ -47,7 +61,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.result.message.should.be.eq("Dataset status transition to Live successful")
-                res.body.result.dataset_id.should.be.eq("telemetry.1")
+                res.body.result.dataset_id.should.be.eq("telemetry")
                 done();
             });
     });
@@ -66,7 +80,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry.1")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             })
@@ -74,16 +88,28 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
 
     it("Dataset status transition failure: When the command api call to publish dataset fails", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "ReadyToPublish" })
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH)
         })
-        chai.spy.on(commandHttpService, "post", () => {
-            return Promise.reject()
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "id": "master-dataset", "status": "Live", "dataset_config": { "cache_config": { "redis_db": 21 } }, "api_version": "v2" }])
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
+        })
+        chai.spy.on(DatasourceDraft, "create", () => {
+            return Promise.resolve({})
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)
         })
-        chai.spy.on(t, "rollback", () => {
+        chai.spy.on(t, "commit", () => {
             return Promise.resolve({})
+        })
+        chai.spy.on(commandHttpService, "post", () => {
+            return Promise.reject()
         })
         chai
             .request(app)
@@ -94,26 +120,25 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
                 done();
             });
     });
 
     it("Dataset status transition failure: When the dataset to publish is in draft state", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "Draft" })
+            return Promise.resolve({...TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH, status: "Draft"})
         })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
             .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE)
             .end((err, res) => {
-                res.should.have.status(httpStatus.BAD_REQUEST);
+                res.should.have.status(httpStatus.CONFLICT);
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.error.code.should.be.eq("DATASET_LIVE_FAILURE")
-                res.body.error.message.should.be.eq("Failed to mark dataset Live as it is not in ready to publish state")
+                res.body.error.message.should.be.eq("Transition failed for dataset: telemetry status:Draft with status transition to Live")
                 done();
             });
     });

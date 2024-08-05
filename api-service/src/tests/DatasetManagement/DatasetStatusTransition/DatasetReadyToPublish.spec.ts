@@ -47,7 +47,7 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
                 res.body.result.should.be.a("object")
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.result.message.should.be.eq("Dataset status transition to ReadyToPublish successful")
-                res.body.result.dataset_id.should.be.eq("telemetry.1")
+                res.body.result.dataset_id.should.be.eq("telemetry")
                 done();
             });
     });
@@ -66,7 +66,7 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry.1")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });
@@ -74,19 +74,19 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
 
     it("Dataset status transition failure: When dataset is already ready to publish", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({dataset_id:"telemetry", status:"ReadyToPublish"})
+            return Promise.resolve({ ...TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_READY_TO_PUBLISH, "status": "ReadyToPublish" })
         })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
             .send(TestInputsForDatasetStatusTransition.VALID_REQUEST_FOR_READY_FOR_PUBLISH)
             .end((err, res) => {
-                res.should.have.status(httpStatus.BAD_REQUEST);
+                res.should.have.status(httpStatus.CONFLICT);
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Failed to mark dataset Ready to publish as it not in draft state")
+                res.body.error.message.should.be.eq("Transition failed for dataset: dataset-all-fields7 status:ReadyToPublish with status transition to ReadyToPublish")
                 res.body.error.code.should.be.eq("DATASET_READYTOPUBLISH_FAILURE")
                 done();
             });
