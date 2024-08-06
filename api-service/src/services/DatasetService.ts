@@ -94,35 +94,8 @@ class DatasetService {
 
     migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>): Promise<any> => {
         const dataset_id = _.get(dataset, "id")
-        const dataset_config: any = _.get(dataset, "dataset_config");
         const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
         const transaction = await sequelize.transaction();
-
-        draftDataset["dataset_config"] = {
-            indexing_config: {olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master")},
-            keys_config: {data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key},
-            cache_config: {redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db}
-        }
-        const transformations = await this.getDraftTransformations(dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
-        draftDataset["transformations_config"] = _.map(transformations, (config) => {
-            return {
-                field_key: _.get(config, ["field_key"]),
-                transformation_function: _.get(config, ["transformation_function"]),
-                mode: _.get(config, ["mode"]),
-                datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
-                category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
-            }
-        })
-        const connectors = await this.getDraftConnectors(dataset_id, ["id", "connector_type", "connector_config"]);
-        draftDataset["connectors_config"] = _.map(connectors, (config) => {
-            return {
-                id: _.get(config, ["id"]),
-                connector_id: _.get(config, ["connector_type"]),
-                connector_config: _.get(config, ["connector_config"]),
-                version: "v1"
-            }
-        })
-        draftDataset["sample_data"] = dataset_config?.mergedEvent
         
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
@@ -173,6 +146,7 @@ class DatasetService {
             }
         })
         draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
+        draftDataset["sample_data"] = dataset_config?.mergedEvent
         return draftDataset;
     }
 
@@ -212,10 +186,12 @@ class DatasetService {
             draftDataset["transformations_config"] = _.map(transformations, (config) => {
                 return {
                     field_key: _.get(config, "field_key"),
-                    transformation_function: _.get(config, "transformation_function"),
-                    mode: _.get(config, "mode"),
-                    datatype: _.get(config, "metadata._transformedFieldDataType") || "string",
-                    category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                    transformation_function: {
+                        ..._.get(config, ["transformation_function"]),
+                        datatype: _.get(config, "metadata._transformedFieldDataType") || "string",
+                        category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                    },
+                    mode: _.get(config, "mode")
                 }
             })
             draftDataset["api_version"] = "v2"
