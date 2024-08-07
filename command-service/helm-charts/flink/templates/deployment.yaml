@@ -74,7 +74,7 @@ spec:
           ports:
           - containerPort: {{ .Values.taskmanager.rpc_port }}
             name: rpc
-          {{- toYaml (index $jobData "resources" $component )| nindent 10 }}
+          {{- toYaml (index .Values.flink_resources $component )| nindent 10 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
@@ -186,7 +186,7 @@ spec:
             - name: {{ .name }}
               containerPort: {{ .targetPort }}
             {{- end }}
-          {{-  toYaml (index $jobData "resources" $component )| nindent 10 }}
+          {{-  toYaml (index .Values.flink_resources $component )| nindent 10 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
