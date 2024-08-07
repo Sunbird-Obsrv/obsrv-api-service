@@ -79,30 +79,15 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
           - name: flink-config-volume
-            mountPath: /opt/flink/conf/flink-conf.yaml
-            subPath: flink-conf.yaml
-          - name: flink-config-volume
-            mountPath: /data/flink/conf/baseconfig.conf
-            subPath: baseconfig.conf
-          - name: flink-config-volume
-            mountPath: /data/flink/conf/{{ $jobName }}.conf
-            subPath: {{ $jobName }}.conf
-          - name: flink-config-volume
-            mountPath: /opt/flink/conf/log4j-console.properties
-            subPath: log4j-console.properties
+            mountPath: /data/flink/conf/flink-connector.conf
+            subPath: flink-connector.conf
       volumes:
       - name: flink-config-volume
         configMap:
-          name: {{ $jobName }}-config
+          name: flink-connector-conf
           items:
-          - key: flink-conf
-            path: flink-conf.yaml
-          - key: baseconfig
-            path: baseconfig.conf
-          - key: config
-            path: {{ $jobName }}.conf
-          - key: log4j_console_properties
-            path: log4j-console.properties
+          - key: connectors-scala-config.conf
+            path: flink-connector.conf
 {{ $component := "jobmanager" }}
 ---
 apiVersion: apps/v1
@@ -153,11 +138,7 @@ spec:
           command: 
             - "/bin/sh"
             - "-c"
-            - "/usr/bin/python3.11 -c 'print(5**3)'"
-            - "/bin/sh"
-            - "-c"
-            - "/opt/flink/bin/standalone-job.sh"
-          args: ["start-foreground",
+          args: ["/usr/bin/python3.11 /data/flink/connectors/connectors-init/connector.py", "/opt/flink/bin/standalone-job.sh start-foreground",
                 "--job-classname={{ index $jobData "job_classname" }}",
   {{- if eq .Values.checkpoint_store_type "azure" }}
                 "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}",
@@ -180,7 +161,7 @@ spec:
                 "-Dblob.server.port={{ .Values.jobmanager.blob_port }}",
                 "-Dqueryable-state.server.ports={{ .Values.jobmanager.query_port }}",
                 "--config.file.path",
-                "/data/flink/conf/{{ $jobName }}.conf"]
+                "/data/flink/conf/flink-connector.conf"]
           ports:
             {{- range .Values.service.ports }}
             - name: {{ .name }}
@@ -191,30 +172,15 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
           - name: flink-config-volume
-            mountPath: /opt/flink/conf/flink-conf.yaml
-            subPath: flink-conf.yaml
-          - name: flink-config-volume
-            mountPath: /data/flink/conf/baseconfig.conf
-            subPath: baseconfig.conf
-          - name: flink-config-volume
-            mountPath: /data/flink/conf/{{ $jobName }}.conf
-            subPath: {{ $jobName }}.conf
-          - name: flink-config-volume
-            mountPath: /opt/flink/conf/log4j-console.properties
-            subPath: log4j-console.properties
+            mountPath: /data/flink/conf/flink-connector.conf
+            subPath: flink-connector.conf
       volumes:
       - name: flink-config-volume
         configMap:
-          name: {{ $jobName }}-config
+          name: flink-connector-conf
           items:
-          - key: flink-conf
-            path: flink-conf.yaml
-          - key: baseconfig
-            path: baseconfig.conf
-          - key: config
-            path: {{ $jobName }}.conf
-          - key: log4j_console_properties
-            path: log4j-console.properties
+          - key: connectors-scala-config.conf
+            path: flink-connector.conf
 {{- end }}
 {{- end}}
 {{- end}}

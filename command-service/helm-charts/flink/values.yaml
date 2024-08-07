@@ -419,23 +419,7 @@ flink_jobs:
     tag: 1.0.0
     imagePullSecrets: []
 
-    job_classname: in.sanketika.obsrv.pipeline.task.MasterDataProcessorStreamTask
-
-    config: |+
-      include file("/data/flink/conf/baseconfig.conf")
-
-    flink-conf: |+
-      jobmanager.memory.flink.size: 1024m
-      taskmanager.memory.flink.size: 1024m
-      taskmanager.numberOfTaskSlots: 2
-      jobmanager.numberOfTaskSlots: 1
-      parallelism.default: 1
-      jobmanager.execution.failover-strategy: region
-      taskmanager.memory.network.fraction: 0.1
-      scheduler-mode: reactive
-      heartbeat.timeout: 8000
-      heartbeat.interval: 5000
-      state.savepoints.dir: file:///tmp
+    job_classname: org.sunbird.obsrv.connector.KafkaConnector
 
 commonAnnotations:
   reloader.stakater.com/auto: "true"

@@ -1,7 +1,7 @@
 {{- $currentScope := .}}
 {{- range $jobName, $jobData := .Values.flink_jobs }}
-{{- range $key, $smData := .Values.serviceMonitor }}
 {{- if $jobData.enabled}}
+{{- range $key, $smData := $.Values.serviceMonitor }}
 {{- if $smData.enabled}}
 {{- with $currentScope }}
 ---
