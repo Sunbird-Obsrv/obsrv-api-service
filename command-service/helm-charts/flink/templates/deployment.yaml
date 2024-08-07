@@ -135,33 +135,34 @@ spec:
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
           workingDir: /opt/flink
-          command: 
-            - "/bin/sh"
-            - "-c"
-          args: ["/usr/bin/python3.11 /data/flink/connectors/connectors-init/connector.py", "/opt/flink/bin/standalone-job.sh start-foreground",
-                "--job-classname={{ index $jobData "job_classname" }}",
-  {{- if eq .Values.checkpoint_store_type "azure" }}
-                "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}",
+          command: ["/bin/sh", "-c"]
+          args: 
+          - |
+            /usr/bin/python3.11 /data/flink/connectors/connectors-init/connector.py
+            exec /opt/flink/bin/standalone-job.sh start-foreground \
+              "--job-classname={{ index $jobData "job_classname" }}" \
+    {{- if eq .Values.checkpoint_store_type "azure" }}
+              "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}" \
   {{- end }}
   {{- if and (eq .Values.checkpoint_store_type "s3") (ne .Values.s3_auth_type "serviceAccount") }}
-                "-Ds3.access-key={{ .Values.s3_access_key }}",
-                "-Ds3.secret-key={{ .Values.s3_secret_key }}",
-                "-Ds3.endpoint={{ .Values.s3_endpoint }}",
-                "-Ds3.path.style.access={{ .Values.s3_path_style_access }}",
+              "-Ds3.access-key={{ .Values.s3_access_key }}" \
+              "-Ds3.secret-key={{ .Values.s3_secret_key }}" \
+              "-Ds3.endpoint={{ .Values.s3_endpoint }}" \
+              "-Ds3.path.style.access={{ .Values.s3_path_style_access }}" \
   {{- end }}
   {{- if eq .Values.checkpoint_store_type "gcs" }}
-            "-Dgoogle.cloud.auth.service.account.enable=true",
+          "-Dgoogle.cloud.auth.service.account.enable=true" \
   {{- end }}
-                "-Dweb.submit.enable=false",
-                "-Dmetrics.reporter.prom.class=org.apache.flink.metrics.prometheus.PrometheusReporter",
-                "-Dmetrics.reporter.prom.port={{ .Values.jobmanager.prom_port }}",
-                "-Djobmanager.rpc.address={{ $jobName }}-jobmanager",
-                "-Djobmanager.rpc.port={{ .Values.jobmanager.rpc_port }}",
-                "-Dparallelism.default=1",
-                "-Dblob.server.port={{ .Values.jobmanager.blob_port }}",
-                "-Dqueryable-state.server.ports={{ .Values.jobmanager.query_port }}",
-                "--config.file.path",
-                "/data/flink/conf/flink-connector.conf"]
+              "-Dweb.submit.enable=false" \
+              "-Dmetrics.reporter.prom.class=org.apache.flink.metrics.prometheus.PrometheusReporter" \
+              "-Dmetrics.reporter.prom.port={{ .Values.jobmanager.prom_port }}" \
+              "-Djobmanager.rpc.address={{ $jobName }}-jobmanager" \
+              "-Djobmanager.rpc.port={{ .Values.jobmanager.rpc_port }}" \
+              "-Dparallelism.default=1" \
+              "-Dblob.server.port={{ .Values.jobmanager.blob_port }}" \
+              "-Dqueryable-state.server.ports={{ .Values.jobmanager.query_port }}" \
+              "--config.file.path" \
+              "/data/flink/conf/flink-connector.conf"
           ports:
             {{- range .Values.service.ports }}
             - name: {{ .name }}
