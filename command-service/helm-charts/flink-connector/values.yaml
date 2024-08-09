@@ -321,15 +321,7 @@ serviceMonitor:
     jobLabel: "app.kubernetes.io/name"
     port: prom
 
-flink_jobs:
-  kafka-connector:
-    enabled: true
-    registry: surabhi1510
-    repository: flink-python-3.11
-    tag: 1.0.0
-    imagePullSecrets: []
-
-    job_classname: org.sunbird.obsrv.connector.KafkaConnector
+flink_jobs: []
 
 commonAnnotations:
   reloader.stakater.com/auto: "true"

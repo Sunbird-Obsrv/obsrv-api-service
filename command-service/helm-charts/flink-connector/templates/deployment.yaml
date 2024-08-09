@@ -51,37 +51,17 @@ spec:
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
           workingDir: {{ .Values.taskmanager.flink_work_dir }}
-          # args: ["taskmanager"]
-          # env:
-          #   - name: FLINK_PROPERTIES
-          #     value: |+
-          #       jobmanager.rpc.address: {{ $jobName }}-jobmanager
-          #       taskmanager.rpc.port=6122
-          #       taskmanager.numberOfTaskSlots: 2
-          #       metrics.reporters: prom
-          #       metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
-          #       metrics.reporter.prom.host: {{ $jobName }}-taskmanager
-          #       metrics.reporter.prom.port: 9251
-          command: ["/opt/flink/bin/taskmanager.sh"]
-          args: ["start-foreground",
-  {{- if eq .Values.checkpoint_store_type "azure" }}
-            "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}",
-  {{- end }}
-  {{- if and (eq .Values.checkpoint_store_type "s3") (ne .Values.s3_auth_type "serviceAccount") }}
-            "-Ds3.access-key={{ .Values.s3_access_key }}",
-            "-Ds3.secret-key={{ .Values.s3_secret_key }}",
-            "-Ds3.endpoint={{ .Values.s3_endpoint }}",
-            "-Ds3.path.style.access={{ .Values.s3_path_style_access }}",
-  {{- end }}
-  {{- if eq .Values.checkpoint_store_type "gcs" }}
-            "-Dgoogle.cloud.auth.service.account.enable=true",
-  {{- end }}
-            "-Dweb.submit.enable=false",
-            "-Dmetrics.reporter.prom.class=org.apache.flink.metrics.prometheus.PrometheusReporter",
-            "-Dmetrics.reporter.prom.host={{ $jobName }}-taskmanager",
-            "-Dmetrics.reporter.prom.port=9251-9260",
-            "-Djobmanager.rpc.address={{ $jobName }}-jobmanager",
-            "-Dtaskmanager.rpc.port={{ .Values.taskmanager.rpc_port }}"]
+          args: ["taskmanager"]
+          env:
+            - name: FLINK_PROPERTIES
+              value: |+
+                jobmanager.rpc.address: {{ $jobName }}-jobmanager
+                taskmanager.rpc.port=6122
+                taskmanager.numberOfTaskSlots: 2
+                metrics.reporters: prom
+                metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+                metrics.reporter.prom.host: {{ $jobName }}-taskmanager
+                metrics.reporter.prom.port: 9251
           ports:
           - containerPort: {{ .Values.taskmanager.rpc_port }}
             name: rpc
@@ -140,7 +120,7 @@ spec:
         app.kubernetes.io/component: {{ printf "%s-%s" $jobName $component }}
         component: {{ printf "%s-%s" $jobName $component }}
       annotations:
-        checksum/config: {{ .Files.Glob "configs/*" | toYaml | sha256sum }}
+        checksum/config: {{ .Files.Glob "cFonfigs/*" | toYaml | sha256sum }}
         checksum/job-config: {{ $jobData | toYaml | sha256sum }}
     spec:
       serviceAccountName: {{ include "base.serviceaccountname" . }}
