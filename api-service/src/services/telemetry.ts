@@ -4,7 +4,7 @@ import _ from "lodash";
 import { config as appConfig } from "../configs/Config";
 import { Kafka } from "kafkajs";
 
-const env = _.get(appConfig, "env")
+const {env, version} = _.pick(appConfig, ["env","version"])
 const telemetryTopic = _.get(appConfig, "telemetry_dataset");
 const brokerServers = _.get(appConfig, "telemetry_service_config.kafka.config.brokers");
 
@@ -29,7 +29,7 @@ const getDefaults = () => {
             sid: v4(),
             pdata: {
                 id: `${env}.api.service`,
-                ver: "1.0.0"
+                ver: `${version}`
             }
         },
         object: {},
