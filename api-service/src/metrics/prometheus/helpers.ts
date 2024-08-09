@@ -52,12 +52,12 @@ export const onGone = (req: any, res: Response) => {
 }
 
 const getMetricLabels = (req: any, res: Response) => {
-    const { id, entity, url, startTime } = req;
+    const { id, entity, originalUrl, startTime } = req;
     const { statusCode = 200 } = res
     const request_size = req.socket.bytesRead
     const response_size = res.getHeader("content-length");
-    const dataset_id = _.get(req, "dataset_id") || null
+    const dataset_id = _.get(req, ["body", "request", "dataset_id"]) || _.get(req, ["params", "dataset_id"]) || null    
     const duration = getDuration(startTime);
-    const metricLabels = { entity, id, endpoint: url, dataset_id, status: statusCode, request_size, response_size }
+    const metricLabels = { entity, id, endpoint: originalUrl, dataset_id, status: statusCode, request_size, response_size }
     return { duration, metricLabels }
 }
