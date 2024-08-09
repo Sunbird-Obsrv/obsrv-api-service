@@ -28,9 +28,17 @@ const successApiCallsMetric = new Prometheus.Counter({
     labelNames: ["entity", "id", "endpoint", "dataset_id", "status", "request_size", "response_size"]
 })
 
+// Create a new Prometheus Counter for sum of response time
+const sumResponseTimeMetric = new Prometheus.Counter({
+    name: "node_sum_response_time",
+    help: "The sum of response time for time series of same label",
+    labelNames: ["entity", "id", "endpoint", "dataset_id", "status", "request_size", "response_size"]
+});
+
 export {
     queryResponseTimeMetric,
     totalApiCallsMetric,
     failedApiCallsMetric,
-    successApiCallsMetric
+    successApiCallsMetric,
+    sumResponseTimeMetric
 }
