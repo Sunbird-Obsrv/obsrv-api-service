@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { incrementApiCalls, incrementFailedApiCalls, incrementSuccessfulApiCalls, setQueryResponseTime } from ".";
+import { incrementApiCalls, incrementFailedApiCalls, incrementSuccessfulApiCalls, setQueryResponseTime, incrementResponseTime } from ".";
 import _ from "lodash";
 import { Entity, Metric } from "../../types/MetricModel";
 
@@ -19,7 +19,10 @@ export const onSuccess = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 200 } = res
     const labels = { ...metricLabels, status: statusCode }
-    duration && setQueryResponseTime({ duration, labels });
+    if(duration){
+        setQueryResponseTime({ duration, labels })
+        incrementResponseTime({duration, labels})
+    }
     incrementApiCalls({ labels })
     incrementSuccessfulApiCalls({ labels })
 }
@@ -28,7 +31,10 @@ export const onFailure = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 500 } = res
     const labels = { ...metricLabels, status: statusCode }
-    duration && setQueryResponseTime({ duration, labels });
+    if(duration){
+        setQueryResponseTime({ duration, labels })
+        incrementResponseTime({duration, labels})
+    }
     incrementApiCalls({ labels })
     incrementFailedApiCalls({ labels });
 }
@@ -37,7 +43,10 @@ export const onGone = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 410 } = res
     const labels = { ...metricLabels, status: statusCode }
-    duration && setQueryResponseTime({ duration, labels });
+    if(duration){
+        setQueryResponseTime({ duration, labels })
+        incrementResponseTime({duration, labels})
+    }
     incrementApiCalls({ labels })
     incrementFailedApiCalls({ labels });
 }
