@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { incrementApiCalls, incrementFailedApiCalls, incrementSuccessfulApiCalls, setQueryResponseTime, incrementResponseTime } from ".";
 import _ from "lodash";
 import { Entity, Metric } from "../../types/MetricModel";
+import { ObsrvError } from "../../types/ObsrvError";
 
 export const onRequest = ({ entity = Entity.Management }: any) => (req: any, res: Response, next: NextFunction) => {
     const startTime = Date.now();
@@ -42,6 +43,19 @@ export const onFailure = (req: any, res: Response) => {
 export const onGone = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 410 } = res
+    const labels = { ...metricLabels, status: statusCode }
+    if(duration){
+        setQueryResponseTime({ duration, labels })
+        incrementResponseTime({duration, labels})
+    }
+    incrementApiCalls({ labels })
+    incrementFailedApiCalls({ labels });
+}
+
+export const onObsrvFailure = (req: any, res: Response,error: ObsrvError) => {
+    const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
+    metricLabels.dataset_id = error.datasetId
+    const { statusCode = 404 } = res
     const labels = { ...metricLabels, status: statusCode }
     if(duration){
         setQueryResponseTime({ duration, labels })
