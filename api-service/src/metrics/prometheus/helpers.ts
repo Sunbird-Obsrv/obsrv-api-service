@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { incrementApiCalls, incrementFailedApiCalls, incrementSuccessfulApiCalls, setQueryResponseTime, incrementResponseTime } from ".";
+import { incrementApiCalls, incrementFailedApiCalls, incrementSuccessfulApiCalls, setQueryResponseTime } from ".";
 import _ from "lodash";
 import { Entity, Metric } from "../../types/MetricModel";
 import { ObsrvError } from "../../types/ObsrvError";
@@ -20,10 +20,7 @@ export const onSuccess = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 200 } = res
     const labels = { ...metricLabels, status: statusCode }
-    if(duration){
-        setQueryResponseTime({ duration, labels })
-        incrementResponseTime({duration, labels})
-    }
+    duration && setQueryResponseTime({ duration, labels })
     incrementApiCalls({ labels })
     incrementSuccessfulApiCalls({ labels })
 }
@@ -32,10 +29,7 @@ export const onFailure = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 500 } = res
     const labels = { ...metricLabels, status: statusCode }
-    if(duration){
-        setQueryResponseTime({ duration, labels })
-        incrementResponseTime({duration, labels})
-    }
+    duration && setQueryResponseTime({ duration, labels })
     incrementApiCalls({ labels })
     incrementFailedApiCalls({ labels });
 }
@@ -44,10 +38,7 @@ export const onGone = (req: any, res: Response) => {
     const { duration = 0, metricLabels }: Metric = getMetricLabels(req, res)
     const { statusCode = 410 } = res
     const labels = { ...metricLabels, status: statusCode }
-    if(duration){
-        setQueryResponseTime({ duration, labels })
-        incrementResponseTime({duration, labels})
-    }
+    duration && setQueryResponseTime({ duration, labels })
     incrementApiCalls({ labels })
     incrementFailedApiCalls({ labels });
 }
@@ -57,10 +48,7 @@ export const onObsrvFailure = (req: any, res: Response,error: ObsrvError) => {
     metricLabels.dataset_id = error.datasetId
     const { statusCode = 404 } = res
     const labels = { ...metricLabels, status: statusCode }
-    if(duration){
-        setQueryResponseTime({ duration, labels })
-        incrementResponseTime({duration, labels})
-    }
+    duration && setQueryResponseTime({ duration, labels })
     incrementApiCalls({ labels })
     incrementFailedApiCalls({ labels });
 }
