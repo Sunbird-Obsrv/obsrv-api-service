@@ -2,17 +2,13 @@ import { Request, Response, NextFunction } from "express"
 import { v4 } from "uuid";
 import _ from "lodash";
 import { config as appConfig } from "../configs/Config";
-import { Kafka } from "kafkajs";
+import {send} from "../connections/kafkaConnection"
 
-const env = _.get(appConfig, "env")
+const {env, version} = _.pick(appConfig, ["env","version"])
 const telemetryTopic = _.get(appConfig, "telemetry_dataset");
-const brokerServers = _.get(appConfig, "telemetry_service_config.kafka.config.brokers");
 
 export enum OperationType { CREATE = 1, UPDATE, PUBLISH, RETIRE, LIST, GET }
 
-const kafka = new Kafka({ clientId: telemetryTopic, brokers: brokerServers });
-const telemetryEventsProducer = kafka.producer();
-telemetryEventsProducer.connect().catch(err => console.error("Unable to connect to kafka", err.message));
 
 const getDefaults = () => {
     return {
@@ -29,7 +25,7 @@ const getDefaults = () => {
             sid: v4(),
             pdata: {
                 id: `${env}.api.service`,
-                ver: "1.0.0"
+                ver: `${version}`
             }
         },
         object: {},
@@ -54,7 +50,7 @@ const getDefaultEdata = ({ action }: any) => ({
 })
 
 const sendTelemetryEvents = async (event: Record<string, any>) => {
-    telemetryEventsProducer.send({ topic: telemetryTopic, messages: [{ value: JSON.stringify(event) }] }).catch(console.log)
+    send({ messages: [{ value: JSON.stringify(event) }] }, telemetryTopic).catch(console.log);
 }
 
 const transformProps = (body: Record<string, any>) => {

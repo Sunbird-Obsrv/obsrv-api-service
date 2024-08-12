@@ -17,5 +17,8 @@ export default {
     "sqlQuery": "dataset:query:sql",
     "ingestEvents": "dataset:events:ingest",
     "submitIngestionSpec": "datasource:ingestion:submit",
-    "datasetExhaust": "dataset:exhaust:get"
+    "datasetExhaust": "dataset:exhaust:get",
+    "copyDataset": "dataset:copy",
+    "readConnectors": "connectors:read",
+    "listConnectors": "connectors:list",
 }
