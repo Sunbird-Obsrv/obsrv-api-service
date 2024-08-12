@@ -86,51 +86,38 @@ export const TestInputsForDatasetStatusTransition = {
     "entry_topic": "local.ingest"
   },
   INVALID_SCHEMA_FOR_READY_TO_PUBLISH: {
-    "dataset_id": "telemetry",
-    "type": "",
+    "id": "dataset-all-fields7",
+    "dataset_id": "dataset-all-fields7",
+    "version": 1,
+    "type": "event",
     "name": "sb-telemetry",
-    "id": "telemetry.1",
-    "status": "Draft",
-    "version_key": "1789887878",
-    "validation_config": {
-      "validate": true,
-      "mode": "Strict"
-    },
-    "router_config": {
-      "topic": "test"
-    },
-    "denorm_config": {
-      "redis_db_host": "local",
-      "redis_db_port": 5432,
-      "denorm_fields": [
-        {
-          "denorm_key": "actor.id",
-          "denorm_out_field": "userdata",
-          "dataset_name": "name",
-          "dataset_id": "name"
-        },
-        {
-          "denorm_key": "actor.id",
-          "denorm_out_field": "mid",
-          "dataset_name": "name",
-          "dataset_id": "name"
-        }
-      ]
-    },
-    "dataset_config": {
-      "data_key": "mid",
-      "timestamp_key": "ets",
-      "entry_topic": "topic",
-      "redis_db_host": "local",
-      "redis_db_port": 5432,
-      "redis_db": 0,
-      "index_data": true
-    },
-    "client_state": {},
-    "tags": [
-      "tag1",
-      "tag2"
-    ]
+    "validation_config": { "validate": false, "mode": "Strict" },
+    "extraction_config": { "is_batch_event": true, "extraction_key": "events", "dedup_config": { "drop_duplicates": true, "dedup_key": "id", "dedup_period": 604800 } },
+    "dedup_config": { "drop_duplicates": true, "dedup_key": "mid", "dedup_period": 604800 },
+    "data_schema": { "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "properties": { "mid": { "type": "string", "arrival_format": "text", "data_type": "string" }, "ets": { "type": "integer", "arrival_format": "number", "data_type": "epoch" }, "eid": { "type": "string", "arrival_format": "text", "data_type": "string" } }, "additionalProperties": true },
+    "denorm_config": { "redis_db_host": "localhost", "redis_db_port": 5679, "denorm_fields": [{ "denorm_key": "eid", "denorm_out_field": "userdata", "dataset_id": "master-dataset", "redis_db": 85 }] },
+    "router_config": { "topic": "dataset-all-fields7" },
+    "tags": ["tag1"],
+    "status":"Draft",
+    "version_key": "1721887933020",
+    "api_version": "v2"
+  },
+  SCHEMA_TO_RETIRE: {
+    "id": "dataset-all-fields7",
+    "dataset_id": "dataset-all-fields7",
+    "version": 1,
+    "type": "event",
+    "name": "sb-telemetry",
+    "validation_config": { "validate": false, "mode": "Strict" },
+    "extraction_config": { "is_batch_event": true, "extraction_key": "events", "dedup_config": { "drop_duplicates": true, "dedup_key": "id", "dedup_period": 604800 } },
+    "dedup_config": { "drop_duplicates": true, "dedup_key": "mid", "dedup_period": 604800 },
+    "data_schema": { "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "properties": { "mid": { "type": "string", "arrival_format": "text", "data_type": "string" }, "ets": { "type": "integer", "arrival_format": "number", "data_type": "epoch" }, "eid": { "type": "string", "arrival_format": "text", "data_type": "string" } }, "additionalProperties": true },
+    "denorm_config": { "redis_db_host": "localhost", "redis_db_port": 5679, "denorm_fields": [{ "denorm_key": "eid", "denorm_out_field": "userdata", "dataset_id": "master-dataset", "redis_db": 85 }] },
+    "router_config": { "topic": "dataset-all-fields7" },
+    "tags": ["tag1"],
+    "status":"Live",
+    "version_key": "1721887933020",
+    "api_version": "v2"
   },
   DRAFT_DATASET_SCHEMA_FOR_PUBLISH: { "dataset_id": "telemetry", "data_schema": { "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "properties": { "ets": { "type": "string" }, "ver": { "type": "string" } }, "additionalProperties": true }, "status": "ReadyToPublish", "id": "telemetry", "type": "events", "api_version": "v2", "denorm_config": { "denorm_fields": [{ "denorm_out_field": "pid", "denorm_key": "eid", "dataset_id": "master-dataset" }] }, "dataset_config": { "indexing_config": { "olap_store_enabled": true, "lakehouse_enabled": false, "cache_enabled": false }, "keys_config": { "timestamp_key": "ets", "partition_key": "", "data_key": "eid" }, "file_upload_path": ["telemetry.json"] }, "router_config": { "topic": "telemetry" } }
 }
