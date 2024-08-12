@@ -86,12 +86,13 @@ class ConnectorCommand(ICommand):
 
     def _install_jobs(self, dataset_id, active_connectors, is_masterdata):
         result = None
-
         for connector in active_connectors:
             print("Installing connector {0}".format(connector))
 
             if connector.connector_runtime == "spark":
                 result = self._perform_spark_install(connector)
+            elif connector.connector_runtime == "flink":
+                result = self._perform_flink_install(connector)
             else:
                 print(
                     f"Connector {connector.connector_id} is not supported for deployment"
@@ -103,6 +104,55 @@ class ConnectorCommand(ICommand):
         #     masterdata_jar_config = self.config.find("masterdata_job")
         #     for release in masterdata_jar_config:
         #         result = self._perform_install(release)
+        return result
+    
+    def _perform_flink_install(self, connector_instance):
+        err = None
+        result = None
+        release_name = connector_instance.id
+        connector_source = json.loads(connector_instance.connector_source)
+        flink_jobs = {
+            "kafka-connector": {
+                "enabled": "true",
+                "job_classname": connector_source.get('main_class')
+            }
+        }
+        set_json_value = json.dumps(flink_jobs)
+        print("Kafka connector: ", set_json_value)
+        helm_install_cmd = [
+            "helm",
+            "upgrade",
+            "--install",
+            release_name,
+            f"""{self.config.find("helm_charts_base_dir")}/{self.connector_job_config["flink"]["base_helm_chart"]}""",
+            "--namespace",
+            self.connector_job_config["flink"]["namespace"],
+            "--create-namespace",
+            "--set-json",
+            f"flink_jobs={set_json_value}"
+        ]
+        
+        print(" ".join(helm_install_cmd))
+
+        helm_install_result = subprocess.run(
+            helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        if helm_install_result.returncode == 0:
+            print(f"Job {release_name} deployment succeeded...")
+        else:
+            err = True
+            result = ActionResponse(
+                status="ERROR",
+                status_code=500,
+                error_message="FLINK_CONNECTOR_HELM_INSTALLATION_EXCEPTION",
+            )
+            print(
+                f"Error re-installing job {release_name}: {helm_install_result.stderr.decode()}"
+            )
+
+        if err is None:
+            result = ActionResponse(status="OK", status_code=200)
+
         return result
 
     def _perform_spark_install(self, connector_instance):
