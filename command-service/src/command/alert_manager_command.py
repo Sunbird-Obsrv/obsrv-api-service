@@ -81,13 +81,15 @@ class AlertManagerService(ICommand):
         return ActionResponse(status="OK", status_code=200)
 
     def get_dataset(self, dataset_id: str) -> str:
-        query = f"SELECT * FROM datasets WHERE dataset_id='{dataset_id}'"
-        result = self.db_service.execute_select_one(sql=query)
+        query = f"SELECT * FROM datasets WHERE dataset_id= %s"
+        params = (dataset_id,)
+        result = self.db_service.execute_select_one(sql=query, params=params)
         return result
 
     def get_dataset_source_config(self, dataset_id: str) -> str:
-        query = f"SELECT * FROM dataset_source_config WHERE dataset_id='{dataset_id}'"
-        result = self.db_service.execute_select_all(sql=query)
+        query = f"SELECT * FROM dataset_source_config WHERE dataset_id= %s"
+        params = (dataset_id,)
+        result = self.db_service.execute_select_all(sql=query, params=params)
         return result
 
     def get_modified_metric(

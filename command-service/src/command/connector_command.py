@@ -210,14 +210,14 @@ class ConnectorCommand(ICommand):
 
     def _get_connector_details(self, dataset_id):
         active_connectors = []
-        records = self.db_service.execute_select_all(
-            f"""
-                SELECT ci.id, ci.connector_id, ci.operations_config, cr.runtime as connector_runtime, cr.source as connector_source, cr.technology
-                FROM connector_instances ci
-                JOIN connector_registry cr on ci.connector_id = cr.id
-                WHERE ci.status='{DatasetStatusType.Live.name}' and ci.dataset_id = '{dataset_id}'
-            """
-        )
+        query = f"""
+            SELECT ci.id, ci.connector_id, ci.operations_config, cr.runtime as connector_runtime, cr.source as connector_source, cr.technology
+            FROM connector_instances ci
+            JOIN connector_registry cr on ci.connector_id = cr.id
+            WHERE ci.status= %s and ci.dataset_id = %s
+        """
+        params = (DatasetStatusType.Live.name, dataset_id,)
+        records = self.db_service.execute_select_all(sql=query, params=params)
 
         for record in records:
             active_connectors.append(from_dict(
@@ -228,14 +228,13 @@ class ConnectorCommand(ICommand):
 
     def _get_masterdata_details(self, dataset_id):
         is_masterdata = False
-        rows = self.db_service.execute_select_all(
-            f"""
-                SELECT *
-                FROM datasets
-                WHERE status='{DatasetStatusType.Live.name}' AND dataset_id = '{dataset_id}' AND type = 'master'
-            """
-        )
-
+        query = f"""
+            SELECT *
+            FROM datasets
+            WHERE status= %s AND dataset_id = %s AND type = 'master'
+        """
+        params = (DatasetStatusType.Live.name, dataset_id,)
+        rows = self.db_service.execute_select_all(sql=query, params=params)
         if len(rows) > 0:
             is_masterdata = True
 
