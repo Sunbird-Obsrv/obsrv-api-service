@@ -76,7 +76,7 @@ class DBCommand(ICommand):
             json.dumps(draft_dataset.router_config).replace("'", "''"),
             json.dumps(draft_dataset.dataset_config).replace("'", "''"),
             DatasetStatusType.Live.name,
-            json.dumps(draft_dataset.tags).replace("'", "''").replace("[", "{").replace("]", "}"),
+            json.dumps(draft_dataset.tags).replace("'", "''").replace("[", "{").replace("]", "}") if draft_dataset.tags is not None else json.dumps({}),
             draft_dataset.api_version,
             draft_dataset.version,
             json.dumps(draft_dataset.sample_data).replace("'", "''"),
@@ -95,7 +95,7 @@ class DBCommand(ICommand):
             json.dumps(draft_dataset.data_schema).replace("'", "''"),
             json.dumps(draft_dataset.router_config).replace("'", "''"),
             json.dumps(draft_dataset.dataset_config).replace("'", "''"),
-            json.dumps(draft_dataset.tags).replace("'", "''").replace("[", "{").replace("]", "}"),
+            json.dumps(draft_dataset.tags).replace("'", "''").replace("[", "{").replace("]", "}") if draft_dataset.tags is not None else json.dumps({}),
             data_version if live_dataset is not None else 1,
             draft_dataset.api_version,
             draft_dataset.version,
@@ -126,7 +126,7 @@ class DBCommand(ICommand):
                 %s,
                 1,
                 %s,
-                %d,
+                %s,
                 %s,
                 %s,
                 %s,
@@ -145,9 +145,9 @@ class DBCommand(ICommand):
             router_config = %s,
             dataset_config = %s,
             tags = %s,
-            data_version = %d,
+            data_version = %s,
             api_version = %s,
-            version = %d,
+            version = %s,
             sample_data = %s,
             entry_topic = %s,
             updated_by = %s,
@@ -418,6 +418,12 @@ class DBCommand(ICommand):
 
         self.db_service.execute_delete(sql=f"""DELETE from datasources_draft where dataset_id = %s""", params=(draft_dataset_id,))
         print(f"Draft datasources/tables for {dataset_id} are deleted successfully...")
+
+        self.db_service.execute_delete(sql=f"""DELETE from dataset_transformations_draft where dataset_id = %s""", params=(draft_dataset_id,))
+        print(f"Draft transformations/tables for {dataset_id} are deleted successfully...")
+
+        self.db_service.execute_delete(sql=f"""DELETE from dataset_source_config_draft where dataset_id = %s""", params=(draft_dataset_id,))
+        print(f"Draft source config/tables for {dataset_id} are deleted successfully...")
 
         self.db_service.execute_delete(sql=f"""DELETE from datasets_draft where id = %s""", params=(draft_dataset_id,))
         print(f"Draft Dataset for {dataset_id} is deleted successfully...")
