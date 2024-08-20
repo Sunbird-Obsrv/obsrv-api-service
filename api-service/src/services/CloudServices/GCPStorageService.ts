@@ -74,7 +74,7 @@ export class GCPStorageService implements ICloudService {
 
         return generateSignedUrls()
             .then(signedUrlList => {
-                const periodWiseFiles: any = {};
+                const periodWiseFiles: { [key: string]: string[] } = {};
                 const files: any = [];
                 const signedUrls = _.flattenDeep(_.map(signedUrlList, url => {
                     const values = _.values(url)
