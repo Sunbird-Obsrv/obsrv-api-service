@@ -7,8 +7,6 @@ import { describe, it } from "mocha";
 import _ from "lodash";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
-import { sequelize } from "../../../connections/databaseConnection";
-
 
 chai.use(spies);
 chai.should();
@@ -29,7 +27,32 @@ describe("DATASET STATUS TRANSITION READY TO PUBLISH", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({})
         })
-        
+
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_REQUEST_FOR_READY_FOR_PUBLISH)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.result.message.should.be.eq("Dataset status transition to ReadyToPublish successful")
+                res.body.result.dataset_id.should.be.eq("telemetry")
+                done();
+            });
+    });
+
+    it("Dataset status transition success: When the action is make master dataset ready to publish", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetStatusTransition.VALID_MASTER_SCHEMA_FOR_READY_TO_PUBLISH)
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+
         chai
             .request(app)
             .post("/v2/datasets/status-transition")

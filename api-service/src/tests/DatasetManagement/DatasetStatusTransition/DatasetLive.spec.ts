@@ -66,6 +66,115 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             });
     });
 
+
+    it("Dataset status transition success: When the action is to set master dataset live", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_MASTER_DATASET_SCHEMA_FOR_PUBLISH)
+        })
+        chai.spy.on(sequelize, "query", () => {
+            return Promise.resolve([[{ nextval: 9 }]])
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
+        })
+        chai.spy.on(DatasourceDraft, "create", () => {
+            return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(commandHttpService, "post", () => {
+            return Promise.resolve({})
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE_MASTER)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.result.message.should.be.eq("Dataset status transition to Live successful")
+                res.body.result.dataset_id.should.be.eq("master-telemetry")
+                done();
+            });
+    });
+
+    it("Dataset status transition failure: When the dependent denorm master dataset is not live", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(_.clone(TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH))
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "id": "master-dataset", "status": "Retired", "dataset_config": { "redis_db": 21 }, "api_version": "v1" }])
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.PRECONDITION_REQUIRED);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.error.message.should.be.eq("The datasets with id:master-dataset are not in published status")
+                res.body.error.code.should.be.eq("DEPENDENT_MASTER_DATA_NOT_LIVE")
+                done();
+            });
+    });
+
+    it("Dataset status transition failure: When dataset to publish is self referencing the denorm master dataset", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve({...TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH, "id": "master-dataset"})
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.CONFLICT);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.error.message.should.be.eq("The denorm master dataset is self-referencing itself")
+                res.body.error.code.should.be.eq("SELF_REFERENCING_MASTER_DATA")
+                done();
+            });
+    });
+
+    it("Dataset status transition failure: Unable to fetch redis db number for master dataset", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_MASTER_DATASET_INVALID)
+        })
+        chai.spy.on(sequelize, "query", () => {
+            return Promise.resolve([])
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE_MASTER)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.error.message.should.be.eq("Unable to fetch the redis db index for the master data")
+                res.body.error.code.should.be.eq("REDIS_DB_INDEX_FETCH_FAILED")
+                done();
+            });
+    });
+
     it("Dataset status transition failure: When dataset is not found to publish", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve()

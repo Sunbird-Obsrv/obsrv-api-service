@@ -119,5 +119,15 @@ export const TestInputsForDatasetRead = {
                 "brokerURL": "localhost:9092"
             }
         }
+    ],
+    CONNECTORS_SCHEMA_V2: [
+        {
+            "id": "hsh882ehdshe",
+            "connector_id": "kafka",
+            "connector_config": {
+                "topic": "local.ingest",
+                "brokerURL": "localhost:9092"
+            }
+        }
     ]
 }

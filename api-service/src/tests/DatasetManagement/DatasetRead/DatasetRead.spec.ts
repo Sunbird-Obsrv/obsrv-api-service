@@ -99,7 +99,7 @@ describe("DATASET READ API", () => {
             return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA)
         })
         chai.spy.on(ConnectorInstances, "findAll", () => {
-            return Promise.resolve([])
+            return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V2)
         })
         chai.spy.on(DatasetDraft, "create", () => {
             return Promise.resolve({ dataValues: TestInputsForDatasetRead.DRAFT_SCHEMA })
@@ -131,7 +131,7 @@ describe("DATASET READ API", () => {
             return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA_V1)
         })
         chai.spy.on(DatasetSourceConfig, "findAll", () => {
-            return Promise.resolve([])
+            return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V1)
         })
         chai.spy.on(DatasetDraft, "create", () => {
             return Promise.resolve({ dataValues: TestInputsForDatasetRead.DRAFT_SCHEMA })
