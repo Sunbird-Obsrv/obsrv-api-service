@@ -376,7 +376,14 @@
             "minLength": 1
           },
           "connector_config": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
+            ]
           },
           "operations_config": {
             "type": "object"
