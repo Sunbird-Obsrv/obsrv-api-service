@@ -48,21 +48,21 @@ const datasetRead = async (req: Request, res: Response) => {
 }
 
 const readDraftDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
-    
+
     const attrs = _.union(attributes, ["dataset_config", "api_version", "type", "id"])
     const draftDataset = await datasetService.getDraftDataset(datasetId, attrs);
-    if(draftDataset) { // Contains a draft
+    if (draftDataset) { // Contains a draft
         const apiVersion = _.get(draftDataset, ["api_version"]);
         const dataset: any = (apiVersion === "v2") ? draftDataset : await datasetService.migrateDraftDataset(datasetId, draftDataset)
-        return _.pick(dataset, attributes); 
+        return _.pick(dataset, attributes);
     }
 
     const liveDataset = await datasetService.getDataset(datasetId, undefined, true);
-    if(liveDataset) {
+    if (liveDataset) {
         const dataset = await datasetService.createDraftDatasetFromLive(liveDataset)
-        return _.pick(dataset, attributes); 
+        return _.pick(dataset, attributes);
     }
-    
+
     return null;
 }
 

@@ -88,6 +88,22 @@ export const TestInputsForDatasetUpdate = {
         }
     },
 
+    DATASET_UPDATE_CONNECTORS_ADD: {
+        ...requestStructure, request: {
+            "dataset_id": "telemetry",
+            "version_key": validVersionKey,
+            "connectors_config":[{"value":{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}, "action": "upsert"}],
+        }
+    },
+
+    DATASET_UPDATE_CONNECTORS_REMOVE: {
+        ...requestStructure, request: {
+            "dataset_id": "telemetry",
+            "version_key": validVersionKey,
+            "connectors_config":[{"value":{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}, "action": "upsert"}],
+        }
+    },
+
     DATASET_UPDATE_DEDUP_DUPLICATES_TRUE: {
         ...requestStructure,
         request: {

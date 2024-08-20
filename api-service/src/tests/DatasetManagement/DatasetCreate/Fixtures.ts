@@ -161,6 +161,54 @@ export const TestInputsForDatasetCreate = {
         }
     },
 
+    VALID_DATASET_WITH_CONNECTORS: {
+        "id": "api.datasets.create",
+        "ver": "v1",
+        "ts": "2024-04-10T16:10:50+05:30",
+        "params": {
+            "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
+        },
+        "request": {
+            "dataset_id": "sb-ddd",
+            "type": "event",
+            "name": "sb-telemetry2",
+            "data_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "eid": {
+                        "type": "string"
+                    },
+                    "ver": {
+                        "type": "string"
+                    },
+                    "ets": {
+                        "type": "string"
+                    },
+                    "required": [
+                        "eid"
+                    ]
+                },
+                "additionalProperties": true
+            },
+            "dataset_config": {
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            },
+            "connectors_config":[{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}, {"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5cai","connector_id":"debezium","connector_config":{"type":"debezium","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}],
+            "tags": []
+        }
+    },
+
     VALID_MINIMAL_DATASET: {
         "id": "api.datasets.create",
         "ver": "v2",
@@ -532,6 +580,13 @@ export const DATASET_CREATE_SUCCESS_FIXTURES = [
     {
         "title": "Dataset creation success: When transformation payload provided",
         "requestPayload": TestInputsForDatasetCreate.VALID_DATASET_WITH_TRANSFORMATIONS,
+        "httpStatus": httpStatus.OK,
+        "status": "SUCCESS",
+        "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
+    },
+    {
+        "title": "Dataset creation success: When connectors payload provided",
+        "requestPayload": TestInputsForDatasetCreate.VALID_DATASET_WITH_CONNECTORS,
         "httpStatus": httpStatus.OK,
         "status": "SUCCESS",
         "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"

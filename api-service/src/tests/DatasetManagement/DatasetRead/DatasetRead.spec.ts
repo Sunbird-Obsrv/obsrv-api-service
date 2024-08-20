@@ -25,7 +25,7 @@ describe("DATASET READ API", () => {
 
     it("Dataset read success: When minimal fields requested", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ "name": "sb-telemetry", "data_version": 1 })
+            return Promise.resolve({ "name": "sb-telemetry", "version": 1 })
         })
         chai
             .request(app)
@@ -38,7 +38,7 @@ describe("DATASET READ API", () => {
                 res.body.result.should.be.a("object")
                 res.body.result.name.should.be.eq("sb-telemetry")
                 const result = JSON.stringify(res.body.result)
-                result.should.be.eq(JSON.stringify({ name: "sb-telemetry", data_version: 1 }))
+                result.should.be.eq(JSON.stringify({ name: "sb-telemetry", version: 1 }))
                 done();
             });
     });
@@ -64,7 +64,7 @@ describe("DATASET READ API", () => {
             });
     });
 
-    it("Dataset read success: Fetch live dataset when status param is empty", (done) => {
+    it("Dataset read success: Fetch live dataset when mode param not provided", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve(TestInputsForDatasetRead.LIVE_SCHEMA)
         })
@@ -150,20 +150,20 @@ describe("DATASET READ API", () => {
 
     it("Dataset read failure: Updating dataset status to draft on mode=edit fails as live record not found", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ dataset_id: "sb-telemetry", name: "sb-telemetry", status: "Live", data_schema: {} })
+            return Promise.resolve()
         })
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve()
         })
         chai
             .request(app)
-            .get("/v2/datasets/read/sb-telemetry?status=Draft&mode=edit")
+            .get("/v2/datasets/read/sb-telemetry?mode=edit")
             .end((err, res) => {
                 res.should.have.status(httpStatus.NOT_FOUND);
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("Failed to fetch live dataset")
+                res.body.error.message.should.be.eq("Dataset with the given dataset_id:sb-telemetry not found")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });
