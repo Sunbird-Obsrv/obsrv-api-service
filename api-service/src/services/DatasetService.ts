@@ -25,7 +25,7 @@ class DatasetService {
     }
 
     findDatasets = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
-        return Dataset.findAll({where, attributes, order, raw: true})
+        return Dataset.findAll({ where, attributes, order, raw: true })
     }
 
     getDuplicateDenormKey = (denormConfig: Record<string, any>): Array<string> => {
@@ -39,9 +39,9 @@ class DatasetService {
     }
 
     checkDatasetExists = async (dataset_id: string): Promise<boolean> => {
-        const draft = await DatasetDraft.findOne({ where: { dataset_id }, attributes:["id"], raw: true });
+        const draft = await DatasetDraft.findOne({ where: { dataset_id }, attributes: ["id"], raw: true });
         if (draft === null) {
-            const live = await Dataset.findOne({ where: { id: dataset_id }, attributes:["id"], raw: true });
+            const live = await Dataset.findOne({ where: { id: dataset_id }, attributes: ["id"], raw: true });
             return !(live === null)
         } else {
             return true;
@@ -53,7 +53,7 @@ class DatasetService {
     }
 
     findDraftDatasets = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
-        return DatasetDraft.findAll({where, attributes, order, raw: true})
+        return DatasetDraft.findAll({ where, attributes, order, raw: true })
     }
 
     getDraftTransformations = async (dataset_id: string, attributes?: string[]) => {
@@ -68,7 +68,7 @@ class DatasetService {
         return DatasetSourceConfig.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
-    getConnectors = async (dataset_id: string, attributes?: string[]): Promise<Record<string,any>> => {
+    getConnectors = async (dataset_id: string, attributes?: string[]): Promise<Record<string, any>> => {
         return ConnectorInstances.findAll({ where: { dataset_id }, attributes, raw: true });
     }
 
@@ -78,7 +78,7 @@ class DatasetService {
 
     updateDraftDataset = async (draftDataset: Record<string, any>): Promise<Record<string, any>> => {
 
-        await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id }});
+        await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id } });
         const responseData = { message: "Dataset is updated successfully", id: draftDataset.id, version_key: draftDataset.version_key };
         logger.info({ draftDataset, message: `Dataset updated successfully with id:${draftDataset.id}`, response: responseData });
         return responseData;
@@ -96,7 +96,7 @@ class DatasetService {
         const dataset_id = _.get(dataset, "id")
         const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
         const transaction = await sequelize.transaction();
-        
+
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
             await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
@@ -150,9 +150,9 @@ class DatasetService {
         return draftDataset;
     }
 
-    getTransformationCategory = (section: string):string => {
+    getTransformationCategory = (section: string): string => {
 
-        switch(section) {
+        switch (section) {
             case "pii":
                 return "pii";
             case "additionalFields":
@@ -163,15 +163,15 @@ class DatasetService {
     }
 
     createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
-        
-        let draftDataset:any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
-        const dataset_config:any = _.get(dataset, "dataset_config");
-        const api_version:any = _.get(dataset, "api_version");
-        if(api_version === "v1") {
+
+        let draftDataset: any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
+        const dataset_config: any = _.get(dataset, "dataset_config");
+        const api_version: any = _.get(dataset, "api_version");
+        if (api_version === "v1") {
             draftDataset["dataset_config"] = {
-                indexing_config: {olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master")},
-                keys_config: {data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key},
-                cache_config: {redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db}
+                indexing_config: { olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (_.get(dataset, "type") === "master") },
+                keys_config: { data_key: dataset_config.data_key, timestamp_key: dataset_config.timestamp_key },
+                cache_config: { redis_db_host: dataset_config.redis_db_host, redis_db_port: dataset_config.redis_db_port, redis_db: dataset_config.redis_db }
             }
             const connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["id", "connector_type", "connector_config"]);
             draftDataset["connectors_config"] = _.map(connectors, (config) => {
@@ -198,21 +198,30 @@ class DatasetService {
             draftDataset["sample_data"] = dataset_config?.mergedEvent
             draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
-            const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
-            draftDataset["connectors_config"] = connectors
+            const v1connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["id", "connector_type", "connector_config"]);
+            const modifiedV1Connectors = _.map(v1connectors, (config) => {
+                return {
+                    id: _.get(config, "id"),
+                    connector_id: _.get(config, "connector_type"),
+                    connector_config: _.get(config, "connector_config"),
+                    version: "v1"
+                }
+            })
+            const v2connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
+            draftDataset["connectors_config"] = _.concat(modifiedV1Connectors, v2connectors)
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
         const denormConfig = _.get(draftDataset, "denorm_config")
         if (denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
-            const masterDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live, type: "master" }, ["id","dataset_id", "status", "dataset_config", "api_version"])
+            const masterDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live, type: "master" }, ["id", "dataset_id", "status", "dataset_config", "api_version"])
             if (_.isEmpty(masterDatasets)) {
                 throw { code: "DEPENDENT_MASTER_DATA_NOT_FOUND", message: `The dependent dataset not found`, errCode: "NOT_FOUND", statusCode: 404 }
             }
             const updatedDenormFields = _.map(denormConfig.denorm_fields, field => {
                 const { redis_db, denorm_out_field, denorm_key } = field
                 let masterConfig = _.find(masterDatasets, data => _.get(data, "dataset_config.cache_config.redis_db") === redis_db)
-                if(!masterConfig){
+                if (!masterConfig) {
                     masterConfig = _.find(masterDatasets, data => _.get(data, "dataset_config.redis_db") === redis_db)
                 }
                 if (_.isEmpty(masterConfig)) {
@@ -238,12 +247,12 @@ class DatasetService {
         const { id } = dataset
         const transaction = await sequelize.transaction()
         try {
-            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id } , transaction})
-            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id } , transaction})
-            await DatasourceDraft.destroy({ where: { dataset_id: id } , transaction})
-            await DatasetDraft.destroy({ where: { id } , transaction})
+            await DatasetTransformationsDraft.destroy({ where: { dataset_id: id }, transaction })
+            await DatasetSourceConfigDraft.destroy({ where: { dataset_id: id }, transaction })
+            await DatasourceDraft.destroy({ where: { dataset_id: id }, transaction })
+            await DatasetDraft.destroy({ where: { id }, transaction })
             await transaction.commit()
-        } catch (err:any) {
+        } catch (err: any) {
             await transaction.rollback()
             throw obsrvError(dataset.id, "FAILED_TO_DELETE_DATASET", err.message, "SERVER_ERROR", 500, err)
         }
@@ -255,18 +264,18 @@ class DatasetService {
         try {
             await Dataset.update({ status: DatasetStatus.Retired }, { where: { id: dataset.id }, transaction });
             await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
-            await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id } , transaction});
-            await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id } , transaction});
+            await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
+            await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
             await transaction.commit();
             await this.deleteDruidSupervisors(dataset);
-        } catch(err:any) {
+        } catch (err: any) {
             await transaction.rollback();
             throw obsrvError(dataset.id, "FAILED_TO_RETIRE_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
     }
 
     findDatasources = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
-        return Datasource.findAll({where, attributes, order, raw: true})
+        return Datasource.findAll({ where, attributes, order, raw: true })
     }
 
     private deleteDruidSupervisors = async (dataset: Record<string, any>) => {
@@ -290,26 +299,26 @@ class DatasetService {
         const indexingConfig = draftDataset.dataset_config.indexing_config;
         const transaction = await sequelize.transaction()
         try {
-            await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id } , transaction})
-            if(indexingConfig.olap_store_enabled) {
+            await DatasetDraft.update(draftDataset, { where: { id: draftDataset.id }, transaction })
+            if (indexingConfig.olap_store_enabled) {
                 await this.createDruidDataSource(draftDataset, transaction);
             }
-            if(indexingConfig.lakehouse_enabled) {
+            if (indexingConfig.lakehouse_enabled) {
                 const liveDataset = await this.getDataset(draftDataset.dataset_id, ["id", "api_version"], true);
 
-                if(liveDataset && liveDataset.api_version === "v2") {
+                if (liveDataset && liveDataset.api_version === "v2") {
                     await this.updateHudiDataSource(draftDataset, transaction)
                 } else {
                     await this.createHudiDataSource(draftDataset, transaction)
                 }
             }
             await transaction.commit()
-        } catch(err:any) {
+        } catch (err: any) {
             await transaction.rollback()
             throw obsrvError(draftDataset.id, "FAILED_TO_PUBLISH_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
         await executeCommand(draftDataset.id, "PUBLISH_DATASET");
-        
+
     }
 
     private createDruidDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
@@ -318,7 +327,7 @@ class DatasetService {
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
         const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, {transaction})
+        await DatasourceDraft.create(draftDatasource, { transaction })
     }
 
     private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
@@ -327,25 +336,25 @@ class DatasetService {
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, {transaction})
+        await DatasourceDraft.create(draftDatasource, { transaction })
     }
 
     private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
-        const dsId = _.join([draftDataset.dataset_id,"events","hudi"], "_")
-        const liveDatasource = await Datasource.findOne({where: {id: dsId}, attributes: ["ingestion_spec"], raw: true}) as unknown as Record<string,any>
+        const dsId = _.join([draftDataset.dataset_id, "events", "hudi"], "_")
+        const liveDatasource = await Datasource.findOne({ where: { id: dsId }, attributes: ["ingestion_spec"], raw: true }) as unknown as Record<string, any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
         _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, {transaction})
+        await DatasourceDraft.create(draftDatasource, { transaction })
     }
 
-    private createDraftDatasource = (draftDataset: Record<string, any>, type: string) : Record<string, any> => {
+    private createDraftDatasource = (draftDataset: Record<string, any>, type: string): Record<string, any> => {
 
-        const datasource = _.join([draftDataset.dataset_id,"events"], "_")
+        const datasource = _.join([draftDataset.dataset_id, "events"], "_")
         return {
-            id: _.join([datasource,type], '_'),
+            id: _.join([datasource, type], '_'),
             datasource: draftDataset.dataset_id,
             dataset_id: draftDataset.dataset_id,
             datasource_ref: datasource,
@@ -356,15 +365,15 @@ class DatasetService {
 }
 
 export const getLiveDatasetConfigs = async (dataset_id: string) => {
-    
+
     let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
     const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
 
-    if(!_.isEmpty(transformations)){
+    if (!_.isEmpty(transformations)) {
         datasetRecord["transformations_config"] = transformations
     }
-    if(!_.isEmpty(connectors)){
+    if (!_.isEmpty(connectors)) {
         datasetRecord["connectors_config"] = connectors
     }
     return datasetRecord;
