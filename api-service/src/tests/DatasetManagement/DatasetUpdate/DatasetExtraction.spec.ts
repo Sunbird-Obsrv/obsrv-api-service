@@ -29,12 +29,7 @@ describe("DATASET EXTRACTION CONFIG UPDATE", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
+        
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -61,12 +56,7 @@ describe("DATASET EXTRACTION CONFIG UPDATE", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
+        
         chai
             .request(app)
             .patch("/v2/datasets/update")

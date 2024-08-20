@@ -11,16 +11,13 @@ export const apiId = "api.datasets.read";
 export const errorCode = "DATASET_READ_FAILURE"
 
 // TODO: Move this to a config
-const defaultFields = ["dataset_id", "name", "type", "status", "tags", "version", "api_version", "dataset_config"]
+export const defaultFields = ["dataset_id", "name", "type", "status", "tags", "version", "api_version", "dataset_config"]
 
 const validateRequest = (req: Request) => {
 
     const { dataset_id } = req.params;
-    const fields = req.query.fields;
-    if (fields && typeof fields !== "string") {
-        throw obsrvError(dataset_id, "DATASET_INVALID_FIELDS_VAL", `The specified fields [${fields}] in the query param is not a string.`, "BAD_REQUEST", 400);
-    }
-    const fieldValues = fields ? _.split(fields, ",") : [];
+    const { fields } = req.query;
+    const fieldValues = fields ? _.split(fields as string, ",") : [];
     const invalidFields = _.difference(fieldValues, Object.keys(DatasetDraft.getAttributes()));
     if (!_.isEmpty(invalidFields)) {
         throw obsrvError(dataset_id, "DATASET_INVALID_FIELDS", `The specified fields [${invalidFields}] in the dataset cannot be found.`, "BAD_REQUEST", 400);

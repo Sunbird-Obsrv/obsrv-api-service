@@ -5,13 +5,17 @@ import spies from "chai-spies";
 import httpStatus from "http-status";
 import { describe, it } from "mocha";
 import _ from "lodash";
-import { apiId } from "../../../controllers/DatasetRead/DatasetRead";
+import { apiId, defaultFields } from "../../../controllers/DatasetRead/DatasetRead";
 import { TestInputsForDatasetRead } from "./Fixtures";
 import { DatasetTransformations } from "../../../models/Transformation";
 import { Dataset } from "../../../models/Dataset";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { DatasetSourceConfig } from "../../../models/DatasetSourceConfig";
 import { ConnectorInstances } from "../../../models/ConnectorInstances";
+import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
+import { DatasetSourceConfigDraft } from "../../../models/DatasetSourceConfigDraft";
+import { sequelize } from "../../../connections/databaseConnection";
+import { DatasourceDraft } from "../../../models/DatasourceDraft";
 
 chai.use(spies);
 chai.should();
@@ -134,7 +138,7 @@ describe("DATASET READ API", () => {
         })
         chai
             .request(app)
-            .get("/v2/datasets/read/sb-telemetry?status=Draft&mode=edit")
+            .get("/v2/datasets/read/sb-telemetry?mode=edit")
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
@@ -144,6 +148,50 @@ describe("DATASET READ API", () => {
                 res.body.result.name.should.be.eq("sb-telemetry")
                 const result = JSON.stringify(res.body.result)
                 result.should.be.eq(JSON.stringify(TestInputsForDatasetRead.DRAFT_SCHEMA))
+                done();
+            });
+    });
+
+    it("Dataset read success: Migrating v1 draft dataset to v2 on mode=edit", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetRead.DRAFT_SCHEMA_V1)
+        })
+        chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA_V1)
+        })
+        chai.spy.on(DatasetSourceConfigDraft, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V1)
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({ dataValues: TestInputsForDatasetRead.DRAFT_SCHEMA })
+        })
+        chai.spy.on(DatasetTransformationsDraft, "destroy", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasetSourceConfigDraft, "destroy", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(DatasourceDraft, "destroy", () => {
+            return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
+            return Promise.resolve({})
+        })
+        chai
+            .request(app)
+            .get("/v2/datasets/read/sb-telemetry?mode=edit")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.result.name.should.be.eq("sb-telemetry")
+                const result = JSON.stringify(res.body.result)
+                result.should.be.eq(JSON.stringify(_.pick(TestInputsForDatasetRead.DRAFT_SCHEMA_V1, defaultFields)))
                 done();
             });
     });
