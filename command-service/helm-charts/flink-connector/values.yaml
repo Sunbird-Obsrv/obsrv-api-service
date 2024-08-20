@@ -264,27 +264,6 @@ baseconfig: |
     port = "{{ .Values.global.cassandra.port }}"
   }
 
-# !!! Don't override the resources here. It's just a template
-# Proper way to override resouce is to
-# flink_jobs:
-#   master-data-processor:
-#     resources:
-#       taskmanager:
-#         resources:
-#           requests:
-#             cpu: 100m
-#             memory: 100Mi
-#           limits:
-#             cpu: 1
-#             memory: 1024Mi
-#       jobmanager:
-#         resources:
-#           requests:
-#             cpu: 100m
-#             memory: 100Mi
-#           limits:
-#             cpu: 1
-#             memory: 1024Mi
 flink_resources:
   taskmanager:
     resources:
@@ -303,7 +282,7 @@ flink_resources:
         cpu: 1
         memory: 1024Mi
 
-serviceMonitor: 
+serviceMonitor:
   jobmanager:
     enabled: true
     interval: 30s

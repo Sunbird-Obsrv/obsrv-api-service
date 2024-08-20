@@ -8,13 +8,16 @@ import { errorHandler, obsrvErrorHandler } from "./middlewares/errors";
 import { ResponseHandler } from "./helpers/ResponseHandler";
 import { config } from "./configs/Config";
 import { alertsRouter } from "./routes/AlertsRouter";
+import { interceptAuditEvents } from "./services/telemetry";
 
 const app: Application = express();
+ 
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
 app.use(errorHandler)
 
+app.use(interceptAuditEvents());
 app.use("/v2/", v2Router);
 app.use("/", druidProxyRouter);
 app.use("/alerts/v1", alertsRouter);

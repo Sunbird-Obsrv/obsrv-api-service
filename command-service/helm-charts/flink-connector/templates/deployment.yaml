@@ -69,9 +69,12 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
-          - name: flink-config-volume
-            mountPath: /data/flink/conf/flink-connector.conf
-            subPath: flink-connector.conf
+          # - name: flink-config-volume
+          #   mountPath: /data/flink/conf/connectors-scala-config.conf
+          #   subPath: connectors-scala-config.conf
+          # - name: flink-config-volume
+          #   mountPath: /data/flink/conf/connectors-python-config.conf
+          #   subPath: connectors-python-config.yaml
           # - name: flink-config-volume
           #   mountPath: /opt/flink/conf/flink-conf.yaml
           #   subPath: flink-conf.yaml
@@ -79,12 +82,14 @@ spec:
             mountPath: /opt/flink/conf/log4j-console.properties
             subPath: log4j-console.properties
       volumes:
-      - name: flink-config-volume
-        configMap:
-          name: flink-connector-conf
-          items:
-          - key: connectors-scala-config.conf
-            path: flink-connector.conf
+      # - name: flink-config-volume
+      #   configMap:
+      #     name: flink-connector-conf
+      #     items:
+      #     - key: connectors-scala-config.conf
+      #       path: connectors-scala-config.conf
+      #     - key: connectors-python-config.yaml
+      #       path: connectors-python-config.yaml
       - name: flink-common-volume
         configMap:
           name: {{ $jobName }}-config
@@ -151,17 +156,19 @@ spec:
                 metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
                 metrics.reporter.prom.host: {{ $jobName }}-jobmanager
                 metrics.reporter.prom.port: 9250
-          
           volumeMounts:
           - name: flink-config-volume
-            mountPath: /data/flink/conf/flink-connector.conf
-            subPath: flink-connector.conf
+            mountPath: /data/flink/conf/connectors-scala-config.conf
+            subPath: connectors-scala-config.conf
+          - name: flink-config-volume
+            mountPath: /data/flink/conf/connectors-python-config.conf
+            subPath: connectors-python-config.conf
           - name: data
             mountPath: /flink/connectors
           - name: flink-common-volume
             mountPath: /opt/flink/conf/log4j-console.properties
             subPath: log4j-console.properties
-  
+
         - name: {{ $jobName }}-job-submit
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
@@ -199,8 +206,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
           - name: flink-config-volume
-            mountPath: /data/flink/conf/flink-connector.conf
-            subPath: flink-connector.conf
+            mountPath: /data/flink/conf/connectors-scala-config.conf
+            subPath: connectors-scala-config.conf
+          - name: flink-config-volume
+            mountPath: /data/flink/conf/connectors-python-config.yaml
+            subPath: connectors-python-config.yaml
           - name: data
             mountPath: /flink/connectors
           - name: flink-common-volume
@@ -214,7 +224,9 @@ spec:
           name: flink-connector-conf
           items:
           - key: connectors-scala-config.conf
-            path: flink-connector.conf
+            path: connectors-scala-config.conf
+          - key: connectors-python-config.yaml
+            path: connectors-python-config.yaml
       - name: flink-common-volume
         configMap:
           name: {{ $jobName }}-config
