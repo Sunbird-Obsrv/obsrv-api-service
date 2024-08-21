@@ -78,6 +78,15 @@ export const TestInputsForDatasetRead = {
         ],
         "data_version": 1,
         "api_version": "v2",
+        "denorm_config": {
+            "denorm_fields": [
+                {
+                    "denorm_key": "actor.id",
+                    "denorm_out_field": "userdata",
+                    "redis_db": 16
+                }
+            ]
+        },
         "dataset_config": {
             "indexing_config": {
                 "olap_store_enabled": false,
@@ -92,6 +101,7 @@ export const TestInputsForDatasetRead = {
             ]
         }
     },
+    MASTER_DATASET_SCHEMA:[{"dataset_id":"master_dataset", "dataset_config":{"cache_config":{"redis_db":16}}}],
     TRANSFORMATIONS_SCHEMA: [{ "field_key": "eid", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }],
     TRANSFORMATIONS_SCHEMA_V1: [
         {

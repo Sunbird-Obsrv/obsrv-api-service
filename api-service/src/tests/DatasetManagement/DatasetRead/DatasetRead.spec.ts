@@ -101,6 +101,9 @@ describe("DATASET READ API", () => {
         chai.spy.on(ConnectorInstances, "findAll", () => {
             return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V2)
         })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.MASTER_DATASET_SCHEMA)
+        })
         chai.spy.on(DatasetDraft, "create", () => {
             return Promise.resolve({ dataValues: TestInputsForDatasetRead.DRAFT_SCHEMA })
         })
@@ -132,6 +135,9 @@ describe("DATASET READ API", () => {
         })
         chai.spy.on(DatasetSourceConfig, "findAll", () => {
             return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V1)
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.MASTER_DATASET_SCHEMA)
         })
         chai.spy.on(DatasetDraft, "create", () => {
             return Promise.resolve({ dataValues: TestInputsForDatasetRead.DRAFT_SCHEMA })
@@ -213,6 +219,66 @@ describe("DATASET READ API", () => {
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.error.message.should.be.eq("Dataset with the given dataset_id:sb-telemetry not found")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
+                done();
+            });
+    });
+
+    it("Dataset read failure: When dependent denorm master dataset not found", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve()
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ ...TestInputsForDatasetRead.LIVE_SCHEMA, "api_version": "v1" })
+        })
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA_V1)
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V1)
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([])
+        })
+        chai
+            .request(app)
+            .get("/v2/datasets/read/sb-telemetry?mode=edit")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.NOT_FOUND);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.error.message.should.be.eq("The dependent dataset not found")
+                res.body.error.code.should.be.eq("DEPENDENT_MASTER_DATA_NOT_FOUND")
+                done();
+            });
+    });
+
+    it("Dataset read failure: When dependent denorm master dataset not live", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve()
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ ...TestInputsForDatasetRead.LIVE_SCHEMA, "api_version": "v1" })
+        })
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA_V1)
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V1)
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{"dataset_id":"master_dataset", "dataset_config":{"cache_config":{"redis_db":20}}}])
+        })
+        chai
+            .request(app)
+            .get("/v2/datasets/read/sb-telemetry?mode=edit")
+            .end((err, res) => {
+                res.should.have.status(httpStatus.PRECONDITION_REQUIRED);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.error.message.should.be.eq("The dependent master dataset is not published")
+                res.body.error.code.should.be.eq("DEPENDENT_MASTER_DATA_NOT_LIVE")
                 done();
             });
     });

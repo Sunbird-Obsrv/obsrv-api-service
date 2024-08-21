@@ -66,6 +66,28 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
             });
     });
 
+    it("Dataset status transition failure: Unable to fetch redis db number for master dataset", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_MASTER_DATASET_INVALID)
+        })
+        chai.spy.on(sequelize, "query", () => {
+            return Promise.resolve([])
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE_MASTER)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.error.message.should.be.eq("Unable to fetch the redis db index for the master data")
+                res.body.error.code.should.be.eq("REDIS_DB_INDEX_FETCH_FAILED")
+                done();
+            });
+    });
 
     it("Dataset status transition success: When the action is to set master dataset live", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
@@ -148,29 +170,6 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
                 res.body.params.msgid.should.be.eq(msgid)
                 res.body.error.message.should.be.eq("The denorm master dataset is self-referencing itself")
                 res.body.error.code.should.be.eq("SELF_REFERENCING_MASTER_DATA")
-                done();
-            });
-    });
-
-    it("Dataset status transition failure: Unable to fetch redis db number for master dataset", (done) => {
-        chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_MASTER_DATASET_INVALID)
-        })
-        chai.spy.on(sequelize, "query", () => {
-            return Promise.resolve([])
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/status-transition")
-            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE_MASTER)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq("api.datasets.status-transition");
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Unable to fetch the redis db index for the master data")
-                res.body.error.code.should.be.eq("REDIS_DB_INDEX_FETCH_FAILED")
                 done();
             });
     });
