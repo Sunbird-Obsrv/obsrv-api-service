@@ -39,10 +39,19 @@ const datasetRead = async (req: Request, res: Response) => {
         throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
     }
     if (dataset.connectors_config) {
-        dataset.connectors_config = dataset.connectors_config.map((connector: any) => ({
-            ...connector,
-            connector_config: JSON.parse(cipherService.decrypt(connector.connector_config))
-        }));
+        dataset.connectors_config = dataset?.connectors_config.map((connector: any) => {
+            let connector_config = _.get(connector, "connector_config")
+            const authMechanism = _.get(connector_config, ["authenticationMechanism"])
+            if (authMechanism && authMechanism.encrypted) {
+                connector_config = {
+                    ...connector_config,
+                    authenticationMechanism: JSON.parse(cipherService.decrypt(authMechanism.encryptedValues))}
+            }
+            return {
+                ...connector,
+                connector_config: _.isObject(connector_config) ? connector_config : JSON.parse(cipherService.decrypt(connector_config))
+            }
+        });
     }
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
