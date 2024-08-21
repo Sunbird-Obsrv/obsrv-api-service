@@ -187,12 +187,6 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({})
         })
-        chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
-        })
-        chai.spy.on(DatasourceDraft, "create", () => {
-            return Promise.resolve({})
-        })
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)
         })

@@ -29,7 +29,7 @@ describe("DATASET UPDATE API", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        
+
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -61,7 +61,7 @@ describe("DATASET UPDATE API", () => {
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        
+
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -80,7 +80,7 @@ describe("DATASET UPDATE API", () => {
     });
 
     it("Dataset updation failure: When no fields with dataset_id is provided in the request payload", (done) => {
-        
+
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -101,7 +101,7 @@ describe("DATASET UPDATE API", () => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve(null)
         })
-        
+
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -120,9 +120,9 @@ describe("DATASET UPDATE API", () => {
 
     it("Dataset updation failure: When dataset to update is outdated", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ id: "telemetry", type:"event", status: "Draft", version_key: "1813444815918", api_version: "v2" })
+            return Promise.resolve({ id: "telemetry", type: "event", status: "Draft", version_key: "1813444815918", api_version: "v2" })
         })
-        
+
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -139,11 +139,32 @@ describe("DATASET UPDATE API", () => {
             });
     });
 
+    it("Dataset updation failure: When dataset to update is of api_version v1", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve({ id: "telemetry", type: "event", status: "Draft", version_key: "1813444815918", api_version: "v1" })
+        })
+
+        chai
+            .request(app)
+            .patch("/v2/datasets/update")
+            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, name: "telemetry" } })
+            .end((err, res) => {
+                res.should.have.status(httpStatus.NOT_FOUND);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq(apiId);
+                res.body.params.status.should.be.eq("FAILED")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.error.message.should.be.eq("Draft dataset api version is not v2. Perform a read api call with mode=edit to migrate the dataset")
+                res.body.error.code.should.be.eq("DATASET_API_VERSION_MISMATCH")
+                done();
+            });
+    });
+
     it("Dataset updation failure: Dataset to update is not in draft state", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve({ id: "telemetry", type:"event", status: "Live", version_key: "1713444815918", api_version: "v2"  })
+            return Promise.resolve({ id: "telemetry", type: "event", status: "Live", version_key: "1713444815918", api_version: "v2" })
         })
-        
+
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -187,16 +208,10 @@ describe("DATASET UPDATE API", () => {
 
         it("Success: Dataset name updated successfully", (done) => {
             chai.spy.on(DatasetDraft, "findOne", () => {
-                return Promise.resolve({ id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2"  })
+                return Promise.resolve({ id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2" })
             })
             chai.spy.on(DatasetDraft, "update", () => {
                 return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
-            })
-            const t = chai.spy.on(sequelize, "transaction", () => {
-                return Promise.resolve(sequelize.transaction)
-            })
-            chai.spy.on(t, "commit", () => {
-                return Promise.resolve({})
             })
             chai
                 .request(app)
@@ -216,7 +231,7 @@ describe("DATASET UPDATE API", () => {
         });
 
         it("Failure: Failed to update the dataset name", (done) => {
-            
+
             chai
                 .request(app)
                 .patch("/v2/datasets/update")
@@ -246,17 +261,8 @@ describe("DATASET UPDATE API", () => {
                     id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2"
                 })
             })
-            chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
-                return Promise.resolve([{ field_key: "key2" }, { field_key: "key3" }])
-            })
             chai.spy.on(DatasetDraft, "update", () => {
                 return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
-            })
-            const t = chai.spy.on(sequelize, "transaction", () => {
-                return Promise.resolve(sequelize.transaction)
-            })
-            chai.spy.on(t, "commit", () => {
-                return Promise.resolve({})
             })
             chai
                 .request(app)
@@ -307,12 +313,6 @@ describe("DATASET UPDATE API", () => {
             })
             chai.spy.on(DatasetDraft, "update", () => {
                 return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
-            })
-            const t = chai.spy.on(sequelize, "transaction", () => {
-                return Promise.resolve(sequelize.transaction)
-            })
-            chai.spy.on(t, "commit", () => {
-                return Promise.resolve({})
             })
             chai
                 .request(app)

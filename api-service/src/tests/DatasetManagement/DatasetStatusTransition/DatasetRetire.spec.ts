@@ -91,12 +91,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         chai.spy.on(Dataset, "update", () => {
             return Promise.resolve({})
         })
-        chai.spy.on(Dataset, "findAll", () => {
-            return Promise.resolve()
-        })
-        chai.spy.on(DatasetDraft, "findAll", () => {
-            return Promise.resolve()
-        })
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})
         })

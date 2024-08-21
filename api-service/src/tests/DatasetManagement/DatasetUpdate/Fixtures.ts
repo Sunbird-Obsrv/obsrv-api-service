@@ -15,7 +15,8 @@ export const TestInputsForDatasetUpdate = {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
-            "name": "telemetry"
+            "name": "telemetry",
+            "sample_data":{"events":{}}
         }
     },
 
@@ -377,6 +378,26 @@ export const TestInputsForDatasetUpdate = {
                             "dataset_id": "master"
                         },
                         "action": "remove"
+                    }
+                ]
+            }
+        }
+    },
+
+    DATASET_UPDATE_WITH_EXISTING_DENORM: {
+        ...requestStructure, request: {
+            "dataset_id": "telemetry",
+            "version_key": validVersionKey,
+            "name": "sb-telemetry",
+            "denorm_config": {
+                "denorm_fields": [
+                    {
+                        "value": {
+                            "denorm_key": "actor.id",
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
+                        },
+                        "action": "upsert"
                     }
                 ]
             }
