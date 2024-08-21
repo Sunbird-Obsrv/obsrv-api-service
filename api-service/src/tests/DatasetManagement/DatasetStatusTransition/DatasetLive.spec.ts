@@ -11,6 +11,7 @@ import { commandHttpService } from "../../../connections/commandServiceConnectio
 import { sequelize } from "../../../connections/databaseConnection";
 import { DatasourceDraft } from "../../../models/DatasourceDraft";
 import { Dataset } from "../../../models/Dataset";
+import { Datasource } from "../../../models/Datasource";
 
 chai.use(spies);
 chai.should();
@@ -39,6 +40,93 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         })
         chai.spy.on(DatasourceDraft, "create", () => {
             return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(commandHttpService, "post", () => {
+            return Promise.resolve({})
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.result.message.should.be.eq("Dataset status transition to Live successful")
+                res.body.result.dataset_id.should.be.eq("telemetry")
+                done();
+            });
+    });
+
+    it("Dataset status transition success: When the action is to set dataset live v1 by creating hudi spec", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH_HUDI)
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "id": "master-dataset", "status": "Live", "dataset_config": { "cache_config": { "redis_db": 21 } }, "api_version": "v2" }])
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
+        })
+        chai.spy.on(DatasourceDraft, "create", () => {
+            return Promise.resolve({})
+        })
+        const t = chai.spy.on(sequelize, "transaction", () => {
+            return Promise.resolve(sequelize.transaction)
+        })
+        chai.spy.on(t, "commit", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(commandHttpService, "post", () => {
+            return Promise.resolve({})
+        })
+        chai
+            .request(app)
+            .post("/v2/datasets/status-transition")
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE)
+            .end((err, res) => {
+                res.should.have.status(httpStatus.OK);
+                res.body.should.be.a("object")
+                res.body.id.should.be.eq("api.datasets.status-transition");
+                res.body.params.status.should.be.eq("SUCCESS")
+                res.body.result.should.be.a("object")
+                res.body.params.msgid.should.be.eq(msgid)
+                res.body.result.message.should.be.eq("Dataset status transition to Live successful")
+                res.body.result.dataset_id.should.be.eq("telemetry")
+                done();
+            });
+    });
+
+    it("Dataset status transition success: When the action is to set dataset live v2 by updating hudi spec", (done) => {
+        chai.spy.on(DatasetDraft, "findOne", () => {
+            return Promise.resolve(TestInputsForDatasetStatusTransition.DRAFT_DATASET_SCHEMA_FOR_PUBLISH_HUDI)
+        })
+        chai.spy.on(Dataset, "findAll", () => {
+            return Promise.resolve([{ "id": "master-dataset", "status": "Live", "dataset_config": { "cache_config": { "redis_db": 21 } }, "api_version": "v2" }])
+        })
+        chai.spy.on(DatasetDraft, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(Dataset, "findOne", () => {
+            return Promise.resolve({ "api_version":"v2", "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
+        })
+        chai.spy.on(DatasourceDraft, "create", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(Datasource, "findOne", () => {
+            return Promise.resolve({"ingestion_spec":{"dataset": "dataset-all-fields4", "schema": {"table": "dataset-all-fields4_events", "partitionColumn": "eid", "timestampColumn": "obsrv_meta.syncts", "primaryKey": "eid", "columnSpec": [{"type": "string", "name": "mid", "index": 1}, {"type": "epoch", "name": "ets", "index": 2}, {"type": "string", "name": "userdata.mid", "index": 3}, {"type": "epoch", "name": "userdata.ets", "index": 4}, {"type": "string", "name": "userdata.eid", "index": 5}, {"type": "string", "name": "email", "index": 6}, {"type": "string", "name": "obsrv.meta.source.connector", "index": 7}, {"type": "string", "name": "obsrv.meta.source.id", "index": 8}]}, "inputFormat": {"type": "json", "flattenSpec": {"fields": [{"type": "path", "expr": "$.mid", "name": "mid"}, {"type": "path", "expr": "$.ets", "name": "ets"}, {"type": "path", "expr": "$.eid", "name": "eid"}, {"type": "path", "expr": "$.userdata.mid", "name": "userdata.mid"}, {"type": "path", "expr": "$.userdata.ets", "name": "userdata.ets"}, {"type": "path", "expr": "$.userdata.eid", "name": "userdata.eid"}, {"type": "path", "expr": "$.email", "name": "email"}, {"type": "path", "expr": "$.obsrv_meta.syncts", "name": "obsrv_meta.syncts"}, {"type": "path", "expr": "$.obsrv_meta.source.connector", "name": "obsrv.meta.source.connector"}, {"type": "path", "expr": "$.obsrv_meta.source.connectorInstance", "name": "obsrv.meta.source.id"}]}}}})
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
             return Promise.resolve(sequelize.transaction)

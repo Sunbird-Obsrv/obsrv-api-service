@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { Datasource } from "../models/Datasource";
 
 export const getDatasourceList = async (datasetId: string, raw = false) => {
