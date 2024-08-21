@@ -125,12 +125,14 @@ class DatasetService {
         const transformationFields = ["field_key", "transformation_function", "mode", "metadata"]
         const transformations = _.includes([DatasetStatus.Live], status) ? await this.getTransformations(dataset_id, transformationFields) : await this.getDraftTransformations(dataset_id, transformationFields);
         draftDataset["transformations_config"] = _.map(transformations, (config) => {
+            const section: any = _.get(config, "metadata.section");
+            config = _.omit(config, "transformation_function.condition")
             return {
                 field_key: _.get(config, ["field_key"]),
                 transformation_function: {
                     ..._.get(config, ["transformation_function"]),
                     datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
-                    category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                    category: this.getTransformationCategory(section)
                 },
                 mode: _.get(config, ["mode"])
             }
@@ -147,6 +149,7 @@ class DatasetService {
         })
         draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         draftDataset["sample_data"] = dataset_config?.mergedEvent
+        draftDataset["status"] = DatasetStatus.Draft
         return draftDataset;
     }
 
@@ -156,6 +159,8 @@ class DatasetService {
             case "pii":
                 return "pii";
             case "additionalFields":
+                return "derived";
+            case "derived":
                 return "derived";
             default:
                 return "transform";
@@ -184,12 +189,14 @@ class DatasetService {
             })
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
             draftDataset["transformations_config"] = _.map(transformations, (config) => {
+                const section: any = _.get(config, "metadata.section");
+                config = _.omit(config, "transformation_function.condition")
                 return {
                     field_key: _.get(config, "field_key"),
                     transformation_function: {
                         ..._.get(config, ["transformation_function"]),
                         datatype: _.get(config, "metadata._transformedFieldDataType") || "string",
-                        category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                        category: this.getTransformationCategory(section),
                     },
                     mode: _.get(config, "mode")
                 }
@@ -225,8 +232,9 @@ class DatasetService {
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
-        await DatasetDraft.create(draftDataset);
-        return await this.getDraftDataset(draftDataset.dataset_id);
+        const response = await DatasetDraft.create(draftDataset);
+        return _.get(response,"dataValues");
+        // return await this.getDraftDataset(draftDataset.dataset_id);
     }
 
     getNextRedisDBIndex = async () => {
