@@ -204,8 +204,17 @@ class DatasetService {
             draftDataset["sample_data"] = dataset_config?.mergedEvent
             draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
-            const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
-            draftDataset["connectors_config"] = connectors
+            const v1connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["id", "connector_type", "connector_config"]);
+            const modifiedV1Connectors = _.map(v1connectors, (config) => {
+                return {
+                    id: _.get(config, "id"),
+                    connector_id: _.get(config, "connector_type"),
+                    connector_config: _.get(config, "connector_config"),
+                    version: "v1"
+                }
+            })
+            const v2connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
+            draftDataset["connectors_config"] = _.concat(modifiedV1Connectors, v2connectors)
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
@@ -231,8 +240,9 @@ class DatasetService {
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
-        await DatasetDraft.create(draftDataset);
-        return await this.getDraftDataset(draftDataset.dataset_id);
+        const response = await DatasetDraft.create(draftDataset);
+        return _.get(response,"dataValues");
+        // return await this.getDraftDataset(draftDataset.dataset_id);
     }
 
     getNextRedisDBIndex = async () => {
@@ -365,7 +375,9 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
 
     let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
-    const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV2 = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV1 = await getV1Connectors(dataset_id)
+    const connectors = _.concat(connectorsV1,connectorsV2)
 
     if (!_.isEmpty(transformations)) {
         datasetRecord["transformations_config"] = transformations
@@ -374,6 +386,19 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
         datasetRecord["connectors_config"] = connectors
     }
     return datasetRecord;
+}
+
+export const getV1Connectors = async (datasetId: string) => {
+    const v1connectors = await datasetService.getConnectorsV1(datasetId, ["id", "connector_type", "connector_config"]);
+    const modifiedV1Connectors = _.map(v1connectors, (config) => {
+        return {
+            id: _.get(config, "id"),
+            connector_id: _.get(config, "connector_type"),
+            connector_config: _.get(config, "connector_config"),
+            version: "v1"
+        }
+    })
+    return modifiedV1Connectors;
 }
 
 export const datasetService = new DatasetService();

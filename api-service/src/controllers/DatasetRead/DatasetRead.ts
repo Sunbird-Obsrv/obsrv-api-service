@@ -40,10 +40,16 @@ const datasetRead = async (req: Request, res: Response) => {
     }
     if (dataset.connectors_config) {
         dataset.connectors_config = dataset?.connectors_config.map((connector: any) => {
-            const connector_config = _.get(connector, "connector_config")
+            let connector_config = _.get(connector, "connector_config")
+            const authMechanism = _.get(connector_config, ["authenticationMechanism"])
+            if (authMechanism && authMechanism.encrypted) {
+                connector_config = {
+                    ...connector_config,
+                    authenticationMechanism: JSON.parse(cipherService.decrypt(authMechanism.encryptedValues))}
+            }
             return {
                 ...connector,
-                connector_config: _.isObject(connector_config) ? connector_config : JSON.parse(cipherService.decrypt(connector.connector_config))
+                connector_config: _.isObject(connector_config) ? connector_config : JSON.parse(cipherService.decrypt(connector_config))
             }
         });
     }
