@@ -27,7 +27,8 @@ class DruidCommand(ICommand):
 
     def _submit_ingestion_task(self, dataset_id):
         datasources_records = self.db_service.execute_select_all(
-            f"SELECT dso.*, dt.type as dataset_type FROM datasources dso, datasets dt WHERE dso.dataset_id = '{dataset_id}' AND dso.dataset_id = dt.id"
+            sql=f"SELECT dso.*, dt.type as dataset_type FROM datasources dso, datasets dt WHERE dso.dataset_id = %s AND dso.dataset_id = dt.id",
+            params=(dataset_id,)
         )
         if datasources_records is not None:
             print(
