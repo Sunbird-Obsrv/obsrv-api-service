@@ -79,6 +79,7 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if(datasetReq.connectors_config) dataset["connectors_config"] = mergeConnectorsConfig(_.get(datasetModel, ["connectors_config"]), datasetReq.connectors_config)
     if(datasetReq.tags) dataset["tags"] = mergeTags(_.get(datasetModel, ["tags"]), datasetReq.tags)
     if(datasetReq.sample_data) dataset["sample_data"] = datasetReq.sample_data
+    if(datasetReq.type) dataset["type"] = datasetReq.type
 
     return dataset;
 }
