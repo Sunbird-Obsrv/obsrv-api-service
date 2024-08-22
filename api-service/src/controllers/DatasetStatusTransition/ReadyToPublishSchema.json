@@ -324,8 +324,7 @@
                 "minLength": 1
               },
               "expr": {
-                "type": "string",
-                "minLength": 1
+                "type": "string"
               },
               "condition": {
                 "type": "object",
@@ -335,8 +334,7 @@
                     "minLength": 1
                   },
                   "expr": {
-                    "type": "string",
-                    "minLength": 1
+                    "type": "string"
                   }
                 },
                 "required": ["type", "expr"],

@@ -376,7 +376,9 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
 
     let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
-    const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV2 = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV1 = await getV1Connectors(dataset_id)
+    const connectors = _.concat(connectorsV1,connectorsV2)
 
     if (!_.isEmpty(transformations)) {
         datasetRecord["transformations_config"] = transformations
@@ -385,6 +387,19 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
         datasetRecord["connectors_config"] = connectors
     }
     return datasetRecord;
+}
+
+export const getV1Connectors = async (datasetId: string) => {
+    const v1connectors = await datasetService.getConnectorsV1(datasetId, ["id", "connector_type", "connector_config"]);
+    const modifiedV1Connectors = _.map(v1connectors, (config) => {
+        return {
+            id: _.get(config, "id"),
+            connector_id: _.get(config, "connector_type"),
+            connector_config: _.get(config, "connector_config"),
+            version: "v1"
+        }
+    })
+    return modifiedV1Connectors;
 }
 
 export const datasetService = new DatasetService();
