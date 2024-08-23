@@ -32,7 +32,7 @@ const deleteAlertFolder = async (folderName: string) => {
 
 const checkIfGroupNameExists = async (category: string) => {
     const response = await getRules();
-    const rules = _.get(response, 'data');
+    const rules = _.get(response, "data");
     if(!_.has(rules, category)) return undefined;
     return _.find(_.flatMap(_.values(rules)), {
         name: category,
@@ -59,7 +59,7 @@ const getSpecificRule = async (payload: Record<string, any>) => {
     const alertrules = await alerts();
     const groups = _.get(alertrules, "data.data.groups");
     const ruleGroup = _.find(groups, (group: any) => group.name == payload.category);
-    return _.find(_.get(ruleGroup, 'rules'), (rule: any) => rule.name == payload.name);
+    return _.find(_.get(ruleGroup, "rules"), (rule: any) => rule.name == payload.name);
 };
 
 const updateMetadata = (metadata: any, dataSource: string, expression: string) => {
@@ -89,7 +89,7 @@ const createFolder = (title: string) => {
 
 const createFolderIfNotExists = async (folderName: string) => {
     const folders = await getFolders();
-    const isExists = _.find(folders.data, folder => _.get(folder, 'title') === folderName);
+    const isExists = _.find(folders.data, folder => _.get(folder, "title") === folderName);
     if (isExists) return;
     return createFolder(folderName);
 }
@@ -215,7 +215,7 @@ const queryOperators = [
 
 const getQueryExpression = (payload: Record<string, any>) => {
     const { metric, operator, threshold } = payload;
-    const operatorSymbol = _.get(_.find(queryOperators, operatorMetadata => _.get(operatorMetadata, 'value') === operator), 'symbol');
+    const operatorSymbol = _.get(_.find(queryOperators, operatorMetadata => _.get(operatorMetadata, "value") === operator), "symbol");
     return `(${metric}) ${operatorSymbol} ${threshold}`;
 }
 
@@ -229,7 +229,7 @@ const getMatchingLabels = async (channels: string[]) => {
                     const { name, type } = channelMetadata;
                     return `notificationChannel_${name}_${type}`;
                 })
-                .catch(err => null);
+                .catch(() => null);
         }
 
         const matchingLabels = await Promise.all(channels.map(fetchChannel));
@@ -245,22 +245,22 @@ const getMatchingLabels = async (channels: string[]) => {
 const transformRule = async ({ value, condition, metadata, isGroup }: any) => {
     const { name, id, interval, category, frequency, labels = {}, annotations = {}, severity, description, notification = {} } = value;
     const annotationObj = { ...annotations, description: description };
-    const channels = _.get(notification, 'channels') || [];
+    const channels = _.get(notification, "channels") || [];
     const matchingLabelsForNotification = await getMatchingLabels(channels);
 
     const payload = {
         grafana_alert: {
             title: name,
             condition: condition,
-            no_data_state: _.get(metadata, 'no_data_state', 'NoData'),
-            exec_err_state: _.get(metadata, 'exec_err_state', 'Error'),
+            no_data_state: _.get(metadata, "no_data_state", "NoData"),
+            exec_err_state: _.get(metadata, "exec_err_state", "Error"),
             data: metadata,
             is_paused: false,
         },
         for: interval,
         annotations: annotationObj,
         labels: {
-            'alertId': id,
+            "alertId": id,
             ...labels,
             ...(severity && { severity }),
             ...matchingLabelsForNotification

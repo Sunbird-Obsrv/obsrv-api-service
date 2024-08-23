@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import _ from "lodash";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
@@ -78,7 +78,7 @@ describe("DATASET STATUS TRANSITION DELETE", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found to delete")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry.1")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             });

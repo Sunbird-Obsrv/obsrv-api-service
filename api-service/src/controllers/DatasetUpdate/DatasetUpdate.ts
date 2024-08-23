@@ -9,6 +9,7 @@ import { datasetService } from "../../services/DatasetService";
 import { schemaValidation } from "../../services/ValidationService";
 import DatasetUpdate from "./DatasetUpdateValidationSchema.json";
 import { obsrvError } from "../../types/ObsrvError";
+import logger from "../../logger";
 
 export const apiId = "api.datasets.update";
 export const invalidInputErrCode = "DATASET_UPDATE_INPUT_INVALID"
@@ -25,6 +26,7 @@ const validateRequest = async (req: Request) => {
     const datasetBody = req.body.request
     const { dataset_id, version_key, ...rest } = datasetBody
     if (_.isEmpty(rest)) {
+        logger.error({ apiId, message: `Provide atleast one field in addition to the dataset_id:${dataset_id} and version_key:${version_key} to update the dataset` })
         throw obsrvError(datasetId, "DATASET_UPDATE_NO_FIELDS", "Provide atleast one field in addition to the dataset_id to update the dataset", "BAD_REQUEST", 400)
     }
 
@@ -63,7 +65,7 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
 const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any): Record<string, any> => {
 
-    let dataset: Record<string, any> = {
+    const dataset: Record<string, any> = {
         version_key: Date.now().toString(),
         name: datasetReq.name || _.get(datasetModel, ["name"]),
         id: _.get(datasetModel, ["id"])
@@ -79,6 +81,7 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if(datasetReq.connectors_config) dataset["connectors_config"] = mergeConnectorsConfig(_.get(datasetModel, ["connectors_config"]), datasetReq.connectors_config)
     if(datasetReq.tags) dataset["tags"] = mergeTags(_.get(datasetModel, ["tags"]), datasetReq.tags)
     if(datasetReq.sample_data) dataset["sample_data"] = datasetReq.sample_data
+    if(datasetReq.type) dataset["type"] = datasetReq.type
 
     return dataset;
 }

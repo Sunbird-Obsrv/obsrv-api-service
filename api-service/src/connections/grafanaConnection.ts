@@ -5,6 +5,6 @@ const grafanaHttpClient = axios.create({
   baseURL: config.grafana_config.url
 });
 
-grafanaHttpClient.defaults.headers.common['Authorization'] = config.grafana_config.access_token;
+grafanaHttpClient.defaults.headers.common["Authorization"] = config.grafana_config.access_token;
 
 export { grafanaHttpClient };

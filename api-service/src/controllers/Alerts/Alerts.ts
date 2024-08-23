@@ -17,9 +17,9 @@ const createAlertHandler = async (req: Request, res: Response, next: NextFunctio
     updateTelemetryAuditEvent({ request: req, object: { id: response?.dataValues?.id, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: response.dataValues.id } });
   } catch (error: any) {
-    let errorMessage = _.get(error, 'message')
-    if (_.get(error, 'name') == "SequelizeUniqueConstraintError") {
-      errorMessage = _.get(error, 'parent.detail')
+    let errorMessage = _.get(error, "message")
+    if (_.get(error, "name") == "SequelizeUniqueConstraintError") {
+      errorMessage = _.get(error, "parent.detail")
     }
     next(errorResponse((httpStatus.INTERNAL_SERVER_ERROR, { message: errorMessage })))
   }
@@ -44,7 +44,7 @@ const publishAlertHandler = async (req: Request, res: Response, next: NextFuncti
 
 const transformAlerts = async (alertModel: any) => {
   const alert = alertModel?.toJSON();
-  const status = _.get(alert, 'status');
+  const status = _.get(alert, "status");
   if (status !== "live") return alert;
   return getAlertsMetadata(alert);
 }
@@ -108,13 +108,13 @@ const updateAlertHandler = async (req: Request, res: Response, next: NextFunctio
       await retireAlertSilence(alertId);
     }
     const updatedPayload = getAlertPayload({ ...req.body, manager: rulePayload?.manager });
-    await Alert.update({ ...updatedPayload, status: 'draft' }, { where: { id: alertId } });
+    await Alert.update({ ...updatedPayload, status: "draft" }, { where: { id: alertId } });
     updateTelemetryAuditEvent({ request: req, currentRecord: rulePayload, object: { id: alertId, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: alertId } });
   } catch (error: any) {
-    let errorMessage = _.get(error, 'message')
-    if (_.get(error, 'name') == "SequelizeUniqueConstraintError") {
-      errorMessage = _.get(error, 'parent.detail')
+    let errorMessage = _.get(error, "message")
+    if (_.get(error, "name") == "SequelizeUniqueConstraintError") {
+      errorMessage = _.get(error, "parent.detail")
     }
     next(errorResponse((httpStatus.INTERNAL_SERVER_ERROR, { message: errorMessage })))
   }

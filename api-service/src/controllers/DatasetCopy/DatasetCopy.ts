@@ -18,7 +18,7 @@ const validateRequest = (req: Request) => {
     }
 }
 
-const fetchDataset = async (req: Request, newDatasetId: string) => {
+const fetchDataset = async (req: Request) => {
     const datasetId = _.get(req, "body.request.source.datasetId");
     const isLive = _.get(req, "body.request.source.isLive");
 
@@ -39,10 +39,10 @@ const datasetCopy = async (req: Request, res: Response) => {
 
     validateRequest(req);
     const newDatasetId = _.get(req, "body.request.destination.datasetId");
-    const dataset = await fetchDataset(req, newDatasetId);
+    const dataset = await fetchDataset(req);
     updateRecords(dataset, newDatasetId)
     const response = await datasetService.createDraftDataset(dataset).catch(err => {
-        if (err?.name === 'SequelizeUniqueConstraintError') {
+        if (err?.name === "SequelizeUniqueConstraintError") {
             throw obsrvError(newDatasetId, "DATASET_ALREADY_EXISTS", `Dataset with id ${newDatasetId} already exists`, "BAD_REQUEST", 400);
         }
         throw obsrvError(newDatasetId, "DATASET_COPY_FAILURE", `Failed to clone dataset`, "INTERNAL_SERVER_ERROR", 500);

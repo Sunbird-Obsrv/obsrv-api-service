@@ -1,11 +1,11 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { updateTemplateFixtures } from "./Fixtures"
 import { QueryTemplate } from "../../../models/QueryTemplate";
-const apiId = 'api.query.template.update'
+const apiId = "api.query.template.update"
 const msgid = "4a7f14c3-d61e-4d4f-be78-181834eeff6d";
 chai.use(spies);
 chai.should();

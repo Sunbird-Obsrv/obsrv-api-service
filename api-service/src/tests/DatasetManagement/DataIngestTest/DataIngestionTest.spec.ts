@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import { TestInputsForDataIngestion } from "./Fixtures";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { Dataset } from "../../../models/Dataset";
 import sinon from "sinon";
 import { Kafka } from "kafkajs";
@@ -14,17 +14,16 @@ chai.should();
 chai.use(chaiHttp);
 
 const kafka = new Kafka(connectionConfig.kafka.config);
-const producer = kafka.producer();
 
 const apiEndpoint = "/v2/data/in/:datasetId"
 const resultResponse = [
     {
-        topicName: 'local.test.topic',
+        topicName: "local.test.topic",
         partition: 0,
         errorCode: 0,
-        baseOffset: '257',
-        logAppendTime: '-1',
-        logStartOffset: '0'
+        baseOffset: "257",
+        logAppendTime: "-1",
+        logStartOffset: "0"
     }
 ]
 const kafkaModule = require("../../../connections/kafkaConnection");
@@ -39,7 +38,7 @@ describe("DATA INGEST API", () => {
             return Promise.resolve({
                 dataValues: {
                     dataset_config: {
-                        entry_topic: 'local.test.topic',
+                        entry_topic: "local.test.topic",
                     },
                     extraction_config: {
                         is_batch_event: false,
@@ -74,7 +73,7 @@ describe("DATA INGEST API", () => {
             return Promise.resolve({
                 dataValues: {
                     dataset_config: {
-                        entry_topic: 'local.test.topic',
+                        entry_topic: "local.test.topic",
                     }
                 }
             })
@@ -103,7 +102,7 @@ describe("DATA INGEST API", () => {
             return Promise.resolve({
                 dataValues: {
                     dataset_config: {
-                        entry_topic: 'local.test.topic',
+                        entry_topic: "local.test.topic",
                     }
                 }
             })

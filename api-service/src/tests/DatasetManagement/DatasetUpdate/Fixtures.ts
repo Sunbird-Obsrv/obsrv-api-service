@@ -15,7 +15,8 @@ export const TestInputsForDatasetUpdate = {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
-            "name": "telemetry"
+            "name": "telemetry",
+            "sample_data":{"events":{}}
         }
     },
 
@@ -25,11 +26,8 @@ export const TestInputsForDatasetUpdate = {
             "version_key": validVersionKey,
             "tags": [
                 {
-                    "values": [
-                        "tag1",
-                        "tag2"
-                    ],
-                    "action": "add"
+                    "value": "tag1",
+                    "action": "upsert"
                 }]
         }
     },
@@ -40,10 +38,7 @@ export const TestInputsForDatasetUpdate = {
             "version_key": validVersionKey,
             "tags": [
                 {
-                    "values": [
-                        "tag1",
-                        "tag2"
-                    ],
+                    "value": "tag1",
                     "action": "remove"
                 }]
         }
@@ -56,11 +51,12 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id": "master"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     }
                 ]
             }
@@ -74,7 +70,7 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
@@ -89,16 +85,23 @@ export const TestInputsForDatasetUpdate = {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "add"
-                }]
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }],
+        }
+    },
+
+    DATASET_UPDATE_CONNECTORS_ADD: {
+        ...requestStructure, request: {
+            "dataset_id": "telemetry",
+            "version_key": validVersionKey,
+            "connectors_config":[{"value":{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}, "action": "upsert"}],
+        }
+    },
+
+    DATASET_UPDATE_CONNECTORS_REMOVE: {
+        ...requestStructure, request: {
+            "dataset_id": "telemetry",
+            "version_key": validVersionKey,
+            "connectors_config":[{"value":{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}, "action": "upsert"}],
         }
     },
 
@@ -198,8 +201,18 @@ export const TestInputsForDatasetUpdate = {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
             "dataset_config": {
-                "data_key": "mid",
-                "timestamp_key": "ets"
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets",
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             }
         }
     },
@@ -208,16 +221,7 @@ export const TestInputsForDatasetUpdate = {
         ...requestStructure, request: {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                }]
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }],
         }
     },
 
@@ -282,69 +286,46 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id": "master"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     },
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
                         },
                         "action": "remove"
                     }
                 ]
             },
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "add"
-                },
-                {
-                    "values": {
-                        "field_key": "key2",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                },
-                {
-                    "values": {
-                        "field_key": "key3",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "update"
-                }
-            ],
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }, { "value": { "field_key": "key2", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "remove" }],
             "dataset_config": {
-                "data_key": "mid",
-                "timestamp_key": "ets",
-                "file_upload_path": ["/config/file.json"]
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets",
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             },
             "tags": [
                 {
-                    "values": [
-                        "tag1",
-                        "tag2"
-                    ],
+                    "value": "tag1",
                     "action": "remove"
                 },
                 {
-                    "values": [
-                        "tag3",
-                        "tag4"
-                    ],
-                    "action": "add"
+                    "value": "tag3",
+                    "action": "upsert"
                 }
             ]
         }
@@ -361,41 +342,17 @@ export const TestInputsForDatasetUpdate = {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     },
                     {
                         "values": {
                             "denorm_key": "actor.id",
                             "denorm_out_field": "userdata"
                         },
-                        "action": "add"
+                        "action": "upsert"
                     }
                 ]
             }
-        }
-    },
-
-    DATASET_UPDATE_WITH_SAME_TAGS_ADD: {
-        ...requestStructure, request: {
-            "dataset_id": "telemetry",
-            "version_key": validVersionKey,
-            "name": "sb-telemetry",
-            "tags": [
-                {
-                    "values": [
-                        "tag1",
-                        "tag1"
-                    ],
-                    "action": "remove"
-                },
-                {
-                    "values": [
-                        "tag4",
-                        "tag4"
-                    ],
-                    "action": "add"
-                }
-            ]
         }
     },
 
@@ -407,18 +364,40 @@ export const TestInputsForDatasetUpdate = {
             "denorm_config": {
                 "denorm_fields": [
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
                         },
                         "action": "remove"
                     },
                     {
-                        "values": {
+                        "value": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "mid"
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
                         },
                         "action": "remove"
+                    }
+                ]
+            }
+        }
+    },
+
+    DATASET_UPDATE_WITH_EXISTING_DENORM: {
+        ...requestStructure, request: {
+            "dataset_id": "telemetry",
+            "version_key": validVersionKey,
+            "name": "sb-telemetry",
+            "denorm_config": {
+                "denorm_fields": [
+                    {
+                        "value": {
+                            "denorm_key": "actor.id",
+                            "denorm_out_field": "mid",
+                            "dataset_id": "master"
+                        },
+                        "action": "upsert"
                     }
                 ]
             }
@@ -430,62 +409,7 @@ export const TestInputsForDatasetUpdate = {
             "dataset_id": "telemetry",
             "version_key": validVersionKey,
             "name": "sb-telemetry",
-            "transformation_config": [
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "add"
-                },
-                {
-                    "values": {
-                        "field_key": "key1",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "add"
-                },
-                {
-                    "values": {
-                        "field_key": "key2",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                },
-                {
-                    "values": {
-                        "field_key": "key2",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "remove"
-                },
-                {
-                    "values": {
-                        "field_key": "key3",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "update"
-                },
-                {
-                    "values": {
-                        "field_key": "key3",
-                        "transformation_function": {},
-                        "mode": "Strict",
-                        "metadata": {}
-                    },
-                    "action": "update"
-                }
-            ]
+            "transformations_config": [{ "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }, { "value": { "field_key": "key1", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, "action": "upsert" }]
         }
     }
 }

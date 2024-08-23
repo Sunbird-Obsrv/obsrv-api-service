@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { addGrafanaRule, checkIfGroupNameExists, checkIfRuleExists, createFolderIfNotExists, deleteAlertFolder, deleteAlertRule, getPrometheusDataSource, getQueryExpression, getQueryModel, getSpecificRule, transformRule, updateMetadata, getFilteredAlerts, getRules, groupRulesByCategory } from "./helpers";
+import { addGrafanaRule, checkIfGroupNameExists, checkIfRuleExists, createFolderIfNotExists, deleteAlertFolder, deleteAlertRule, getPrometheusDataSource, getQueryExpression, getQueryModel, getSpecificRule, transformRule, updateMetadata, getRules } from "./helpers";
 import { Silence } from "../../../../models/Silence";
 import constants from "../../constants";
 
@@ -27,7 +27,7 @@ const publishAlert = async (payload: Record<string, any>) => {
 
 const getAlerts = async (payload: Record<string, any>) => {
   const context = payload?.context || {};
-  const alertId = _.get(payload, 'id');
+  const alertId = _.get(payload, "id");
   const { err, alertData } = await getSpecificRule(payload)
     .then(alertData => {
       if (!alertData) throw new Error()
@@ -37,21 +37,21 @@ const getAlerts = async (payload: Record<string, any>) => {
 
   const silenceModel = await Silence.findOne({ where: { alert_id: alertId } });
   const silenceData = silenceModel?.toJSON();
-  let silenceState: Record<string, any> = { state: '', silenceId: '' };
+  const silenceState: Record<string, any> = { state: "", silenceId: "" };
 
   if (silenceData) {
     const { end_time } = silenceData;
     const currentTime = new Date().getTime();
     const endTime = new Date(end_time).getTime();
     if (currentTime < endTime) {
-      silenceState.state = 'muted';
-      silenceState['endTime'] = endTime;
+      silenceState.state = "muted";
+      silenceState["endTime"] = endTime;
     } else {
-      silenceState.state = 'unmuted';
+      silenceState.state = "unmuted";
     }
     silenceState.silenceId = silenceData.id;
   } else {
-    silenceState.state = 'unmuted';
+    silenceState.state = "unmuted";
   }
 
   return { ...payload, context: { ...context, err }, ...(alertData && { alertData }), silenceState };
@@ -62,8 +62,8 @@ const deleteAlert = async (payload: Record<string, any>) => {
   const alertCategory = await checkIfGroupNameExists(category);
   if (!alertCategory) throw new Error(constants.CATEGORY_NOT_EXIST);
 
-  if (_.get(alertCategory, 'rules.length') > 1) {
-    const filteredRule = _.filter(alertCategory.rules, (rule) => _.get(rule, 'grafana_alert.title') !== name) || [];
+  if (_.get(alertCategory, "rules.length") > 1) {
+    const filteredRule = _.filter(alertCategory.rules, (rule) => _.get(rule, "grafana_alert.title") !== name) || [];
     const filteredGroup = { ...alertCategory, rules: filteredRule };
     return addGrafanaRule(filteredGroup);
   }
@@ -83,19 +83,19 @@ const generateAlertPayload = (payload: Record<string, any>) => {
 }
 
 const filterSystemRulesPredicate = (rule: Record<string, any>) => {
-  const labels = _.get(rule, 'labels') || {};
+  const labels = _.get(rule, "labels") || {};
   const isSystemAlert = _.find(labels, (value, key) => (key === "alertSource" && value === "system-rule-ingestor-job"));
   if (!isSystemAlert) return true;
   return false;
 }
 
-const deleteSystemRules = async (filters: Record<string, any>) => {
+const deleteSystemRules = async () => {
   const response = await getRules();
-  const existingRules = _.cloneDeep(_.get(response, 'data')) as Record<string, Record<string, any>[]>;
+  const existingRules = _.cloneDeep(_.get(response, "data")) as Record<string, Record<string, any>[]>;
   for (const [category, evaluationGroups] of Object.entries(existingRules)) {
     const evaluationGroup = _.find(evaluationGroups, ["name", category]);
     if (!evaluationGroup) continue;
-    const rules = _.get(evaluationGroup, 'rules') || []
+    const rules = _.get(evaluationGroup, "rules") || []
     const filteredRules = _.filter(rules, filterSystemRulesPredicate);
     try {
       if (_.isEmpty(filteredRules)) {

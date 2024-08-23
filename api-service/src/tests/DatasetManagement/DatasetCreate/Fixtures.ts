@@ -1,5 +1,4 @@
 import httpStatus from "http-status"
-import _ from "lodash"
 
 export const TestInputsForDatasetCreate = {
     VALID_DATASET: {
@@ -11,7 +10,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "dataset",
+            "type": "event",
             "name": "sb-telemetry2",
             "validation_config": {
                 "validate": true,
@@ -44,49 +43,23 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id": "trip-details"
                     }
                 ]
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets",
-                "file_upload_path": ["/config/file.json"]
-            },
-            "tags": []
-        }
-    },
-
-    VALID_DATASET_WITH_DEFAULT_TS: {
-        "id": "api.datasets.create",
-        "ver": "v1",
-        "ts": "2024-04-10T16:10:50+05:30",
-        "params": {
-            "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
-        },
-        "request": {
-            "dataset_id": "sb-ddd",
-            "type": "dataset",
-            "name": "sb-telemetry2",
-            "data_schema": {
-                "$schema": "https://json-schema.org/draft/2020-12/schema",
-                "type": "object",
-                "properties": {
-                    "eid": {
-                        "type": "string"
-                    },
-                    "ver": {
-                        "type": "string"
-                    },
-                    "required": [
-                        "eid"
-                    ]
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
                 },
-                "additionalProperties": true
-            },
-            "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "obsrv_meta.syncts"
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             },
             "tags": []
         }
@@ -101,7 +74,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "dataset",
+            "type": "event",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -123,27 +96,19 @@ export const TestInputsForDatasetCreate = {
                 "additionalProperties": true
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets",
-                "file_upload_path": ["/config/file.json"]
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             },
-            "transformations_config": [
-                {
-                    "field_key": "eid",
-                    "transformation_function": {
-                        "type": "mask",
-                        "expr": "eid",
-                        "condition": null
-                    },
-                    "mode": "Strict",
-                    "metadata": {
-                        "_transformationType": "mask",
-                        "_transformedFieldDataType": "string",
-                        "_transformedFieldSchemaType": "string",
-                        "section": "transformation"
-                    }
-                }
-            ],
+            "transformations_config": [{ "field_key": "eid", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }],
             "tags": []
         }
     },
@@ -157,7 +122,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "dataset",
+            "type": "event",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -179,42 +144,67 @@ export const TestInputsForDatasetCreate = {
                 "additionalProperties": true
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets",
-                "file_upload_path": ["/config/file.json"]
-            },
-            "transformations_config": [
-                {
-                    "field_key": "eid",
-                    "transformation_function": {
-                        "type": "mask",
-                        "expr": "eid",
-                        "condition": null
-                    },
-                    "mode": "Strict",
-                    "metadata": {
-                        "_transformationType": "mask",
-                        "_transformedFieldDataType": "string",
-                        "_transformedFieldSchemaType": "string",
-                        "section": "transformation"
-                    }
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
                 },
-                {
-                    "field_key": "eid",
-                    "transformation_function": {
-                        "type": "mask",
-                        "expr": "eid",
-                        "condition": null
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            },
+            "transformations_config": [{ "field_key": "eid", "transformation_function": { "type": "mask", "expr": "eid", "datatype": "string", "category": "pii" }, "mode": "Strict" }, { "field_key": "ver", "transformation_function": { "type": "mask", "expr": "ver", "datatype": "string", "category": "pii" }, "mode": "Strict" }],
+            "tags": []
+        }
+    },
+
+    VALID_DATASET_WITH_CONNECTORS: {
+        "id": "api.datasets.create",
+        "ver": "v1",
+        "ts": "2024-04-10T16:10:50+05:30",
+        "params": {
+            "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
+        },
+        "request": {
+            "dataset_id": "sb-ddd",
+            "type": "event",
+            "name": "sb-telemetry2",
+            "data_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "eid": {
+                        "type": "string"
                     },
-                    "mode": "Strict",
-                    "metadata": {
-                        "_transformationType": "mask",
-                        "_transformedFieldDataType": "string",
-                        "_transformedFieldSchemaType": "string",
-                        "section": "transformation"
-                    }
-                }
-            ],
+                    "ver": {
+                        "type": "string"
+                    },
+                    "ets": {
+                        "type": "string"
+                    },
+                    "required": [
+                        "eid"
+                    ]
+                },
+                "additionalProperties": true
+            },
+            "dataset_config": {
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            },
+            "connectors_config":[{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}, {"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5cai","connector_id":"debezium","connector_config":{"type":"debezium","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}],
             "tags": []
         }
     },
@@ -228,7 +218,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "dataset",
+            "type": "event",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -250,9 +240,18 @@ export const TestInputsForDatasetCreate = {
                 "additionalProperties": true
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets"
-            }
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            },
         }
     },
 
@@ -265,7 +264,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "master-dataset",
+            "type": "master",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -287,9 +286,18 @@ export const TestInputsForDatasetCreate = {
                 "additionalProperties": true
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets"
-            }
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": true
+                },
+                "keys_config": {
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            },
         }
     },
     VALID_MORE_THAN_MINIMAL_DATASET: {
@@ -301,7 +309,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "dataset",
+            "type": "event",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -325,14 +333,24 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id": "master-telemetry"
                     }
                 ]
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets"
-            }
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": false
+                },
+                "keys_config": {
+                    "timestamp_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            },
         }
     },
     VALID_MORE_THAN_MINIMAL_MASTER_DATASET: {
@@ -344,7 +362,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "master-dataset",
+            "type": "master",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -368,14 +386,24 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id": "telemetry"
                     }
                 ]
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets"
-            },
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": true
+                },
+                "keys_config": {
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
+            }
         }
     },
     VALID_MASTER_DATASET: {
@@ -387,7 +415,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "master-dataset",
+            "type": "master",
             "name": "sb-telemetry2",
             "validation_config": {
                 "validate": true,
@@ -420,13 +448,23 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id": "telemetry"
                     }
                 ]
             },
             "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "ets"
+                "indexing_config": {
+                    "olap_store_enabled": false,
+                    "lakehouse_enabled": true,
+                    "cache_enabled": true
+                },
+                "keys_config": {
+                    "data_key": "ets"
+                },
+                "file_upload_path": [
+                    "telemetry.json"
+                ]
             },
             "tags": []
         }
@@ -444,41 +482,6 @@ export const TestInputsForDatasetCreate = {
         }
     },
 
-    DATASET_WITH_INVALID_TIMESTAMP: {
-        "id": "api.datasets.create",
-        "ver": "v1",
-        "ts": "2024-04-10T16:10:50+05:30",
-        "params": {
-            "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
-        },
-        "request": {
-            "dataset_id": "sb-ddd",
-            "type": "dataset",
-            "name": "sb-telemetry2",
-            "data_schema": {
-                "$schema": "https://json-schema.org/draft/2020-12/schema",
-                "type": "object",
-                "properties": {
-                    "eid": {
-                        "type": "string"
-                    },
-                    "ver": {
-                        "type": "string"
-                    },
-                    "required": [
-                        "eid"
-                    ]
-                },
-                "additionalProperties": true
-            },
-            "dataset_config": {
-                "data_key": "",
-                "timestamp_key": "lastAccessed"
-            },
-            "tags": []
-        }
-    },
-
     DATASET_WITH_DUPLICATE_DENORM_KEY: {
         "id": "api.datasets.create",
         "ver": "v2",
@@ -488,7 +491,7 @@ export const TestInputsForDatasetCreate = {
         },
         "request": {
             "dataset_id": "sb-ddd",
-            "type": "dataset",
+            "type": "event",
             "name": "sb-telemetry2",
             "data_schema": {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -510,11 +513,13 @@ export const TestInputsForDatasetCreate = {
                 "denorm_fields": [
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id": "telemetry"
                     },
                     {
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "userdata"
+                        "denorm_out_field": "userdata",
+                        "dataset_id": "telemetry"
                     }
                 ]
             }
@@ -580,32 +585,25 @@ export const DATASET_CREATE_SUCCESS_FIXTURES = [
         "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
     },
     {
-        "title": "Dataset creation success: When multiple transformation payload provided with same field key",
-        "requestPayload": TestInputsForDatasetCreate.VALID_DATASET_WITH_MULTIPLE_TRANSFORMATIONS,
+        "title": "Dataset creation success: When connectors payload provided",
+        "requestPayload": TestInputsForDatasetCreate.VALID_DATASET_WITH_CONNECTORS,
         "httpStatus": httpStatus.OK,
         "status": "SUCCESS",
         "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
     },
     {
-        "title": "Dataset creation success: Geenerating ingestion spec successfully using the data schema",
-        "requestPayload": TestInputsForDatasetCreate.VALID_DATASET_WITH_DEFAULT_TS,
+        "title": "Dataset creation success: When multiple transformation payload provided with same field key",
+        "requestPayload": TestInputsForDatasetCreate.VALID_DATASET_WITH_MULTIPLE_TRANSFORMATIONS,
         "httpStatus": httpStatus.OK,
         "status": "SUCCESS",
         "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
-    },
+    }
 ]
 
 export const DATASET_FAILURE_DUPLICATE_DENORM_FIXTURES = [
     {
         "title": "Dataset creation failure: Dataset contains duplicate denorm out field",
         "requestPayload": TestInputsForDatasetCreate.DATASET_WITH_DUPLICATE_DENORM_KEY,
-        "httpStatus": httpStatus.BAD_REQUEST,
-        "status": "FAILED",
-        "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
-    },
-    {
-        "title": "Master Dataset creation failure: Dataset contains duplicate denorm out field",
-        "requestPayload": _.set(TestInputsForDatasetCreate.DATASET_WITH_DUPLICATE_DENORM_KEY, "request.type", "master-dataset"),
         "httpStatus": httpStatus.BAD_REQUEST,
         "status": "FAILED",
         "msgid": "4a7f14c3-d61e-4d4f-be78-181834eeff6d"

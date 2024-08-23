@@ -111,7 +111,7 @@ class DatasetService {
 
     migrateDatasetV1 = async (dataset_id: string, dataset: Record<string, any>): Promise<any> => {
         const status = _.get(dataset, "status")
-        let draftDataset: Record<string, any> = {
+        const draftDataset: Record<string, any> = {
             api_version: "v2",
             version_key: Date.now().toString()
         }
@@ -168,7 +168,7 @@ class DatasetService {
 
     createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
 
-        let draftDataset: any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
+        const draftDataset: any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
         const dataset_config: any = _.get(dataset, "dataset_config");
         const api_version: any = _.get(dataset, "api_version");
         if (api_version === "v1") {
@@ -240,9 +240,8 @@ class DatasetService {
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
-        const response = await DatasetDraft.create(draftDataset);
-        return _.get(response,"dataValues");
-        // return await this.getDraftDataset(draftDataset.dataset_id);
+        const result = await DatasetDraft.create(draftDataset);
+        return _.get(result, "dataValues")
     }
 
     getNextRedisDBIndex = async () => {
@@ -333,7 +332,7 @@ class DatasetService {
         const allFields = await tableGenerator.getAllFields(draftDataset, "druid");
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
         const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, { transaction })
     }
 
@@ -342,7 +341,7 @@ class DatasetService {
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, { transaction })
     }
 
@@ -353,7 +352,7 @@ class DatasetService {
         const dsId = _.join([draftDataset.dataset_id, "events", "hudi"], "_")
         const liveDatasource = await Datasource.findOne({ where: { id: dsId }, attributes: ["ingestion_spec"], raw: true }) as unknown as Record<string, any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
-        _.set(draftDatasource, 'ingestion_spec', ingestionSpec)
+        _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         await DatasourceDraft.create(draftDatasource, { transaction })
     }
 
@@ -361,7 +360,7 @@ class DatasetService {
 
         const datasource = _.join([draftDataset.dataset_id, "events"], "_")
         return {
-            id: _.join([datasource, type], '_'),
+            id: _.join([datasource, type], "_"),
             datasource: draftDataset.dataset_id,
             dataset_id: draftDataset.dataset_id,
             datasource_ref: datasource,
@@ -373,7 +372,7 @@ class DatasetService {
 
 export const getLiveDatasetConfigs = async (dataset_id: string) => {
 
-    let datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
+    const datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
     const connectorsV2 = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
     const connectorsV1 = await getV1Connectors(dataset_id)

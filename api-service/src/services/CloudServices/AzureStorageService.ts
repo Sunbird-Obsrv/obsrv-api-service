@@ -130,7 +130,7 @@ export class AzureStorageService implements ICloudService {
         const signedUrlsPromises = this.generateSignedURLs(container, filesList)
         const signedUrlsList = await Promise.all(signedUrlsPromises);
         const files: any[] = []
-        const periodWiseFiles: any = {};
+        const periodWiseFiles: { [key: string]: string[] } = {};
         // Formatting response
         signedUrlsList.map(async (fileObject) => {
             const fileDetails = _.keys(fileObject);

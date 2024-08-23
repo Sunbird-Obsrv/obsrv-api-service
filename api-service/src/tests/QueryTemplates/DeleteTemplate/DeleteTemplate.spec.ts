@@ -1,10 +1,10 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { QueryTemplate } from "../../../models/QueryTemplate";
-const apiId = 'api.query.template.delete'
+const apiId = "api.query.template.delete"
 
 chai.use(spies);
 chai.should();
@@ -20,7 +20,7 @@ describe("DELETE QUERY TEMPLATE API", () => {
         chai.spy.on(QueryTemplate, "destroy", () => {
             return Promise.resolve({
                 dataValues: {
-                    template_id: 'sql1'
+                    template_id: "sql1"
                 }
             })
         })

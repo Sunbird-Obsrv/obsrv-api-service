@@ -32,6 +32,10 @@
         "version_key": {
           "type": "string"
         },
+        "type": {
+          "type": "string",
+          "enum": ["event", "transaction", "master"]
+        },
         "name": {
           "type": "string",
           "minLength": 1
@@ -199,7 +203,7 @@
                 }
               },
               "additionalProperties": false
-            }, 
+            },
             "keys_config": {
               "type": "object",
               "properties": {

@@ -1,14 +1,14 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { QueryTemplate } from "../../../models/QueryTemplate";
 import { Datasource } from "../../../models/Datasource";
 import nock from "nock";
 import { config } from "../../../configs/Config";
 import { templateQueryApiFixtures } from "./Fixtures";
-const apiId = 'api.query.template.query';
+const apiId = "api.query.template.query";
 const msgid = "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
 
 chai.use(spies);
@@ -34,12 +34,12 @@ describe("QUERY TEMPLATE API", () => {
         chai.spy.on(QueryTemplate, "findOne", () => {
             return Promise.resolve({
                 dataValues: {
-                    template_id: 'sql1',
-                    template_name: 'sql1',
-                    query: '"SELECT * FROM {{DATASET}} WHERE \"__time\" BETWEEN TIMESTAMP {{STARTDATE}} AND TIMESTAMP {{ENDDATE}}"',
-                    query_type: 'sql',
-                    created_by: 'SYSTEM',
-                    updated_by: 'SYSTEM',
+                    template_id: "sql1",
+                    template_name: "sql1",
+                    query: "\"SELECT * FROM {{DATASET}} WHERE \"__time\" BETWEEN TIMESTAMP {{STARTDATE}} AND TIMESTAMP {{ENDDATE}}\"",
+                    query_type: "sql",
+                    created_by: "SYSTEM",
+                    updated_by: "SYSTEM",
                     created_date: "2024-04 - 30T05: 57:04.387Z",
                     updated_date: "2024-04 - 30T05: 57:04.387Z"
                 }
@@ -77,12 +77,12 @@ describe("QUERY TEMPLATE API", () => {
         chai.spy.on(QueryTemplate, "findOne", () => {
             return Promise.resolve({
                 dataValues: {
-                    template_id: 'jsontemplate1',
-                    template_name: 'jsontemplate1',
-                    query: '{"queryType":"timeseries","datasetId":"{{DATASET}}","intervals":"{{STARTDATE}}/{{ENDDATE}}","limit":"{{LIMIT}}","aggregations":[{"type":"filtered","aggregator":{"type":"count","name":"a0"},"filter":{"type":"not","field":{"type":"null","column":"school_id"}},"name":"school_id"}]}',
-                    query_type: 'json',
-                    created_by: 'SYSTEM',
-                    updated_by: 'SYSTEM',
+                    template_id: "jsontemplate1",
+                    template_name: "jsontemplate1",
+                    query: "{\"queryType\":\"timeseries\",\"datasetId\":\"{{DATASET}}\",\"intervals\":\"{{STARTDATE}}/{{ENDDATE}}\",\"limit\":\"{{LIMIT}}\",\"aggregations\":[{\"type\":\"filtered\",\"aggregator\":{\"type\":\"count\",\"name\":\"a0\"},\"filter\":{\"type\":\"not\",\"field\":{\"type\":\"null\",\"column\":\"school_id\"}},\"name\":\"school_id\"}]}",
+                    query_type: "json",
+                    created_by: "SYSTEM",
+                    updated_by: "SYSTEM",
                     created_date: "2024-04-28T23:28:35.868Z",
                     updated_date: "2024-04-28T23:28:35.868Z"
                 }
@@ -121,12 +121,12 @@ describe("QUERY TEMPLATE API", () => {
         chai.spy.on(QueryTemplate, "findOne", () => {
             return Promise.resolve({
                 dataValues: {
-                    template_id: 'jsontemplate1',
-                    template_name: 'jsontemplate1',
-                    query: '{"queryType":"timeseries","datasetId"::::"{{DATASET}}","intervals":"{{STARTDATE}}/{{ENDDATE}}","limit":"{{LIMIT}}","aggregations":[{"type":"filtered","aggregator":{"type":"count","name":"a0"},"filter":{"type":"not","field":{"type":"null","column":"school_id"}},"name":"school_id"}]}',
-                    query_type: 'json',
-                    created_by: 'SYSTEM',
-                    updated_by: 'SYSTEM',
+                    template_id: "jsontemplate1",
+                    template_name: "jsontemplate1",
+                    query: "{\"queryType\":\"timeseries\",\"datasetId\"::::\"{{DATASET}}\",\"intervals\":\"{{STARTDATE}}/{{ENDDATE}}\",\"limit\":\"{{LIMIT}}\",\"aggregations\":[{\"type\":\"filtered\",\"aggregator\":{\"type\":\"count\",\"name\":\"a0\"},\"filter\":{\"type\":\"not\",\"field\":{\"type\":\"null\",\"column\":\"school_id\"}},\"name\":\"school_id\"}]}",
+                    query_type: "json",
+                    created_by: "SYSTEM",
+                    updated_by: "SYSTEM",
                     created_date: "2024-04-28T23:28:35.868Z",
                     updated_date: "2024-04-28T23:28:35.868Z"
                 }

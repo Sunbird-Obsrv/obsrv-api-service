@@ -1,14 +1,13 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai, { expect } from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import _ from "lodash";
 import { TestInputsForDatasetUpdate, msgid, requestStructure, validVersionKey } from "./Fixtures";
 import { apiId, invalidInputErrCode } from "../../../controllers/DatasetUpdate/DatasetUpdate"
-import { sequelize } from "../../../connections/databaseConnection";
 
 chai.use(spies);
 chai.should();
@@ -23,17 +22,11 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
     it("Success: Dataset dedupe configs updated with dedup key if duplicates need to be dropped", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
         })
         chai
             .request(app)
@@ -55,22 +48,16 @@ describe("DATASET DEDUPE CONFIG UPDATE", () => {
     it("Success: Dataset dedupe configs updated with default values if duplicates need to be dropped", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type: "event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
         chai
             .request(app)
             .patch("/v2/datasets/update")
-            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, dedup_config: { drop_duplicates: false } } })
+            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, dedup_config: { drop_duplicates: false, dedup_key: "mid" } } })
             .end((err, res) => {
                 console.log(res.body.result)
                 res.should.have.status(httpStatus.OK);

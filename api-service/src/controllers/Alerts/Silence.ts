@@ -18,8 +18,8 @@ const createHandler = async (request: Request, response: Response, next: NextFun
         const grafanaResponse = await createSilence(payload);
         if (!grafanaResponse) return next({ message: httpStatus[httpStatus.INTERNAL_SERVER_ERROR], statusCode: httpStatus.INTERNAL_SERVER_ERROR })
 
-        let start_date = new Date(startDate);
-        let end_date = new Date(endDate);
+        const start_date = new Date(startDate);
+        const end_date = new Date(endDate);
         const silenceBody = {
             id: grafanaResponse.silenceId,
             manager: grafanaResponse.manager,
@@ -31,7 +31,7 @@ const createHandler = async (request: Request, response: Response, next: NextFun
         updateTelemetryAuditEvent({ request, object: { id: sileneResponse?.dataValues?.id, ...telemetryObject } });
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { id: sileneResponse.dataValues.id } })
     } catch (err) {
-        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, 'message') || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
+        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
         next(error);
     }
 }
@@ -45,11 +45,11 @@ const transformSilences = async (silenceModel: any) => {
 const listHandler = async (request: Request, response: Response, next: NextFunction) => {
     try {
         const silences = await Silence.findAll();
-        const count = _.get(silences, 'length');
+        const count = _.get(silences, "length");
         const transformedSilences = await Promise.all(silences.map(transformSilences));
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { transformedSilences, ...(count && { count }) } });
     } catch (err) {
-        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, 'message') || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
+        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
         next(error);
     }
 }
@@ -62,7 +62,7 @@ const fetchHandler = async (request: Request, response: Response, next: NextFunc
         if (!silenceModel) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: transformedSilence });
     } catch (err) {
-        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, 'message') || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
+        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
         next(error);
     }
 }
@@ -86,7 +86,7 @@ const updateHandler = async (request: Request, response: Response, next: NextFun
         const silenceResponse = await Silence.update(updatedSilence, { where: { id } })
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { silenceResponse } })
     } catch (err) {
-        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, 'message') || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
+        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
         next(error);
     }
 }
@@ -97,13 +97,13 @@ const deleteHandler = async (request: Request, response: Response, next: NextFun
         const silenceModel = await Silence.findOne({ where: { id } });
         if (!silenceModel) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
         const silenceObject = silenceModel?.toJSON();
-        if (silenceObject?.status === 'expired') return next({ message: "Silence is already expired", statusCode: httpStatus.BAD_REQUEST });
+        if (silenceObject?.status === "expired") return next({ message: "Silence is already expired", statusCode: httpStatus.BAD_REQUEST });
         await deleteSilence(silenceObject);
         await silenceModel.destroy();
         updateTelemetryAuditEvent({ request, object: { id, ...telemetryObject }, currentRecord: silenceObject });
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { id } })
     } catch (err) {
-        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, 'message') || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
+        const error = errorResponse(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
         next(error);
     }
 }

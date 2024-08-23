@@ -13,7 +13,7 @@ export const dataMappingPaths = {
     "number": "number.store_format.number.jsonSchema",
     "object": "object.store_format.object.jsonSchema",
     "array": "array.store_format.array.jsonSchema",
-} 
+}
 
 export class SchemaHandler {
     private typeToMethod = {
@@ -39,36 +39,36 @@ export class SchemaHandler {
     }
 
     private updateDataTypes(schema: any, conflict: ConflictTypes): any {
-        const { absolutePath, schema: { resolution: { value } } } = conflict;
+        const { absolutePath, schema: { resolution } } = conflict;
         return _.set(schema, `${absolutePath}`, {
             ...schema[absolutePath],
             ...{
-                type: conflict.schema.resolution["value"],
+                type: resolution.value,
                 oneof: conflict.schema.values.map(key => ({ type: key })),
             }
         });
     }
 
     private setNulltype(schema: any, conflict: ConflictTypes): any {
-        const { absolutePath, schema: { resolution: { value } } } = conflict;
+        const { absolutePath } = conflict;
         const dataTypes: any = [];
-        _.forEach(DataMappings, (valueItem, keyItem) => {
-            _.forEach(_.get(valueItem, 'store_format'), (subValue, subKey) => {
+        _.forEach(DataMappings, (valueItem) => {
+            _.forEach(_.get(valueItem, "store_format"), (subValue) => {
                 if (!_.find(dataTypes, ["type", subValue["jsonSchema"]]))
                     dataTypes.push({ type: subValue["jsonSchema"] })
             })
         });
         const arrivalDataTypes: any = _.keys(DataMappings).map((key: any) => ({ type: key }));
 
-        _.set(schema, `${absolutePath}.type`, 'null');
+        _.set(schema, `${absolutePath}.type`, "null");
         _.set(schema, `${absolutePath}.arrivalOneOf`, arrivalDataTypes);
         return _.set(schema, `${absolutePath}.oneof`, dataTypes);
     }
 
     private updateRequiredProp(schema: any, value: ConflictTypes): any {
-        const absolutePath = value.absolutePath.replace(value.required.property, value.required.property.replace('.', '$'))
-        const subStringArray: string[] = _.split(absolutePath, '.');
-        const subString: string = _.join(_.slice(subStringArray, 0, subStringArray.length - 2), '.');
+        const absolutePath = value.absolutePath.replace(value.required.property, value.required.property.replace(".", "$"))
+        const subStringArray: string[] = _.split(absolutePath, ".");
+        const subString: string = _.join(_.slice(subStringArray, 0, subStringArray.length - 2), ".");
         const path: string = _.isEmpty(subString) ? "required" : `${subString}.required`
         const requiredList: string[] = _.get(schema, path)
         const newProperty: string = value.required.property
@@ -77,7 +77,7 @@ export class SchemaHandler {
     }
 
     private getArrivalSuggestions(schema: any, fieldData: any, property: any, type: string) {
-        let arrivalSuggestions: any = [];
+        const arrivalSuggestions: any = [];
         const types = _.get(fieldData, type);
         types && types.map((item: any) => {
             const storeFormat = _.get(dataMappingPaths, item.type);
@@ -86,7 +86,7 @@ export class SchemaHandler {
         if (arrivalSuggestions.length > 0)
             _.set(schema, `${property}.arrivalOneOf`, arrivalSuggestions);
         return;
-    };
+    }
 
     private getArrivalFormat(schema: any, fieldData: any, property: any, type: string) {
         const types = _.get(fieldData, type);
@@ -105,11 +105,11 @@ export class SchemaHandler {
             const arrivalConflictExists = _.filter(suggestions, (suggestion) => _.has(suggestion, "arrivalConflict"));
             switch (true) {
                 // Add arrival conflicts if there is arrival conflict in suggestions
-                case _.has(fieldData, 'oneof') && arrivalConflictExists.length > 0:
-                    return this.getArrivalSuggestions(schema, fieldData, property, 'oneof')
+                case _.has(fieldData, "oneof") && arrivalConflictExists.length > 0:
+                    return this.getArrivalSuggestions(schema, fieldData, property, "oneof")
                 // Add arrival type if there are no arrival type conflicts
                 case arrivalConflictExists.length === 0:
-                    return this.getArrivalFormat(schema, fieldData, property, 'oneof')
+                    return this.getArrivalFormat(schema, fieldData, property, "oneof")
                 default:
                     break;
             }
@@ -126,22 +126,22 @@ export class SchemaHandler {
     }
 
     private checkForInvalidArray(value: any) {
-        if (_.has(value, 'items') && _.has(value, 'properties'))
-            _.unset(value, 'properties');
+        if (_.has(value, "items") && _.has(value, "properties"))
+            _.unset(value, "properties");
     }
 
     private updateMappings(schema: Map<string, any>) {
         const recursive = (data: any) => {
-            _.map(data, (value, key) => {
+            _.map(data, (value) => {
                 if (_.isPlainObject(value)) {
-                    if ((_.has(value, 'properties'))) {
-                        recursive(value['properties']);
+                    if ((_.has(value, "properties"))) {
+                        recursive(value["properties"]);
                     }
-                    if (value.type === 'array') {
-                        if (_.has(value, 'items') && _.has(value["items"], 'properties')) {
-                            recursive(value["items"]['properties']);
+                    if (value.type === "array") {
+                        if (_.has(value, "items") && _.has(value["items"], "properties")) {
+                            recursive(value["items"]["properties"]);
                         }
-                        if (_.has(value, 'items') && _.has(value, 'properties'))
+                        if (_.has(value, "items") && _.has(value, "properties"))
                             this.checkForInvalidArray(value);
                         this.updateStoreType(value, _.get(value, "type"));
                     } else {
