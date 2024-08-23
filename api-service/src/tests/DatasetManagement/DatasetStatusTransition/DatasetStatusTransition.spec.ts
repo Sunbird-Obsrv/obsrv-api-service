@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai, { expect } from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import _ from "lodash";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { DatasetDraft } from "../../../models/DatasetDraft";
@@ -22,7 +22,7 @@ describe("DATASET STATUS TRANSITION API", () => {
     });
 
     it("Dataset status transition failure: Invalid request payload provided", (done) => {
-        
+
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
@@ -39,20 +39,21 @@ describe("DATASET STATUS TRANSITION API", () => {
             });
     });
 
-    it("Dataset status transition failure: Connection to the database failed", (done) => {
+    it("Dataset status transition failure: When the action is performed on v1 apis", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.reject()
+            return Promise.resolve({ api_version: "v1" })
         })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
-            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_DELETE)
+            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_LIVE)
             .end((err, res) => {
-                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
+                res.should.have.status(httpStatus.BAD_REQUEST);
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
+                res.body.error.code.should.be.eq("DATASET_API_VERSION_MISMATCH")
+                res.body.error.message.should.be.eq("Draft dataset api version is not v2. Perform a read api call with mode=edit to migrate the dataset")
                 done();
             });
     });

@@ -1,7 +1,6 @@
-import axios from 'axios';
-import _ from 'lodash';
-import CONSTANTS from '../../../constants';
-import { IChannelConfig } from '../../../../../types/AlertModels';
+import axios from "axios";
+import CONSTANTS from "../../../constants";
+import { IChannelConfig } from "../../../../../types/AlertModels";
 
 const generateConfigPayload = (payload: Record<string, any>): Record<string, any> => {
     const {type, config, name} = payload;

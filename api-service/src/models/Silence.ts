@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../connections/databaseConnection";
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from "uuid";
 
 export const Silence = sequelize.define("silences", {
     id: {

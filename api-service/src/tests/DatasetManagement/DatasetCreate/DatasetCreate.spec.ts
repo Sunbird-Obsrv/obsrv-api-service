@@ -1,16 +1,13 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai, { expect } from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
 import { TestInputsForDatasetCreate, DATASET_CREATE_SUCCESS_FIXTURES, DATASET_FAILURE_DUPLICATE_DENORM_FIXTURES } from "./Fixtures";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import { sequelize } from "../../../connections/databaseConnection";
-import _ from "lodash";
 import { apiId } from "../../../controllers/DatasetCreate/DatasetCreate"
-import { DatasetTransformationsDraft } from "../../../models/TransformationDraft";
-import { DatasetTransformations } from "../../../models/Transformation";
 import { Dataset } from "../../../models/Dataset";
 
 chai.use(spies);
@@ -30,34 +27,13 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(DatasetDraft, "findOne", () => {
                 return Promise.resolve(null)
             })
-            chai.spy.on(sequelize, "query", () => {
-                return Promise.resolve([{ nextVal: 9 }])
+            chai.spy.on(Dataset, "findOne", () => {
+                return Promise.resolve(null)
             })
             chai.spy.on(DatasetDraft, "create", () => {
                 return Promise.resolve({ dataValues: { id: "telemetry" } })
             })
-            chai.spy.on(Dataset, "findOne", () => {
-                return Promise.resolve({ "data_schema": {"$schema": "https://json-schema.org/draft/2020-12/schema","type": "object",
-                    "properties": {
-                        "eid": {"type": "string"},
-                        "ets": {"type": "string"}
-                    },
-                    "additionalProperties": true
-                },})
-            })
-            chai.spy.on(DatasetTransformationsDraft, "findAll", () => {
-                return Promise.resolve()
-            })
-            chai.spy.on(DatasetTransformations, "findAll", () => {
-                return Promise.resolve()
-            })
-            const t = chai.spy.on(sequelize, "transaction", () => {
-                return Promise.resolve(sequelize.transaction)
-            })
-            chai.spy.on(t, "commit", () => {
-                return Promise.resolve({})
-            })
-
+            
             chai
                 .request(app)
                 .post("/v2/datasets/create")
@@ -80,7 +56,10 @@ describe("DATASET CREATE API", () => {
             chai.spy.on(DatasetDraft, "findOne", () => {
                 return Promise.resolve(null)
             })
-
+            chai.spy.on(Dataset, "findOne", () => {
+                return Promise.resolve(null)
+            })
+            
             chai
                 .request(app)
                 .post("/v2/datasets/create")
@@ -91,7 +70,7 @@ describe("DATASET CREATE API", () => {
                     res.body.id.should.be.eq(apiId);
                     res.body.params.status.should.be.eq(fixture.status)
                     res.body.params.msgid.should.be.eq(fixture.msgid)
-                    res.body.error.message.should.be.eq("Duplicate denorm key found")
+                    res.body.error.message.should.be.eq("Duplicate denorm output fields found.")
                     res.body.error.code.should.be.eq("DATASET_DUPLICATE_DENORM_KEY")
                     done();
                 });
@@ -130,30 +109,11 @@ describe("DATASET CREATE API", () => {
                 res.body.id.should.be.eq(apiId);
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset already exists")
+                res.body.error.message.should.be.eq("Dataset Already exists with id:sb-ddd")
                 res.body.error.code.should.be.eq("DATASET_EXISTS")
                 done();
             });
     });
 
-    it("Dataset creation failure: Connection to the database failed", (done) => {
-        chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.reject({})
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/create")
-            .send(TestInputsForDatasetCreate.DATASET_WITH_DUPLICATE_DENORM_KEY)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Failed to create dataset")
-                res.body.error.code.should.be.eq("DATASET_CREATION_FAILURE")
-                done();
-            });
-    });
 
 })

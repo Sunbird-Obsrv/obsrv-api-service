@@ -6,7 +6,7 @@ import { SchemaSuggestionTemplate } from "./Template"
 export class SuggestionTemplate {
 
     public createSuggestionTemplate(sample: ConflictTypes[]): SuggestionsTemplate[] {
-        return _.map(sample, (value, key) => {
+        return _.map(sample, (value) => {
             const dataTypeSuggestions = this.getSchemaMessageTemplate(value.schema)
             const requiredSuggestions = this.getRequiredMessageTemplate(value.required)
             const formatSuggestions = this.getPropertyFormatTemplate(value.formats)
@@ -24,7 +24,7 @@ export class SuggestionTemplate {
             message = SchemaSuggestionTemplate.getSchemaNullTypeMessage(object.conflicts, object.property);
             advice = SchemaSuggestionTemplate.TEMPLATES.SCHEMA_SUGGESTION.CREATE.NULL_TYPE_PROPERTY.ADVICE;
         } else {
-            let { conflictMessage, arrivalFormatMessage } = SchemaSuggestionTemplate.getSchemaDataTypeMessage(object.conflicts, object.property);
+            const { conflictMessage, arrivalFormatMessage } = SchemaSuggestionTemplate.getSchemaDataTypeMessage(object.conflicts, object.property);
             message = conflictMessage;
             arrival_format_message = arrivalFormatMessage;
             advice = SchemaSuggestionTemplate.TEMPLATES.SCHEMA_SUGGESTION.CREATE.DATATYPE_PROPERTY.ADVICE;

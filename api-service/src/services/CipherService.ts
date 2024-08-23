@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { config } from '../configs/Config';
+import crypto from "crypto";
+import { config } from "../configs/Config";
 
 class CipherService {
     public encrypt(data: string) {
@@ -8,10 +8,10 @@ class CipherService {
             config.encryption_config.encryption_key,
             "",
         )
-        const toEncrypt = Buffer.from(data, 'utf8');
+        const toEncrypt = Buffer.from(data, "utf8");
         let encryptedString = cipher.update(toEncrypt);
         encryptedString = Buffer.concat([encryptedString, cipher.final()])
-        return encryptedString.toString('base64');
+        return encryptedString.toString("base64");
     }
 
     public decrypt(data: string) {
@@ -20,7 +20,7 @@ class CipherService {
             config.encryption_config.encryption_key,
             "",
         )
-        const encryptedText = Buffer.from(data, 'base64');
+        const encryptedText = Buffer.from(data, "base64");
         let decryptedString = decipher.update(encryptedText);
         decryptedString = Buffer.concat([decryptedString, decipher.final()])
         return decryptedString.toString();

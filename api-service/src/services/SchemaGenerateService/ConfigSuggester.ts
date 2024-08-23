@@ -31,20 +31,20 @@ export class ConfigSuggestor {
 
     private analyzeConflicts(conflicts: ConflictTypes[]): DataSetConfig {
         const typeFormatsConflict: ConflictTypes[] = _.filter(conflicts, (o) => !_.isEmpty(o.formats));
-        const ingestionConfig: IngestionConfig = this.ingestionConfig(typeFormatsConflict)
+        const ingestionConfig: IngestionConfig = this.ingestionConfig()
         const processingConfig: DatasetProcessing = this.processingConfig(typeFormatsConflict)
         return <DataSetConfig>{ "indexConfiguration": ingestionConfig, "processing": processingConfig }
     }
 
-    private ingestionConfig(conflicts: ConflictTypes[]): any {
+    private ingestionConfig(): any {
         return { "index": Object.assign(ingestionConfig.indexCol), "rollupSuggestions": this.rollupInfo };
     }
 
     private processingConfig(conflicts: ConflictTypes[]): any {
         let dedupKeys = _.filter(conflicts, (o) => _.upperCase(o.formats.resolution["type"]) === "DEDUP").map(v => v.formats.property)
         let matchedDedupFields = []
-        let dedupOrderProperty: string = "cardinality"
-        let dedupOrder: any = "desc"
+        const dedupOrderProperty: string = "cardinality"
+        const dedupOrder: any = "desc"
         if (!_.isUndefined(this.rollupInfo.summary)) {
             for (const key of Object.keys(this.rollupInfo.summary)) {
                 if (!this.rollupInfo.summary[key].index) {

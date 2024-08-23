@@ -92,10 +92,10 @@ const deleteDataset = async (dataset: Record<string, any>) => {
 
 const readyForPublish = async (dataset: Record<string, any>) => {
 
-    let draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
+    const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
     defaultConfigs = _.omit(defaultConfigs, ["router_config"])
-    if (draftDataset?.type === 'master') {
+    if (draftDataset?.type === "master") {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }
     _.mergeWith(draftDataset,defaultConfigs,draftDataset, (objValue, srcValue) => {
@@ -112,7 +112,7 @@ const readyForPublish = async (dataset: Record<string, any>) => {
             statusCode: 400
         }
     }
-    _.set(draftDataset, 'status', DatasetStatus.ReadyToPublish)
+    _.set(draftDataset, "status", DatasetStatus.ReadyToPublish)
     await datasetService.updateDraftDataset(draftDataset)
 }
 
@@ -139,7 +139,7 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
     // 1. Check if there are denorm fields and dependent master datasets are published
     const denormConfig = _.get(draftDataset, "denorm_config")
     if(denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
-        const datasetIds = _.map(denormConfig.denorm_fields, 'dataset_id')
+        const datasetIds = _.map(denormConfig.denorm_fields, "dataset_id")
         if(_.includes(datasetIds, draftDataset.id)) {
             throw {
                 code: "SELF_REFERENCING_MASTER_DATA",
@@ -151,7 +151,7 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
         const masterDatasets = await datasetService.findDatasets({id: datasetIds, type: "master"}, ["id", "status", "dataset_config", "api_version"])
         const masterDatasetsStatus = _.map(denormConfig.denorm_fields, (denormField) => {
             const md = _.find(masterDatasets, (master) => { return denormField.dataset_id === master.id })
-            let datasetStatus : Record<string, any> = {
+            const datasetStatus : Record<string, any> = {
                 dataset_id: denormField.dataset_id,
                 exists: (md) ? true : false,
                 isLive:  (md) ? md.status === "Live" : false,
@@ -159,16 +159,16 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
             }
             if(!_.isEmpty(md)){
                 if(md.api_version === "v2")
-                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
+                    datasetStatus["denorm_field"] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
                 else 
-                    datasetStatus['denorm_field'] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+                    datasetStatus["denorm_field"] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
             }
 
             return datasetStatus;
         })
         const invalidMasters = _.filter(masterDatasetsStatus, {isLive: false})
         if(_.size(invalidMasters) > 0) {
-            const invalidIds = _.map(invalidMasters, 'dataset_id')
+            const invalidIds = _.map(invalidMasters, "dataset_id")
             throw {
                 code: "DEPENDENT_MASTER_DATA_NOT_LIVE",
                 message: `The datasets with id:${invalidIds} are not in published status`,
@@ -181,14 +181,14 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
         draftDataset["denorm_config"] = {
             redis_db_host: defaultDatasetConfig.denorm_config.redis_db_host,
             redis_db_port: defaultDatasetConfig.denorm_config.redis_db_port,
-            denorm_fields: _.map(masterDatasetsStatus, 'denorm_field')
+            denorm_fields: _.map(masterDatasetsStatus, "denorm_field")
         }
     }
 }
 
 const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
-    if (draftDataset.type === 'master') {
-        let dataset_config = _.get(draftDataset, "dataset_config")
+    if (draftDataset.type === "master") {
+        const dataset_config = _.get(draftDataset, "dataset_config")
         const datasetCacheConfig = _.get(defaultDatasetConfig, "dataset_config.cache_config")
         draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
         if (draftDataset.dataset_config.cache_config.redis_db === 0) {
@@ -202,7 +202,7 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
                 }
             }
             const nextRedisDB = parseInt(_.get(results, "[0].nextval")) || 3;
-            _.set(draftDataset, 'dataset_config.cache_config.redis_db', nextRedisDB)
+            _.set(draftDataset, "dataset_config.cache_config.redis_db", nextRedisDB)
         }
     }
 }
@@ -223,13 +223,13 @@ const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
         const draftDatasets = await datasetService.findDraftDatasets({ status: [DatasetStatus.ReadyToPublish, DatasetStatus.Draft] }, ["denorm_config", "id", "status"]) || []
         const allDatasets = _.union(liveDatasets, draftDatasets)
         const extractDenormFields = _.map(allDatasets, function(depDataset) {
-            return {dataset_id: _.get(depDataset, 'id'), status: _.get(depDataset, 'status'), denorm_datasets: _.map(_.get(depDataset, 'denorm_config.denorm_fields'), 'dataset_id')}
+            return {dataset_id: _.get(depDataset, "id"), status: _.get(depDataset, "status"), denorm_datasets: _.map(_.get(depDataset, "denorm_config.denorm_fields"), "dataset_id")}
         })
         const deps = _.filter(extractDenormFields, function(depDS) { return _.includes(depDS.denorm_datasets, dataset.id)})
         if (_.size(deps) > 0) {
 
             const denormErrMsg = `Failed to retire dataset as it is in use. Please retire or delete dependent datasets before retiring this dataset`
-            throw obsrvError(dataset.id, "DATASET_IN_USE", denormErrMsg, "BAD_REQUEST", 400, undefined, _.map(deps, function(o) { return _.omit(o, 'denorm_datasets')}))
+            throw obsrvError(dataset.id, "DATASET_IN_USE", denormErrMsg, "BAD_REQUEST", 400, undefined, _.map(deps, function(o) { return _.omit(o, "denorm_datasets")}))
         }
     }
 }

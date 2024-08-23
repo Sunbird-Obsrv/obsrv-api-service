@@ -1,18 +1,18 @@
-import CONSTANTS from '../../constants';
+import CONSTANTS from "../../constants";
 
-const createSilence = async (payload: Record<string, any>) => {
+const createSilence = async () => {
     throw new Error(CONSTANTS.METHOD_NOT_IMPLEMENTED);
 }
 
-const getSilenceMetadata = async (payload: Record<string, any>) => {
+const getSilenceMetadata = async () => {
     throw new Error(CONSTANTS.METHOD_NOT_IMPLEMENTED)
 }
 
-const updateSilence = async (silence: Record<string, any>, payload: Record<string, any>) => {
+const updateSilence = async () => {
     throw new Error(CONSTANTS.METHOD_NOT_IMPLEMENTED);
 }
 
-const deleteSilence = async (payload: Record<string, any>) => {
+const deleteSilence = async () => {
     throw new Error(CONSTANTS.METHOD_NOT_IMPLEMENTED);
 }
 
