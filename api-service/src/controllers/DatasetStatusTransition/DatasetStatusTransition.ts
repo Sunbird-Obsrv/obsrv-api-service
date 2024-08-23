@@ -94,7 +94,7 @@ const readyForPublish = async (dataset: Record<string, any>) => {
 
     let draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
-    defaultConfigs = _.omit(defaultConfigs, ["router_config"])
+    defaultConfigs = _.omit(defaultConfigs, ["router_config","dedupe_config"])
     if (draftDataset?.type === 'master') {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }

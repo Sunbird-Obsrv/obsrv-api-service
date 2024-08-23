@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import _ from "lodash";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetDraft } from "../../models/DatasetDraft";
-import { datasetService } from "../../services/DatasetService";
+import { datasetService, getV1Connectors } from "../../services/DatasetService";
 import { obsrvError } from "../../types/ObsrvError";
 import { cipherService } from "../../services/CipherService";
 
@@ -79,19 +79,10 @@ const readDataset = async (datasetId: string, attributes: string[]): Promise<any
     const dataset = await datasetService.getDataset(datasetId, attributes, true);
     const api_version = _.get(dataset, "api_version")
     let datasetConfigs: any = {}
-    const connectors_config: any[] = await datasetService.getConnectorsV1(datasetId, ["id", "dataset_id", "connector_config", "connector_type"]);
     const transformations_config = await datasetService.getTransformations(datasetId, ["field_key", "transformation_function", "mode", "metadata"])
     if (api_version !== "v2") {
-        datasetConfigs["connectors_config"] = _.map(connectors_config, (config) => {
-            return {
-                id: _.get(config, "id"),
-                connector_id: _.get(config, "connector_type"),
-                connector_config: _.get(config, "connector_config"),
-                version: "v1"
-            }
-        })
+        datasetConfigs["connectors_config"] = await getV1Connectors(datasetId)
         datasetConfigs["transformations_config"] = _.map(transformations_config, (config) => {
-            console.log(config)
             const section: any = _.get(config, "metadata.section") || _.get(config, "transformation_function.category");
             return {
                 field_key: _.get(config, "field_key"),
@@ -105,7 +96,9 @@ const readDataset = async (datasetId: string, attributes: string[]): Promise<any
         })
     }
     else {
-        datasetConfigs["connectors_config"] = connectors_config;
+        const v1connectors = await getV1Connectors(datasetId)
+        const v2connectors = await datasetService.getConnectors(datasetId, ["id", "connector_id", "connector_config", "operations_config"]);
+        datasetConfigs["connectors_config"] = _.concat(v1connectors, v2connectors)
         datasetConfigs["transformations_config"] = transformations_config;
     }
     return { ...dataset, ...datasetConfigs };
