@@ -362,7 +362,7 @@ class ConnectorRegistry:
             datetime.now(),
             datetime.now(),
 
-            registry_meta.id,
+            registry_meta.id + "-" + registry_meta.version,
             registry_meta.name,
             registry_meta.type,
             registry_meta.category,
