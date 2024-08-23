@@ -8,6 +8,7 @@ export const scrapModules = <Type extends { name: string }>(folderPath: string, 
         .map((file) => {
             const {
                 default: { name, ...others },
+            /* eslint-disable @typescript-eslint/no-var-requires */
             } = require(path.join(folderPath, file)) as { default: Type };
 
             mapping.set(name, others);
