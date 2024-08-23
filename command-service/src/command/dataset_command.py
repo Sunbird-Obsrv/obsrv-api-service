@@ -30,9 +30,9 @@ class DatasetCommand(ICommand):
 
     def _get_draft_dataset_record(self, dataset_id):
         query = f"""
-            SELECT "type", MAX(version) AS max_version FROM datasets_draft WHERE dataset_id = '{dataset_id}' GROUP BY 1
+            SELECT "type", MAX(version) AS max_version FROM datasets_draft WHERE dataset_id = %s GROUP BY 1
         """
-        dataset_record = self.db_service.execute_select_one(query)
+        dataset_record = self.db_service.execute_select_one(sql=query, params=(dataset_id,))
         if dataset_record is not None:
             return dataset_record
         return None
@@ -40,19 +40,22 @@ class DatasetCommand(ICommand):
     def _get_draft_dataset(self, dataset_id):
         query = f"""
             SELECT * FROM datasets_draft
-            WHERE dataset_id = '{dataset_id}' AND (status = '{DatasetStatusType.Publish.name}' OR status = '{DatasetStatusType.ReadyToPublish.name}') AND version = (SELECT MAX(version)
-            FROM datasets_draft WHERE dataset_id = '{dataset_id}' AND (status = '{DatasetStatusType.Publish.name}' OR status = '{DatasetStatusType.ReadyToPublish.name}'))
+            WHERE dataset_id = %s AND (status = %s OR status = %s ) AND version = (SELECT MAX(version)
+            FROM datasets_draft WHERE dataset_id = %s AND (status = %s OR status = %s ))
             """
-        dataset_record = self.db_service.execute_select_one(query)
+        params = (dataset_id, DatasetStatusType.Publish.name, DatasetStatusType.ReadyToPublish.name, 
+            dataset_id, DatasetStatusType.Publish.name, DatasetStatusType.ReadyToPublish.name,)
+        dataset_record = self.db_service.execute_select_one(sql=query, params=params)
         if dataset_record is not None:
             return dataset_record
         return None
 
     def _check_for_live_record(self, dataset_id):
         query = f"""
-            SELECT * FROM datasets WHERE dataset_id = '{dataset_id}' AND status = '{DatasetStatusType.Live.name}'
+            SELECT * FROM datasets WHERE dataset_id = %s AND status = %s
         """
-        result = self.db_service.execute_select_one(query)
+        params = (dataset_id, DatasetStatusType.Live.name, )
+        result = self.db_service.execute_select_one(sql=query, params=params)
         live_dataset = dict()
         if result is not None:
             live_dataset = from_dict(data_class=DatasetsLive, data=result)

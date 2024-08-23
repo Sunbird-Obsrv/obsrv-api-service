@@ -38,36 +38,36 @@ class DatabaseService:
         return db_connection
 
     # @reconnect
-    def execute_select_one(self, sql):
+    def execute_select_one(self, sql, params):
         db_connection = self.connect()
         cursor = db_connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         result = cursor.fetchone()
         db_connection.close()
         return result
 
     # @reconnect
-    def execute_select_all(self, sql):
+    def execute_select_all(self, sql, params):
         db_connection = self.connect()
         cursor = db_connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         result = cursor.fetchall()
         db_connection.close()
         return result
 
     # @reconnect
-    def execute_upsert(self, sql):
+    def execute_upsert(self, sql, params):
         db_connection = self.connect()
         cursor = db_connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         record_count = cursor.rowcount
         db_connection.close()
         # print(f"{record_count} inserted/updated successfully")
         return record_count
 
 # @reconnect
-    def execute_delete(self, sql):
+    def execute_delete(self, sql, params):
         db_connection = self.connect()
         cursor = db_connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         db_connection.close()
