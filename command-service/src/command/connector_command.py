@@ -37,18 +37,16 @@ class ConnectorCommand(ICommand):
         return result
 
     def _deploy_connectors(self, dataset_id, active_connectors, is_masterdata):
-        result = None
-        namespaces = set()
-        for job_type, config in self.connector_job_config.items():
-            namespaces.add(config["namespace"])
-        for namespace in namespaces:    
-            self._stop_connector_jobs(dataset_id, active_connectors, is_masterdata, namespace)
+        result = None  
+        self._stop_connector_jobs(is_masterdata, self.connector_job_config["spark"]["namespace"])
         result = self._install_jobs(dataset_id, active_connectors, is_masterdata)
 
-        return result
+        return result   
 
-    def _stop_connector_jobs(self, dataset_id, active_connectors, is_masterdata, namespace):
+    def _stop_connector_jobs(self, is_masterdata, namespace):
+        print(f"Uninstalling jobs for {namespace}..")
         managed_releases = []
+        base_helm_chart = self.connector_job_config["spark"]["base_helm_chart"]
         connector_jar_config = self.config.find("connector_job")
         masterdata_jar_config = self.config.find("masterdata_job")
         for connector_type in connector_jar_config:
@@ -67,14 +65,14 @@ class ConnectorCommand(ICommand):
             jobs = helm_ls_result.stdout.decode()
             for job in jobs.splitlines()[1:]:
                 release_name = job.split()[0]
-                if release_name in managed_releases:
+                if base_helm_chart in job:
                     print("Uninstalling job {0}".format(release_name))
                     helm_uninstall_cmd = [
                         "helm",
                         "uninstall",
                         release_name,
                         "--namespace",
-                        self.connector_job_ns,
+                        namespace,
                     ]
                     helm_uninstall_result = subprocess.run(
                         helm_uninstall_cmd,
@@ -116,7 +114,7 @@ class ConnectorCommand(ICommand):
         release_name = connector_instance.connector_id
         runtime = connector_instance.connector_runtime
         namespace = self.connector_job_config["flink"]["namespace"]
-        
+        job_name = release_name.replace(".", "-")
         helm_ls_cmd = ["helm", "ls", "--namespace", namespace]
         
         helm_ls_result = subprocess.run(
@@ -126,10 +124,10 @@ class ConnectorCommand(ICommand):
         if helm_ls_result.returncode == 0:
             jobs = helm_ls_result.stdout.decode()
             print(jobs)
-            deployment_exists = any(release_name in line for line in jobs.splitlines()[1:])
+            deployment_exists = any(job_name in line for line in jobs.splitlines()[1:])
             if deployment_exists:
-                restart_cmd = f"kubectl delete pods --selector app.kubernetes.io/name=flink,component={release_name}-jobmanager --namespace {namespace} && kubectl delete pods --selector app.kubernetes.io/name=flink,component={release_name}-taskmanager --namespace {namespace}".format(
-                    namespace=namespace, release_name=release_name
+                restart_cmd = f"kubectl delete pods --selector app.kubernetes.io/name=flink,component={job_name}-jobmanager --namespace {namespace} && kubectl delete pods --selector app.kubernetes.io/name=flink,component={job_name}-taskmanager --namespace {namespace}".format(
+                    namespace=namespace, job_name=job_name
                 )
                 print("Restart command: ", restart_cmd)
                 # Run the helm command
@@ -140,7 +138,7 @@ class ConnectorCommand(ICommand):
                     shell=True,
                 )
                 if helm_install_result.returncode == 0:
-                    print(f"Job {release_name} re-deployment succeeded...")
+                    print(f"Job {job_name} restart succeeded...")
                 else:
                     err = True
                     return ActionResponse(
@@ -155,50 +153,56 @@ class ConnectorCommand(ICommand):
 
                 return result
             else:
-                connector_source = json.loads(connector_instance.connector_source)
-                flink_jobs = {
-                    "kafka-connector": {
+                if self._get_live_instances(runtime="flink", connector_instance=connector_instance):
+                    connector_source = json.loads(connector_instance.connector_source)
+                    flink_jobs = dict()
+                    flink_jobs[release_name] = {
                         "enabled": "true",
-                        "job_classname": connector_source.get('main_class')
+                        "source": connector_source.get("source"),
+                        "main_program": connector_source.get("main_program")
                     }
-                }
-                set_json_value = json.dumps(flink_jobs)
-                print("Kafka connector: ", set_json_value)
-                helm_install_cmd = [
-                    "helm",
-                    "upgrade",
-                    "--install",
-                    release_name,
-                    f"""{self.config.find("helm_charts_base_dir")}/{self.connector_job_config["flink"]["base_helm_chart"]}""",
-                    "--namespace",
-                    namespace,
-                    "--create-namespace",
-                    "--set-json",
-                    f"flink_jobs={set_json_value}"
-                ]
+                    
+                    set_json_value = json.dumps(flink_jobs)
+                    helm_install_cmd = [
+                        "helm",
+                        "upgrade",
+                        "--install",
+                        job_name,
+                        f"""{self.config.find("helm_charts_base_dir")}/{self.connector_job_config["flink"]["base_helm_chart"]}""",
+                        "--namespace",
+                        namespace,
+                        "--create-namespace",
+                        "--set-json",
+                        f"flink_jobs={set_json_value.replace(" ", "")}"
+                    ]
+                    
+                    print(" ".join(helm_install_cmd))
+
+                    helm_install_result = subprocess.run(
+                        helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    )
                 
-                print(" ".join(helm_install_cmd))
+                    print(helm_install_result)
+                    
+                    if helm_install_result.returncode == 0:
+                        print(f"Job {job_name} deployment succeeded...")
+                    else:
+                        err = True
+                        result = ActionResponse(
+                            status="ERROR",
+                            status_code=500,
+                            error_message="FLINK_CONNECTOR_HELM_INSTALLATION_EXCEPTION",
+                        )
+                        print(
+                            f"Error installing job {job_name}: {helm_install_result.stderr.decode()}"
+                        )
 
-                helm_install_result = subprocess.run(
-                    helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                if helm_install_result.returncode == 0:
-                    print(f"Job {release_name} deployment succeeded...")
+                    if err is None:
+                        result = ActionResponse(status="OK", status_code=200)
+
+                    return result
                 else:
-                    err = True
-                    result = ActionResponse(
-                        status="ERROR",
-                        status_code=500,
-                        error_message="FLINK_CONNECTOR_HELM_INSTALLATION_EXCEPTION",
-                    )
-                    print(
-                        f"Error re-installing job {release_name}: {helm_install_result.stderr.decode()}"
-                    )
-
-                if err is None:
-                    result = ActionResponse(status="OK", status_code=200)
-
-                return result
+                    self._stop_connector_jobs(is_masterdata=False, namespace="flink")
         else:
             print(f"Error checking Flink deployments: {helm_ls_result.stderr.decode()}")
             return ActionResponse(
@@ -221,113 +225,48 @@ class ConnectorCommand(ICommand):
             "Yearly": "0 0 1 1 *"      # Runs at midnight on January 1st each year
         }
 
-        # Define namespace
         namespace = self.connector_job_config["spark"]["namespace"]
-        
-        # Check if the job already exists
-        helm_ls_cmd = ["helm", "ls", "--namespace", namespace]
-        helm_ls_result = subprocess.run(helm_ls_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+        helm_install_cmd = [
+            "helm",
+            "upgrade",
+            "--install",
+            release_name,
+            f"""{self.config.find("helm_charts_base_dir")}/{self.connector_job_config["spark"]["base_helm_chart"]}""",
+            "--namespace",
+            namespace,
+            "--create-namespace",
+            "--set",
+            "technology={}".format(connector_instance.technology),
+            "--set",
+            "instance_id={}".format(release_name),
+            "--set",
+            "connector_source={}".format(connector_source["source"]),
+            "--set",
+            "main_class={}".format(connector_source["main_class"]),
+            "--set",
+            "main_file={}".format(connector_source["main_program"]),
+            "--set",
+            "cronSchedule={}".format(schedule_configs[schedule])
+        ]
 
-        if helm_ls_result.returncode == 0:
-            jobs = helm_ls_result.stdout.decode()
-            job_exists = any(release_name in line for line in jobs.splitlines()[1:])
-            
-            if job_exists:
-                if self._is_dataset_retired(dataset_id):
-                    print("Dataset is retired. Uninstalling existing cron job.")
-                    self._stop_connector_jobs(dataset_id, [], False, namespace)
-                else:
-                    print("Updating existing job")
-                    
-                    helm_install_cmd = [
-                        "helm",
-                        "upgrade",
-                        "--install",
-                        release_name,
-                        f"""{self.config.find("helm_charts_base_dir")}/{self.connector_job_config["spark"]["base_helm_chart"]}""",
-                        "--namespace",
-                        namespace,
-                        "--create-namespace",
-                        "--set",
-                        "technology={}".format(connector_instance.technology),
-                        "--set",
-                        "instance_id={}".format(release_name),
-                        "--set",
-                        "connector_source={}".format(connector_source["source"]),
-                        "--set",
-                        "main_class={}".format(connector_source["main_class"]),
-                        "--set",
-                        "main_file={}".format(connector_source["main_program"]),
-                        "--set",
-                        "cronSchedule={}".format(schedule_configs[schedule])
-                    ]
+        print(" ".join(helm_install_cmd))
 
-                    print(" ".join(helm_install_cmd))
-
-                    helm_install_result = subprocess.run(
-                        helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                    )
-                    if helm_install_result.returncode == 0:
-                        print(f"Job {release_name} update succeeded...")
-                        result = ActionResponse(status="OK", status_code=200)
-                    else:
-                        err = True
-                        result = ActionResponse(
-                            status="ERROR",
-                            status_code=500,
-                            error_message="SPARK_CRON_HELM_INSTALLATION_EXCEPTION",
-                        )
-                        print(f"Error updating job {release_name}: {helm_install_result.stderr.decode()}")
-            else:
-                print("Installing new job")
-                
-                helm_install_cmd = [
-                    "helm",
-                    "install",
-                    release_name,
-                    f"""{self.config.find("helm_charts_base_dir")}/{self.connector_job_config["spark"]["base_helm_chart"]}""",
-                    "--namespace",
-                    namespace,
-                    "--create-namespace",
-                    "--set",
-                    "technology={}".format(connector_instance.technology),
-                    "--set",
-                    "instance_id={}".format(release_name),
-                    "--set",
-                    "connector_source={}".format(connector_source["source"]),
-                    "--set",
-                    "main_class={}".format(connector_source["main_class"]),
-                    "--set",
-                    "main_file={}".format(connector_source["main_program"]),
-                    "--set",
-                    "cronSchedule={}".format(schedule_configs[schedule])
-                ]
-
-                print(" ".join(helm_install_cmd))
-
-                helm_install_result = subprocess.run(
-                    helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                if helm_install_result.returncode == 0:
-                    print(f"Job {release_name} installation succeeded...")
-                    result = ActionResponse(status="OK", status_code=200)
-                else:
-                    err = True
-                    result = ActionResponse(
-                        status="ERROR",
-                        status_code=500,
-                        error_message="SPARK_CRON_HELM_INSTALLATION_EXCEPTION",
-                    )
-                    print(f"Error installing job {release_name}: {helm_install_result.stderr.decode()}")
-
+        helm_install_result = subprocess.run(
+            helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        if helm_install_result.returncode == 0:
+            print(f"Job {release_name} update succeeded...")
+            result = ActionResponse(status="OK", status_code=200)
         else:
-            print(f"Error listing Spark jobs: {helm_ls_result.stderr.decode()}")
+            err = True
             result = ActionResponse(
                 status="ERROR",
                 status_code=500,
-                error_message="SPARK_HELM_LIST_EXCEPTION",
+                error_message="SPARK_CRON_HELM_INSTALLATION_EXCEPTION",
             )
-        
+            print(f"Error updating job {release_name}: {helm_install_result.stderr.decode()}")
+           
         if result is None:
             result = ActionResponse(status="ERROR", status_code=500, error_message="UNKNOWN_ERROR")
 
@@ -348,7 +287,6 @@ class ConnectorCommand(ICommand):
             active_connectors.append(from_dict(
                 data_class=ConnectorInstance, data=record
             ))
-            # connector_versions[connector_instance.id] = record['version']
 
         return active_connectors
 
@@ -366,37 +304,65 @@ class ConnectorCommand(ICommand):
 
         return is_masterdata
     
-    def _is_dataset_retired(self, dataset_id):
-        is_retired = False
+    ## TODO: check for connector_id as well
+    def _get_live_instances(self, runtime, connector_instance):
+        has_live_instances = False
         rows = self.db_service.execute_select_all(
-            f"""
-                SELECT status
-                FROM datasets
-                WHERE status='{DatasetStatusType.Retired.name}' AND dataset_id = '{dataset_id}'
-            """
-        )
-        for row in rows:
-            if row['status'] == DatasetStatusType.Retired.name:
-                print("Status: ",row['status'])
-                is_retired = True
-                break
-        
-        return is_retired
-    
-    def _get_live_instances(self, dataset_id, runtime, connector_instance):
-        active_connectors = []
-        records = self.db_service.execute_select_all(
             f""" 
                 SELECT d.id AS dataset_id, ci.id AS connector_instance_id, ci.connector_id
                 FROM connector_instances ci
                 JOIN connector_registry cr ON ci.connector_id = cr.id
                 JOIN datasets d ON ci.dataset_id = d.id
-                WHERE cr.runtime = '{runtime}' AND ci.status = '{DatasetStatusType.Live.name}';
+                WHERE cr.runtime = '{runtime}' AND ci.status = '{DatasetStatusType.Live.name}' AND ci.connector_id = '{connector_instance.connector_id}';
             """
         )
-        
-        for record in records:
-            active_connectors.append(record['connector_instance_id'])
+        if len(rows) > 0:
+            has_live_instances = True
             
-        return active_connectors
+        return has_live_instances
+    
+    # def _perform_install(self, release):
+    #     err = None
+    #     result = None
+    #     release_name = release["release_name"]
+    #     helm_install_cmd = [
+    #         "helm",
+    #         "upgrade",
+    #         "--install",
+    #         release_name,
+    #         self.connector_job_chart_dir,
+    #         "--namespace",
+    #         self.connector_job_ns,
+    #         "--create-namespace",
+    #         "--set",
+    #         "file.path={}".format(release["jar"]),
+    #         "--set",
+    #         "class.name={}".format(release["class"]),
+    #         "--set",
+    #         "job.name={}".format(release_name),
+    #         "--set",
+    #         "args={}".format(",".join(release["args"])),
+    #         "--set",
+    #         "schedule={}".format(release["schedule"]),
+    #     ]
+    #     helm_install_result = subprocess.run(
+    #         helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    #     )
+    #     if helm_install_result.returncode == 0:
+    #         print(f"Job {release_name} deployment succeeded...")
+    #     else:
+    #         err = True
+    #         result = ActionResponse(
+    #             status="ERROR",
+    #             status_code=500,
+    #             error_message="FLINK_HELM_INSTALLATION_EXCEPTION",
+    #         )
+    #         print(
+    #             f"Error re-installing job {release_name}: {helm_install_result.stderr.decode()}"
+    #         )
+
+    #     if err is None:
+    #         result = ActionResponse(status="OK", status_code=200)
+
+    #     return result
 
