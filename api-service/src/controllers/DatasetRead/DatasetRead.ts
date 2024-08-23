@@ -74,6 +74,9 @@ const readDraftDataset = async (datasetId: string, attributes: string[]): Promis
 
 const readDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
     const dataset = await datasetService.getDataset(datasetId, attributes, true);
+    if(!dataset) {
+        return;
+    }
     const api_version = _.get(dataset, "api_version")
     let datasetConfigs: any = {}
     const transformations_config = await datasetService.getTransformations(datasetId, ["field_key", "transformation_function", "mode", "metadata"])
