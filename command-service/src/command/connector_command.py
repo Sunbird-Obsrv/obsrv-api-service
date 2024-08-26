@@ -45,16 +45,17 @@ class ConnectorCommand(ICommand):
 
     def _stop_connector_jobs(self, is_masterdata, namespace):
         print(f"Uninstalling jobs for {namespace}..")
-        managed_releases = []
         base_helm_chart = self.connector_job_config["spark"]["base_helm_chart"]
-        connector_jar_config = self.config.find("connector_job")
-        masterdata_jar_config = self.config.find("masterdata_job")
-        for connector_type in connector_jar_config:
-            for release in connector_jar_config[connector_type]:
-                managed_releases.append(release["release_name"])
-        if is_masterdata:
-            for release in masterdata_jar_config:
-                managed_releases.append(release["release_name"])
+        
+        # managed_releases = []
+        # connector_jar_config = self.config.find("connector_job")
+        # masterdata_jar_config = self.config.find("masterdata_job")
+        # for connector_type in connector_jar_config:
+        #     for release in connector_jar_config[connector_type]:
+        #         managed_releases.append(release["release_name"])
+        # if is_masterdata:
+        #     for release in masterdata_jar_config:
+        #         managed_releases.append(release["release_name"])
 
         helm_ls_cmd = ["helm", "ls", "--namespace", namespace]
         helm_ls_result = subprocess.run(
@@ -123,7 +124,7 @@ class ConnectorCommand(ICommand):
         
         if helm_ls_result.returncode == 0:
             jobs = helm_ls_result.stdout.decode()
-            print(jobs)
+            
             deployment_exists = any(job_name in line for line in jobs.splitlines()[1:])
             if deployment_exists:
                 restart_cmd = f"kubectl delete pods --selector app.kubernetes.io/name=flink,component={job_name}-jobmanager --namespace {namespace} && kubectl delete pods --selector app.kubernetes.io/name=flink,component={job_name}-taskmanager --namespace {namespace}".format(
@@ -156,8 +157,9 @@ class ConnectorCommand(ICommand):
                 if self._get_live_instances(runtime="flink", connector_instance=connector_instance):
                     connector_source = json.loads(connector_instance.connector_source)
                     flink_jobs = dict()
-                    flink_jobs[release_name] = {
+                    flink_jobs[job_name] = {
                         "enabled": "true",
+                        "connector_id": connector_instance.connector_id,
                         "source": connector_source.get("source"),
                         "main_program": connector_source.get("main_program")
                     }
@@ -176,7 +178,7 @@ class ConnectorCommand(ICommand):
                         f"flink_jobs={set_json_value.replace(" ", "")}"
                     ]
                     
-                    print(" ".join(helm_install_cmd))
+                    print("flink connector installation:  ", " ".join(helm_install_cmd))
 
                     helm_install_result = subprocess.run(
                         helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -185,7 +187,7 @@ class ConnectorCommand(ICommand):
                     print(helm_install_result)
                     
                     if helm_install_result.returncode == 0:
-                        print(f"Job {job_name} deployment succeeded...")
+                        print(f"Job '{job_name}' deployment succeeded...")
                     else:
                         err = True
                         result = ActionResponse(
@@ -194,7 +196,7 @@ class ConnectorCommand(ICommand):
                             error_message="FLINK_CONNECTOR_HELM_INSTALLATION_EXCEPTION",
                         )
                         print(
-                            f"Error installing job {job_name}: {helm_install_result.stderr.decode()}"
+                            f"Error installing job '{job_name}': {helm_install_result.stderr.decode()}"
                         )
 
                     if err is None:
@@ -250,13 +252,13 @@ class ConnectorCommand(ICommand):
             "cronSchedule={}".format(schedule_configs[schedule])
         ]
 
-        print(" ".join(helm_install_cmd))
+        print("spark connector installation:", " ".join(helm_install_cmd))
 
         helm_install_result = subprocess.run(
             helm_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         if helm_install_result.returncode == 0:
-            print(f"Job {release_name} update succeeded...")
+            print(f"Job '{release_name}' update succeeded...")
             result = ActionResponse(status="OK", status_code=200)
         else:
             err = True
@@ -265,7 +267,7 @@ class ConnectorCommand(ICommand):
                 status_code=500,
                 error_message="SPARK_CRON_HELM_INSTALLATION_EXCEPTION",
             )
-            print(f"Error updating job {release_name}: {helm_install_result.stderr.decode()}")
+            print(f"Error updating job '{release_name}': {helm_install_result.stderr.decode()}")
            
         if result is None:
             result = ActionResponse(status="ERROR", status_code=500, error_message="UNKNOWN_ERROR")
@@ -307,15 +309,15 @@ class ConnectorCommand(ICommand):
     ## TODO: check for connector_id as well
     def _get_live_instances(self, runtime, connector_instance):
         has_live_instances = False
-        rows = self.db_service.execute_select_all(
-            f""" 
+        query = f""" 
                 SELECT d.id AS dataset_id, ci.id AS connector_instance_id, ci.connector_id
                 FROM connector_instances ci
                 JOIN connector_registry cr ON ci.connector_id = cr.id
                 JOIN datasets d ON ci.dataset_id = d.id
-                WHERE cr.runtime = '{runtime}' AND ci.status = '{DatasetStatusType.Live.name}' AND ci.connector_id = '{connector_instance.connector_id}';
+                WHERE cr.runtime = %s AND ci.status = %s AND ci.connector_id = %s;
             """
-        )
+        params = (runtime, DatasetStatusType.Live.name, connector_instance.connector_id)
+        rows = self.db_service.execute_select_all(sql=query, params=params)
         if len(rows) > 0:
             has_live_instances = True
             

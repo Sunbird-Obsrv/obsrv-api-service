@@ -173,6 +173,9 @@ spec:
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
           workingDir: /opt/flink
+          env:
+          - name: CONNECTOR_ID
+            value: {{ index $jobData "connector_id" }}
           command:
           - /bin/bash
           - -c
