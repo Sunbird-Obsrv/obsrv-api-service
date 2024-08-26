@@ -204,17 +204,9 @@ class DatasetService {
             draftDataset["sample_data"] = dataset_config?.mergedEvent
             draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
-            const v1connectors = await this.getConnectorsV1(draftDataset.dataset_id, ["id", "connector_type", "connector_config"]);
-            const modifiedV1Connectors = _.map(v1connectors, (config) => {
-                return {
-                    id: _.get(config, "id"),
-                    connector_id: _.get(config, "connector_type"),
-                    connector_config: _.get(config, "connector_config"),
-                    version: "v1"
-                }
-            })
+            const v1connectors = await getV1Connectors(draftDataset.dataset_id);
             const v2connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
-            draftDataset["connectors_config"] = _.concat(modifiedV1Connectors, v2connectors)
+            draftDataset["connectors_config"] = _.concat(v1connectors, v2connectors)
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
