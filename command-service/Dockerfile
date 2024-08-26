@@ -1,7 +1,7 @@
 FROM --platform=linux/amd64 python:3.12-alpine
 COPY --from=ubuntu /usr/local/bin /usr/local/bin
 
-RUN apk update && apk add curl jq && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
+RUN apk update && apk add curl jq vim && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
 
 RUN cd /tmp && curl -OL https://get.helm.sh/helm-v3.13.2-linux-amd64.tar.gz \
     && tar -zxvf helm-v3.13.2-linux-amd64.tar.gz \

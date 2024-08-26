@@ -173,6 +173,9 @@ spec:
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
           workingDir: /opt/flink
+          env:
+          - name: CONNECTOR_ID
+            value: {{ index $jobData "connector_id" }}
           command:
           - /bin/bash
           - -c
@@ -181,8 +184,8 @@ spec:
             sleep 30s;
             /opt/flink/bin/flink run -m \
               {{ $jobName }}-jobmanager.{{ include "base.namespace" . }}.svc.cluster.local:8081 \
-              /flink/connectors/{{ $jobName }}-1.0.0/{{ $jobName }}-1.0.0.jar \
-              --config.file.path /data/flink/conf/flink-connector.conf \
+              /flink/connectors/{{ index $jobData "source" }}/{{ index $jobData "main_program" }} \
+              --config.file.path /data/flink/conf/connectors-scala-config.conf \
           {{- if eq .Values.checkpoint_store_type "azure" }}
               "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}" \
           {{- end }}

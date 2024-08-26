@@ -14,9 +14,9 @@ commonLabels:
 # repository: sunbirded.azurecr.io/data-pipeline
 #   tag: "release-5.2.0_RC1_2c615f8_12"
 # docker pull sunbirded.azurecr.io/sunbird-datapipeline:release-4.9.0_RC4_1
-registry: surabhi1510
-repository: flink-python-3.11
-tag: 1.0.0
+registry: sanketikahub
+repository: flink-connectors
+tag: 1.17.2-scala_2.12-java11
 imagePullSecrets: []
 
 ## Databases
@@ -300,7 +300,8 @@ serviceMonitor:
     jobLabel: "app.kubernetes.io/name"
     port: prom
 
-flink_jobs: []
+flink_jobs:
+  
 
 commonAnnotations:
   reloader.stakater.com/auto: "true"

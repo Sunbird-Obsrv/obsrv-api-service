@@ -1,9 +1,11 @@
 import json
 import os
+import base64
 import tarfile
 import uuid
 import zipfile
 from datetime import datetime
+from pathlib import Path
 
 import requests
 from fastapi import status
@@ -184,6 +186,7 @@ class ConnectorRegistry:
                 }
 
                 connector_id = obj["id"].replace(" ", "-")
+                self.update_connector_registry(connector_id, self.metadata['metadata']['version'])
                 registry_meta = ConnectorRegsitryv2(connector_id,
                         obj['name'],
                         'source',
@@ -194,7 +197,7 @@ class ConnectorRegistry:
                         self.metadata['metadata']['runtime'],
                         self.metadata['metadata']['licence'],
                         self.metadata['metadata']['owner'],
-                        obj['icon'],
+                        self.load_file_bytes(obj["icon"]),
                         'Live',
                         rel_path,
                         json.dumps(source),
@@ -225,7 +228,7 @@ class ConnectorRegistry:
             connector_id = (
                 self.metadata.get("metadata", {}).get("id", "").replace(" ", "-")
             )
-
+            self.update_connector_registry(connector_id, self.metadata['metadata']['version'])
             source = {
                 "source": connector_source,
                 "main_class": self.metadata["metadata"]["main_class"],
@@ -243,7 +246,7 @@ class ConnectorRegistry:
                 self.metadata['metadata']['runtime'],
                 self.metadata['metadata']['licence'],
                 self.metadata['metadata']['owner'],
-                self.metadata['metadata']['icon'],
+                self.load_file_bytes(self.metadata['metadata']["icon"]),
                 'Live',
                 rel_path,
                 json.dumps(source),
@@ -362,7 +365,7 @@ class ConnectorRegistry:
             datetime.now(),
             datetime.now(),
 
-            registry_meta.id,
+            registry_meta.id + "-" + registry_meta.version,
             registry_meta.name,
             registry_meta.type,
             registry_meta.category,
@@ -380,6 +383,43 @@ class ConnectorRegistry:
             datetime.now(),
         )
         return query, params
+    
+    def load_file_bytes(self, rel_path: str) -> bytes | None:
+        file_path = Path(self.extraction_path)
+        for item in file_path.glob("*/{}".format(rel_path)):
+            try:
+                with open(item, 'rb') as file:
+                    file_content = file.read()
+                encoded = base64.b64encode(file_content).decode("ascii")
+            except IsADirectoryError:
+                print(
+                    f"Connector Registry | No value for icon URL given at metadata: {rel_path}"
+                )
+                return None
+            except FileNotFoundError:
+                print(
+                    f"Connector Registry | No file present at indicated relative path: {rel_path}"
+                )
+                return None
+            except (ValueError or TypeError) as e:
+                print(
+                    f"Connector Registry | File content not byte like: {e}"
+                )
+                return None
+            return encoded
+
+    def update_connector_registry(self, _id, ver):
+        try:
+            result = self.db_service.execute_upsert(
+                f"UPDATE connector_registry SET status = 'Retired', updated_date = now() WHERE connector_id = %s AND status = 'Live' AND version != %s", (_id, ver)
+            )
+            print(
+                f"Connector Registry | Updated {result} existing rows with connector_id: {_id} and version: {ver}"
+            )
+        except Exception as e:
+            print(
+                f"Connector Registry | An error occurred during the execution of Query: {e}"
+            )
 
 class ExtractionUtil:
     def extract_gz(tar_path, extract_path):
