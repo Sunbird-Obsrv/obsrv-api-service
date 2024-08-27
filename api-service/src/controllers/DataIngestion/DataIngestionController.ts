@@ -29,7 +29,7 @@ const dataIn = async (req: Request, res: Response) => {
     try {
         const requestBody = req.body;
         const datasetId = req.params.datasetId.trim();
-        
+
         const isValidSchema = schemaValidation(requestBody, validationSchema)
         if (!isValidSchema?.isValid) {
             logger.error({ apiId, message: isValidSchema?.message, code: "DATA_INGESTION_INVALID_INPUT" })
@@ -68,18 +68,23 @@ const addMetadataToEvents = (datasetId: string, payload: any) => {
     const obsrvMeta = { syncts: now, flags: {}, timespans: {}, error: {}, source: source };
     if (Array.isArray(validData)) {
         const payloadRef = validData.map((event: any) => {
-            event = _.set(event, "obsrv_meta", obsrvMeta);
-            event = _.set(event, "dataset", datasetId);
-            event = _.set(event, "msgid", mid);
-            return event
+            const payload = {
+                event,
+                "obsrv_meta": obsrvMeta,
+                "dataset": datasetId,
+                "msgid": mid
+            }
+            return payload;
         })
         return payloadRef;
     }
     else {
-        _.set(validData, "msgid", mid);
-        _.set(validData, "obsrv_meta", obsrvMeta);
-        _.set(validData, "dataset", datasetId);
-        return validData
+        return ({
+            "event": validData,
+            "obsrv_meta": obsrvMeta,
+            "dataset": datasetId,
+            "msgid": mid
+        });
     }
 }
 
