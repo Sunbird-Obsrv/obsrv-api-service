@@ -29,33 +29,34 @@ import ConnectorsRead from "../controllers/ConnectorsRead/ConnectorsRead";
 import DatasetImport from "../controllers/DatasetImport/DatasetImport";
 import {OperationType, telemetryAuditStart} from "../services/telemetry";
 import telemetryActions from "../telemetry/telemetryActions";
+import jwtTokenVerify from "../middlewares/jwtTokenVerify";
 
 export const router = express.Router();
 
-router.post("/data/in/:datasetId", setDataToRequestObject("api.data.in"), onRequest({ entity: Entity.Data_in }), telemetryAuditStart({action: telemetryActions.createDataset, operationType: OperationType.CREATE}), dataIn);
-router.post("/data/query/:datasetId", setDataToRequestObject("api.data.out"), onRequest({ entity: Entity.Data_out }), dataOut);
-router.post("/datasets/create", setDataToRequestObject("api.datasets.create"), onRequest({ entity: Entity.Management }),telemetryAuditStart({action: telemetryActions.createDataset, operationType: OperationType.CREATE}), DatasetCreate)
-router.patch("/datasets/update", setDataToRequestObject("api.datasets.update"), onRequest({ entity: Entity.Management }),telemetryAuditStart({action: telemetryActions.updateDataset, operationType: OperationType.UPDATE}), DatasetUpdate)
-router.get("/datasets/read/:dataset_id", setDataToRequestObject("api.datasets.read"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.readDataset, operationType: OperationType.GET}), DatasetRead)
-router.post("/datasets/list", setDataToRequestObject("api.datasets.list"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.listDatasets, operationType: OperationType.LIST}), DatasetList)
-router.get("/data/exhaust/:datasetId", setDataToRequestObject("api.data.exhaust"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.datasetExhaust, operationType: OperationType.GET}), dataExhaust);
-router.post("/template/create", setDataToRequestObject("api.query.template.create"), createQueryTemplate);
-router.get("/template/read/:templateId", setDataToRequestObject("api.query.template.read"), readQueryTemplate);
-router.delete("/template/delete/:templateId", setDataToRequestObject("api.query.template.delete"), deleteQueryTemplate);
-router.post("/template/list", setDataToRequestObject("api.query.template.list"), listQueryTemplates);
-router.patch("/template/update/:templateId", setDataToRequestObject("api.query.template.update"), updateQueryTemplate);
-router.post("/schema/validate", setDataToRequestObject("api.schema.validator"), eventValidation); 
-router.post("/template/query/:templateId", setDataToRequestObject("api.query.template.query"), queryTemplate);
-router.post("/files/generate-url", setDataToRequestObject("api.files.generate-url"), onRequest({ entity: Entity.Management }), GenerateSignedURL);
-router.post("/datasets/status-transition", setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.createTransformation, operationType: OperationType.CREATE}), DatasetStatusTansition);
-router.post("/datasets/health", setDataToRequestObject("api.dataset.health"), onRequest({ entity: Entity.Management }), datasetHealth);
-router.post("/datasets/reset/:datasetId", setDataToRequestObject("api.dataset.reset"), onRequest({ entity: Entity.Management }), datasetReset);
-router.post("/datasets/dataschema", setDataToRequestObject("api.datasets.dataschema"), onRequest({ entity: Entity.Management }), DataSchemaGenerator);
-router.get("/datasets/export/:dataset_id", setDataToRequestObject("api.datasets.export"), onRequest({ entity: Entity.Management }), DatasetExport);
-router.post("/datasets/copy", setDataToRequestObject("api.datasets.copy"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.copyDataset, operationType: OperationType.CREATE}), DatasetCopy);
-router.post("/connectors/list", setDataToRequestObject("api.connectors.list"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.listConnectors, operationType: OperationType.GET}), ConnectorsList);
-router.get("/connectors/read/:id", setDataToRequestObject("api.connectors.read"), onRequest({entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.readConnectors, operationType: OperationType.GET}), ConnectorsRead);
-router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), onRequest({ entity: Entity.Management }), DatasetImport);
+router.post("/data/in/:datasetId", setDataToRequestObject("api.data.in"), onRequest({ entity: Entity.Data_in }), telemetryAuditStart({action: telemetryActions.createDataset, operationType: OperationType.CREATE}), jwtTokenVerify.handler(), dataIn);
+router.post("/data/query/:datasetId", setDataToRequestObject("api.data.out"), onRequest({ entity: Entity.Data_out }), jwtTokenVerify.handler(), dataOut);
+router.post("/datasets/create", setDataToRequestObject("api.datasets.create"), onRequest({ entity: Entity.Management }),telemetryAuditStart({action: telemetryActions.createDataset, operationType: OperationType.CREATE}), jwtTokenVerify.handler(),DatasetCreate)
+router.patch("/datasets/update", setDataToRequestObject("api.datasets.update"), onRequest({ entity: Entity.Management }),telemetryAuditStart({action: telemetryActions.updateDataset, operationType: OperationType.UPDATE}), jwtTokenVerify.handler(), DatasetUpdate)
+router.get("/datasets/read/:dataset_id", setDataToRequestObject("api.datasets.read"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.readDataset, operationType: OperationType.GET}), jwtTokenVerify.handler(), DatasetRead)
+router.post("/datasets/list", setDataToRequestObject("api.datasets.list"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.listDatasets, operationType: OperationType.LIST}), jwtTokenVerify.handler(), DatasetList)
+router.get("/data/exhaust/:datasetId", setDataToRequestObject("api.data.exhaust"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.datasetExhaust, operationType: OperationType.GET}), jwtTokenVerify.handler(), dataExhaust);
+router.post("/template/create", setDataToRequestObject("api.query.template.create"), jwtTokenVerify.handler(), createQueryTemplate);
+router.get("/template/read/:templateId", setDataToRequestObject("api.query.template.read"), jwtTokenVerify.handler(), readQueryTemplate);
+router.delete("/template/delete/:templateId", setDataToRequestObject("api.query.template.delete"), jwtTokenVerify.handler(), deleteQueryTemplate);
+router.post("/template/list", setDataToRequestObject("api.query.template.list"), jwtTokenVerify.handler(), listQueryTemplates);
+router.patch("/template/update/:templateId", setDataToRequestObject("api.query.template.update"), jwtTokenVerify.handler(), updateQueryTemplate);
+router.post("/schema/validate", setDataToRequestObject("api.schema.validator"), jwtTokenVerify.handler(), eventValidation); 
+router.post("/template/query/:templateId", setDataToRequestObject("api.query.template.query"), jwtTokenVerify.handler(), queryTemplate);
+router.post("/files/generate-url", setDataToRequestObject("api.files.generate-url"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), GenerateSignedURL);
+router.post("/datasets/status-transition", setDataToRequestObject("api.datasets.status-transition"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.createTransformation, operationType: OperationType.CREATE}), jwtTokenVerify.handler(), DatasetStatusTansition);
+router.post("/datasets/health", setDataToRequestObject("api.dataset.health"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), datasetHealth);
+router.post("/datasets/reset/:datasetId", setDataToRequestObject("api.dataset.reset"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), datasetReset);
+router.post("/datasets/dataschema", setDataToRequestObject("api.datasets.dataschema"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), DataSchemaGenerator);
+router.get("/datasets/export/:dataset_id", setDataToRequestObject("api.datasets.export"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), DatasetExport);
+router.post("/datasets/copy", setDataToRequestObject("api.datasets.copy"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.copyDataset, operationType: OperationType.CREATE}), jwtTokenVerify.handler(), DatasetCopy);
+router.post("/connectors/list", setDataToRequestObject("api.connectors.list"), onRequest({ entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.listConnectors, operationType: OperationType.GET}), jwtTokenVerify.handler(), ConnectorsList);
+router.get("/connectors/read/:id", setDataToRequestObject("api.connectors.read"), onRequest({entity: Entity.Management }), telemetryAuditStart({action: telemetryActions.readConnectors, operationType: OperationType.GET}), jwtTokenVerify.handler(), ConnectorsRead);
+router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), DatasetImport);
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
