@@ -59,4 +59,4 @@ router.get("/connectors/read/:id", setDataToRequestObject("api.connectors.read")
 router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), onRequest({ entity: Entity.Management }), jwtTokenVerify.handler(), DatasetImport);
 
 //Wrapper Service
-router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
+router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), jwtTokenVerify.handler(), sqlQuery);
