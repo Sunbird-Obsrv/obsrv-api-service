@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import fs from "fs";
 import { ResponseHandler } from "../helpers/ResponseHandler";
-import _ from "lodash";
+import { config } from "../configs/Config";
 
 enum roles {
     Admin = "admin",
@@ -125,7 +124,7 @@ export default {
   name: "jwt:tokenAuthorization",
   handler: () => (req: Request, res: Response, next: NextFunction) => {
     try {
-      const public_key = fs.readFileSync("public_key.pem", "utf8");
+        const public_key = config.jwt_public_key;
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(" ")[1];
       if (!token) {
