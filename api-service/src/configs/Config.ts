@@ -4,7 +4,7 @@ const env = process.env.system_env || "local"
 
 export const config = {
   "env": env,
-  "api_port": process.env.api_port || 3000,
+  "api_port": process.env.api_port || 3005,
   "body_parser_limit": process.env.body_parser_limit || "100mb",
   "version": "1.0",
   "query_api": {
@@ -112,5 +112,6 @@ export const config = {
     "dialect": process.env.dialet || "postgres",
     "url": process.env.grafana_url || "http://localhost:8000",
     "access_token": process.env.grafana_token || ""
-  }
+  },
+  "user_token_public_key": process.env.user_token_public_key || "",
 }

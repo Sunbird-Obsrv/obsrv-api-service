@@ -124,7 +124,7 @@ export default {
   name: "jwt:tokenAuthorization",
   handler: () => (req: Request, res: Response, next: NextFunction) => {
     try {
-        const public_key = config.jwt_public_key;
+        const public_key = config.user_token_public_key;
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.split(" ")[1];
       if (!token) {
