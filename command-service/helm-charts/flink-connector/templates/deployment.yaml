@@ -171,6 +171,7 @@ spec:
               {{ $jobName }}-jobmanager.{{ include "base.namespace" . }}.svc.cluster.local:8081 \
               /data/connectors/{{ index $jobData "source" }}/{{ index $jobData "main_program" }} \
               --config.file.path /data/flink/conf/connectors-scala-config.conf \
+              --metadata.id {{ index $jobData "connector_id" }} \
           {{- if eq .Values.checkpoint_store_type "azure" }}
               "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}" \
           {{- end }}
