@@ -24,5 +24,4 @@ jobs:
           cd api-service
           npm install
           npm run actions:test
-          npm run actions:test:v2
           npm run lint

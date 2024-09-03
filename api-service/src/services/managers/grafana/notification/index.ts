@@ -1,5 +1,4 @@
-import _ from "lodash";
-import { getChannelService } from './channels';
+import { getChannelService } from "./channels";
 import { createContactPointsAndNotificationPolicy, generateChannelConfig, getAlertManagerConfig, removeReceiverAndNotificationPolicy, updateAlertManagerConfig } from "./helpers";
 
 const updateNotificationChannel = async (payload: Record<string, any>) => {

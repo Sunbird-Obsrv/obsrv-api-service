@@ -1,11 +1,11 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import nock from "nock";
 import { TestQueries } from "./Fixtures";
 import { config } from "../../../configs/Config";
-import chaiSpies from 'chai-spies'
-import { describe, it } from 'mocha';
+import chaiSpies from "chai-spies"
+import { describe, it } from "mocha";
 import { Datasource } from "../../../models/Datasource";
 chai.use(chaiSpies)
 chai.should();
@@ -35,7 +35,7 @@ describe("QUERY API TESTS", () => {
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
-            .reply(200, ['telemetry-events.1_rollup'])
+            .reply(200, ["telemetry-events.1_rollup"])
         chai
             .request(app)
             .post("/v2/data/query/telemetry-events")

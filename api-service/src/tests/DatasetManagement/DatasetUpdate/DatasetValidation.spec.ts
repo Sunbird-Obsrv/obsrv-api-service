@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai, { expect } from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import { DatasetDraft } from "../../../models/DatasetDraft";
 import _ from "lodash";
 import { TestInputsForDatasetUpdate, msgid, requestStructure, validVersionKey } from "./Fixtures";
@@ -23,18 +23,13 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
     it("Success: Dataset validation configs updated when validation is true", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
+        
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -55,22 +50,17 @@ describe("DATASET VALIDATION CONFIG UPDATE", () => {
     it("Success: Dataset validation configs updated with default values when validation is false", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"dataset"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"event", api_version: "v2"
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "commit", () => {
-            return Promise.resolve({})
-        })
+        
         chai
             .request(app)
             .patch("/v2/datasets/update")
-            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, validation_config: { "validate": false } } })
+            .send({ ...requestStructure, request: { dataset_id: "telemetry", version_key: validVersionKey, validation_config: { "validate": false, "mode": "Strict" } } })
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")

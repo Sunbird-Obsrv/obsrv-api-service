@@ -1,9 +1,11 @@
 import json
 import os
+import base64
 import tarfile
 import uuid
 import zipfile
 from datetime import datetime
+from pathlib import Path
 
 import requests
 from fastapi import status
@@ -184,6 +186,7 @@ class ConnectorRegistry:
                 }
 
                 connector_id = obj["id"].replace(" ", "-")
+                self.update_connector_registry(connector_id, self.metadata['metadata']['version'])
                 registry_meta = ConnectorRegsitryv2(connector_id,
                         obj['name'],
                         'source',
@@ -194,7 +197,7 @@ class ConnectorRegistry:
                         self.metadata['metadata']['runtime'],
                         self.metadata['metadata']['licence'],
                         self.metadata['metadata']['owner'],
-                        obj['icon'],
+                        self.load_file_bytes(obj["icon"]),
                         'Live',
                         rel_path,
                         json.dumps(source),
@@ -205,8 +208,8 @@ class ConnectorRegistry:
                         'SYSTEM',
                         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     )
-                query = self.build_insert_query(registry_meta)
-                success = self.execute_query(query)
+                query, params = self.build_insert_query(registry_meta)
+                success = self.execute_query(query, params)
                 if not success:
                     return RegistryResponse(
                         status="failure",
@@ -225,7 +228,7 @@ class ConnectorRegistry:
             connector_id = (
                 self.metadata.get("metadata", {}).get("id", "").replace(" ", "-")
             )
-
+            self.update_connector_registry(connector_id, self.metadata['metadata']['version'])
             source = {
                 "source": connector_source,
                 "main_class": self.metadata["metadata"]["main_class"],
@@ -243,7 +246,7 @@ class ConnectorRegistry:
                 self.metadata['metadata']['runtime'],
                 self.metadata['metadata']['licence'],
                 self.metadata['metadata']['owner'],
-                self.metadata['metadata']['icon'],
+                self.load_file_bytes(self.metadata['metadata']["icon"]),
                 'Live',
                 rel_path,
                 json.dumps(source),
@@ -254,8 +257,8 @@ class ConnectorRegistry:
                 'SYSTEM',
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             )
-            query = self.build_insert_query(registry_meta)
-            success = self.execute_query(query)
+            query, params = self.build_insert_query(registry_meta)
+            success = self.execute_query(query, params)
             if not success:
                 return RegistryResponse(
                     status="failure",
@@ -269,9 +272,9 @@ class ConnectorRegistry:
                 statusCode=status.HTTP_200_OK,
             )
 
-    def execute_query(self, query) -> bool:
+    def execute_query(self, query, params) -> bool:
         try:
-            result = self.db_service.execute_upsert(query)
+            result = self.db_service.execute_upsert(sql=query, params=params)
             return result > 0  # Assuming the result is the number of affected rows
         except Exception as e:
             print(
@@ -307,28 +310,116 @@ class ConnectorRegistry:
 
     def build_insert_query(self, registry_meta: ConnectorRegsitryv2):
         ui_spec_json = json.dumps(registry_meta.ui_spec)
-        return f""" INSERT INTO connector_registry (id, connector_id, name, type, category, version, description, technology, runtime, licence, owner, iconurl, status, source_url, source, ui_spec, created_by, updated_by, created_date, updated_date, live_date) VALUES
-        ( '{registry_meta.id}-{registry_meta.version}', '{registry_meta.id}', '{registry_meta.name}', '{registry_meta.type}', '{registry_meta.category}', '{registry_meta.version}', '{registry_meta.description}', '{registry_meta.technology}', '{registry_meta.runtime}', '{registry_meta.licence}', '{registry_meta.owner}', '{registry_meta.iconurl}', '{registry_meta.status}', '{registry_meta.source_url}', '{registry_meta.source}', '{ui_spec_json}', 'SYSTEM', 'SYSTEM', '{datetime.now()}', '{datetime.now()}', '{datetime.now()}' )
-            ON CONFLICT (connector_id, version) DO UPDATE
-            SET id = '{registry_meta.id}-{registry_meta.version}',
-                name = '{registry_meta.name}',
-                type = '{registry_meta.type}',
-                category = '{registry_meta.category}',
-                version = '{registry_meta.version}',
-                description = '{registry_meta.description}',
-                technology = '{registry_meta.technology}',
-                runtime = '{registry_meta.runtime}',
-                licence = '{registry_meta.licence}',
-                owner = '{registry_meta.owner}',
-                iconurl = '{registry_meta.iconurl}',
-                status = '{registry_meta.status}',
-                source_url = '{registry_meta.source_url}',
-                source = '{registry_meta.source}',
-                ui_spec = '{ui_spec_json}'::jsonb,
-                updated_date = '{datetime.now()}'
-                ;;
+        query =f"""
+        INSERT INTO connector_registry (
+            id, connector_id, name, type, category, version, description, 
+            technology, runtime, licence, owner, iconurl, status, source_url, 
+            source, ui_spec, created_by, updated_by, created_date, updated_date, live_date
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s
+        ) ON CONFLICT (
+            connector_id, version
+        ) DO UPDATE SET 
+            id = %s,
+            name = %s,
+            type = %s,
+            category = %s,
+            version = %s,
+            description = %s,
+            technology = %s,
+            runtime = %s,
+            licence = %s,
+            owner = %s,
+            iconurl = %s,
+            status = %s,
+            source_url = %s,
+            source = %s,
+            ui_spec = %s::jsonb,
+            updated_date = %s
+        ;;
         """
+        params = (
+            registry_meta.id + "-" + registry_meta.version,
+            registry_meta.id,
+            registry_meta.name,
+            registry_meta.type,
+            registry_meta.category,
+            registry_meta.version,
+            registry_meta.description,
 
+            registry_meta.technology,
+            registry_meta.runtime,
+            registry_meta.licence,
+            registry_meta.owner,
+            registry_meta.iconurl,
+            registry_meta.status,
+            registry_meta.source_url,
+
+            registry_meta.source,
+            ui_spec_json,
+            'SYSTEM',
+            'SYSTEM',
+            datetime.now(),
+            datetime.now(),
+            datetime.now(),
+
+            registry_meta.id + "-" + registry_meta.version,
+            registry_meta.name,
+            registry_meta.type,
+            registry_meta.category,
+            registry_meta.version,
+            registry_meta.description,
+            registry_meta.technology,
+            registry_meta.runtime,
+            registry_meta.licence,
+            registry_meta.owner,
+            registry_meta.iconurl,
+            registry_meta.status,
+            registry_meta.source_url,
+            registry_meta.source,
+            ui_spec_json,
+            datetime.now(),
+        )
+        return query, params
+    
+    def load_file_bytes(self, rel_path: str) -> bytes | None:
+        file_path = Path(self.extraction_path)
+        for item in file_path.glob("*/{}".format(rel_path)):
+            try:
+                with open(item, 'rb') as file:
+                    file_content = file.read()
+                encoded = base64.b64encode(file_content).decode("ascii")
+            except IsADirectoryError:
+                print(
+                    f"Connector Registry | No value for icon URL given at metadata: {rel_path}"
+                )
+                return None
+            except FileNotFoundError:
+                print(
+                    f"Connector Registry | No file present at indicated relative path: {rel_path}"
+                )
+                return None
+            except (ValueError or TypeError) as e:
+                print(
+                    f"Connector Registry | File content not byte like: {e}"
+                )
+                return None
+            return encoded
+
+    def update_connector_registry(self, _id, ver):
+        try:
+            result = self.db_service.execute_upsert(
+                f"UPDATE connector_registry SET status = 'Retired', updated_date = now() WHERE connector_id = %s AND status = 'Live' AND version != %s", (_id, ver)
+            )
+            print(
+                f"Connector Registry | Updated {result} existing rows with connector_id: {_id} and version: {ver}"
+            )
+        except Exception as e:
+            print(
+                f"Connector Registry | An error occurred during the execution of Query: {e}"
+            )
 
 class ExtractionUtil:
     def extract_gz(tar_path, extract_path):

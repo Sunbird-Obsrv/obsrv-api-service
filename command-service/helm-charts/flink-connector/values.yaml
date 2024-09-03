@@ -14,9 +14,9 @@ commonLabels:
 # repository: sunbirded.azurecr.io/data-pipeline
 #   tag: "release-5.2.0_RC1_2c615f8_12"
 # docker pull sunbirded.azurecr.io/sunbird-datapipeline:release-4.9.0_RC4_1
-registry: surabhi1510
-repository: flink-python-3.11
-tag: 1.0.0
+registry: sanketikahub
+repository: flink-connectors
+tag: 1.17.2-scala_2.12-java11
 imagePullSecrets: []
 
 ## Databases
@@ -264,27 +264,6 @@ baseconfig: |
     port = "{{ .Values.global.cassandra.port }}"
   }
 
-# !!! Don't override the resources here. It's just a template
-# Proper way to override resouce is to
-# flink_jobs:
-#   master-data-processor:
-#     resources:
-#       taskmanager:
-#         resources:
-#           requests:
-#             cpu: 100m
-#             memory: 100Mi
-#           limits:
-#             cpu: 1
-#             memory: 1024Mi
-#       jobmanager:
-#         resources:
-#           requests:
-#             cpu: 100m
-#             memory: 100Mi
-#           limits:
-#             cpu: 1
-#             memory: 1024Mi
 flink_resources:
   taskmanager:
     resources:
@@ -303,7 +282,7 @@ flink_resources:
         cpu: 1
         memory: 1024Mi
 
-serviceMonitor: 
+serviceMonitor:
   jobmanager:
     enabled: true
     interval: 30s
@@ -322,14 +301,7 @@ serviceMonitor:
     port: prom
 
 flink_jobs:
-  kafka-connector:
-    enabled: true
-    registry: surabhi1510
-    repository: flink-python-3.11
-    tag: 1.0.0
-    imagePullSecrets: []
-
-    job_classname: org.sunbird.obsrv.connector.KafkaConnector
+  
 
 commonAnnotations:
   reloader.stakater.com/auto: "true"

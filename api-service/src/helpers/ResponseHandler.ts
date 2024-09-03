@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { IResponse, Result } from "../types/DatasetModels";
-import { onFailure, onSuccess } from "../metrics/prometheus/helpers";
+import { onFailure, onObsrvFailure, onSuccess } from "../metrics/prometheus/helpers";
 import moment from "moment";
 import _ from "lodash";
 import { ObsrvError } from "../types/ObsrvError";
@@ -42,7 +42,7 @@ const ResponseHandler = {
     const resmsgid = _.get(res, "resmsgid")
     const response = ResponseHandler.refactorResponse({ id, msgid, params: { status: "FAILED" }, responseCode: errCode || httpStatus["500_NAME"], resmsgid, result: data })
     res.status(statusCode || httpStatus.INTERNAL_SERVER_ERROR).json({ ...response, error: { code, message } });
-    entity && onFailure(req, res)
+    entity && onObsrvFailure(req,res,error)
   },
 
   setApiId: (id: string) => (req: Request, res: Response, next: NextFunction) => {
@@ -57,7 +57,7 @@ const ResponseHandler = {
   },
 
   goneResponse: (req: Request, res: Response) => {
-    const { id, entity } = req as any;
+    const { id } = req as any;
     res.status(httpStatus.GONE).json({ id: id, ver: "v1", ts: Date.now(), params: { status: "FAILED", errmsg: "v1 APIs have been replace by /v2 APIs. Please refer to this link <addLink> for more information" }, responseCode: httpStatus["410_NAME"] })
   }
 }

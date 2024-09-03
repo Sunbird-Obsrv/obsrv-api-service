@@ -71,7 +71,7 @@ export const SchemaSuggestionTemplate = {
                 updatedConflicts[types[0]] = value;
             }
         });
-        let response: Record<string, null | string> = {
+        const response: Record<string, null | string> = {
             conflictMessage: _.template(
                 `${this.TEMPLATES.SCHEMA_SUGGESTION.CREATE.DATATYPE_PROPERTY.MESSAGE} at property: '${property}'. The property type <% _.map(conflicts, (value, key, list) => { %><%= key %>: <%= value %> time(s)<%= _.last(list) === value ? '' : ', ' %><% }); %><%= _.isEmpty(conflicts) ? '' : '' %>`)({ conflicts }),
             arrivalFormatMessage: null,

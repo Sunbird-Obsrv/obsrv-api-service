@@ -67,7 +67,7 @@ export class AWSStorageService implements ICloudService {
     async getSignedUrls(container: any, filesList: any) {
         const signedUrlsPromises = this.generateSignedURLs(container, filesList)
         const signedUrlsList = await Promise.all(signedUrlsPromises);
-        const periodWiseFiles: any = {};
+        const periodWiseFiles: { [key: string]: string[] } = {};
         const files: any[] = [];
         // Formatting response
         signedUrlsList.map(async (fileObject) => {

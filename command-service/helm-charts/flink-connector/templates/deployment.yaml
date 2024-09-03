@@ -51,37 +51,17 @@ spec:
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
           workingDir: {{ .Values.taskmanager.flink_work_dir }}
-          # args: ["taskmanager"]
-          # env:
-          #   - name: FLINK_PROPERTIES
-          #     value: |+
-          #       jobmanager.rpc.address: {{ $jobName }}-jobmanager
-          #       taskmanager.rpc.port=6122
-          #       taskmanager.numberOfTaskSlots: 2
-          #       metrics.reporters: prom
-          #       metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
-          #       metrics.reporter.prom.host: {{ $jobName }}-taskmanager
-          #       metrics.reporter.prom.port: 9251
-          command: ["/opt/flink/bin/taskmanager.sh"]
-          args: ["start-foreground",
-  {{- if eq .Values.checkpoint_store_type "azure" }}
-            "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}",
-  {{- end }}
-  {{- if and (eq .Values.checkpoint_store_type "s3") (ne .Values.s3_auth_type "serviceAccount") }}
-            "-Ds3.access-key={{ .Values.s3_access_key }}",
-            "-Ds3.secret-key={{ .Values.s3_secret_key }}",
-            "-Ds3.endpoint={{ .Values.s3_endpoint }}",
-            "-Ds3.path.style.access={{ .Values.s3_path_style_access }}",
-  {{- end }}
-  {{- if eq .Values.checkpoint_store_type "gcs" }}
-            "-Dgoogle.cloud.auth.service.account.enable=true",
-  {{- end }}
-            "-Dweb.submit.enable=false",
-            "-Dmetrics.reporter.prom.class=org.apache.flink.metrics.prometheus.PrometheusReporter",
-            "-Dmetrics.reporter.prom.host={{ $jobName }}-taskmanager",
-            "-Dmetrics.reporter.prom.port=9251-9260",
-            "-Djobmanager.rpc.address={{ $jobName }}-jobmanager",
-            "-Dtaskmanager.rpc.port={{ .Values.taskmanager.rpc_port }}"]
+          args: ["taskmanager"]
+          env:
+            - name: FLINK_PROPERTIES
+              value: |+
+                jobmanager.rpc.address: {{ $jobName }}-jobmanager
+                taskmanager.rpc.port=6122
+                taskmanager.numberOfTaskSlots: 2
+                metrics.reporters: prom
+                metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+                metrics.reporter.prom.host: {{ $jobName }}-taskmanager
+                metrics.reporter.prom.port: 9251
           ports:
           - containerPort: {{ .Values.taskmanager.rpc_port }}
             name: rpc
@@ -89,9 +69,12 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
-          - name: flink-config-volume
-            mountPath: /data/flink/conf/flink-connector.conf
-            subPath: flink-connector.conf
+          # - name: flink-config-volume
+          #   mountPath: /data/flink/conf/connectors-scala-config.conf
+          #   subPath: connectors-scala-config.conf
+          # - name: flink-config-volume
+          #   mountPath: /data/flink/conf/connectors-python-config.conf
+          #   subPath: connectors-python-config.yaml
           # - name: flink-config-volume
           #   mountPath: /opt/flink/conf/flink-conf.yaml
           #   subPath: flink-conf.yaml
@@ -99,12 +82,14 @@ spec:
             mountPath: /opt/flink/conf/log4j-console.properties
             subPath: log4j-console.properties
       volumes:
-      - name: flink-config-volume
-        configMap:
-          name: flink-connector-conf
-          items:
-          - key: connectors-scala-config.conf
-            path: flink-connector.conf
+      # - name: flink-config-volume
+      #   configMap:
+      #     name: flink-connector-conf
+      #     items:
+      #     - key: connectors-scala-config.conf
+      #       path: connectors-scala-config.conf
+      #     - key: connectors-python-config.yaml
+      #       path: connectors-python-config.yaml
       - name: flink-common-volume
         configMap:
           name: {{ $jobName }}-config
@@ -140,7 +125,7 @@ spec:
         app.kubernetes.io/component: {{ printf "%s-%s" $jobName $component }}
         component: {{ printf "%s-%s" $jobName $component }}
       annotations:
-        checksum/config: {{ .Files.Glob "configs/*" | toYaml | sha256sum }}
+        checksum/config: {{ .Files.Glob "cFonfigs/*" | toYaml | sha256sum }}
         checksum/job-config: {{ $jobData | toYaml | sha256sum }}
     spec:
       serviceAccountName: {{ include "base.serviceaccountname" . }}
@@ -171,21 +156,26 @@ spec:
                 metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
                 metrics.reporter.prom.host: {{ $jobName }}-jobmanager
                 metrics.reporter.prom.port: 9250
-          
           volumeMounts:
           - name: flink-config-volume
-            mountPath: /data/flink/conf/flink-connector.conf
-            subPath: flink-connector.conf
+            mountPath: /data/flink/conf/connectors-scala-config.conf
+            subPath: connectors-scala-config.conf
+          - name: flink-config-volume
+            mountPath: /data/flink/conf/connectors-python-config.conf
+            subPath: connectors-python-config.conf
           - name: data
             mountPath: /flink/connectors
           - name: flink-common-volume
             mountPath: /opt/flink/conf/log4j-console.properties
             subPath: log4j-console.properties
-  
+
         - name: {{ $jobName }}-job-submit
           image: {{ include "base.image.flink" (dict "context" $ "scope"  $jobData) }}
           imagePullPolicy: {{ default .Values.imagePullPolicy "Always" }}
           workingDir: /opt/flink
+          env:
+          - name: CONNECTOR_ID
+            value: {{ index $jobData "connector_id" }}
           command:
           - /bin/bash
           - -c
@@ -194,8 +184,8 @@ spec:
             sleep 30s;
             /opt/flink/bin/flink run -m \
               {{ $jobName }}-jobmanager.{{ include "base.namespace" . }}.svc.cluster.local:8081 \
-              /flink/connectors/{{ $jobName }}-1.0.0/{{ $jobName }}-1.0.0.jar \
-              --config.file.path /data/flink/conf/flink-connector.conf \
+              /flink/connectors/{{ index $jobData "source" }}/{{ index $jobData "main_program" }} \
+              --config.file.path /data/flink/conf/connectors-scala-config.conf \
           {{- if eq .Values.checkpoint_store_type "azure" }}
               "-Dfs.azure.account.key.{{ .Values.global.azure_storage_account_name }}.blob.core.windows.net={{ .Values.global.azure_storage_account_key }}" \
           {{- end }}
@@ -219,8 +209,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
           - name: flink-config-volume
-            mountPath: /data/flink/conf/flink-connector.conf
-            subPath: flink-connector.conf
+            mountPath: /data/flink/conf/connectors-scala-config.conf
+            subPath: connectors-scala-config.conf
+          - name: flink-config-volume
+            mountPath: /data/flink/conf/connectors-python-config.yaml
+            subPath: connectors-python-config.yaml
           - name: data
             mountPath: /flink/connectors
           - name: flink-common-volume
@@ -234,7 +227,9 @@ spec:
           name: flink-connector-conf
           items:
           - key: connectors-scala-config.conf
-            path: flink-connector.conf
+            path: connectors-scala-config.conf
+          - key: connectors-python-config.yaml
+            path: connectors-python-config.yaml
       - name: flink-common-volume
         configMap:
           name: {{ $jobName }}-config

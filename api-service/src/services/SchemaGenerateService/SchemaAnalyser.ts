@@ -25,8 +25,8 @@ export class SchemaAnalyser {
         const result: FlattenSchema[] = _.flatten(this.schemas.map(element => {
             return this.flattenSchema(new Map(Object.entries(element)));
         }))
-        const conflicts = Object.entries(_.groupBy(result, 'path')).map(([key, value]) => {
-            return this.getSchemaConflictTypes(this.getOccurance(value, key))
+        const conflicts = Object.entries(_.groupBy(result, "path")).map(([, value]) => {
+            return this.getSchemaConflictTypes(this.getOccurance(value))
         })
         return _.filter(conflicts, obj => (!_.isEmpty(obj.schema) || !_.isEmpty(obj.required) || !_.isEmpty(obj.formats)))
     }
@@ -43,7 +43,7 @@ export class SchemaAnalyser {
         let schemaConflicts = this.findDataTypeConflicts(occuranceObj,)
         const requiredConflicts = (_.size(this.schemas) > this.minimumSchemas) ? this.findOptionalPropConflicts(occuranceObj) : {}
         const formatConflict = this.findFormatConflicts(occuranceObj)
-        if(_.size(_.keys(schemaConflicts)) > 0) {
+        if (_.size(_.keys(schemaConflicts)) > 0) {
             schemaConflicts = { ...schemaConflicts, path: updatedPath }
         }
         return <ConflictTypes>{ "schema": schemaConflicts, "required": requiredConflicts, "formats": formatConflict, "absolutePath": updatedPath }
@@ -53,14 +53,14 @@ export class SchemaAnalyser {
      * Method to get the data type conflicts
      */
     private findDataTypeConflicts(occurance: Occurance): Conflict {
-        if(_.includes(_.keys(occurance.dataType), "null") && _.size(occurance.dataType) === 1) {
+        if (_.includes(_.keys(occurance.dataType), "null") && _.size(occurance.dataType) === 1) {
             return {
                 type: constants.SCHEMA_RESOLUTION_TYPE.NULL_FIELD,
                 // Should be used only to return the name of field instead of path
                 // property: Object.keys(occurance.property)[0],
                 property: _.replace(Object.keys(occurance.path)[0], "$.", ""),
                 conflicts: occurance.dataType,
-                resolution: { "value":  occurance.dataType, "type": constants.SCHEMA_RESOLUTION_TYPE.NULL_FIELD },
+                resolution: { "value": occurance.dataType, "type": constants.SCHEMA_RESOLUTION_TYPE.NULL_FIELD },
                 values: _.keys(occurance.dataType),
                 severity: constants.SEVERITY["MUST-FIX"],
                 path: _.replace(Object.keys(occurance.absolutePath)[0], "$.", ""),
@@ -123,7 +123,7 @@ export class SchemaAnalyser {
      */
     private findOptionalPropConflicts(occurance: Occurance): Conflict {
         const maxOccurance: number = 1
-        const requiredCount = _.map(occurance.property, (value, key) => {
+        const requiredCount = _.map(occurance.property, (value) => {
             return value
         })[0]
 
@@ -148,9 +148,9 @@ export class SchemaAnalyser {
      *
      * Method to get the occurance of the given key from the given object 
      */
-    private getOccurance(arrayOfObjects: object[], key: string): Occurance {
-        const result = _(arrayOfObjects).flatMap(obj => _.toPairs(obj)).groupBy(([key, value]) => key)
-            .mapValues(group => _.countBy(group, ([key, value]) => value)).value();
+    private getOccurance(arrayOfObjects: object[]): Occurance {
+        const result = _(arrayOfObjects).flatMap(obj => _.toPairs(obj)).groupBy(([key]) => key)
+            .mapValues(group => _.countBy(group, ([, value]) => value)).value();
         return { property: result.property, dataType: result.dataType, isRequired: result.isRequired, path: result.path, absolutePath: result.absolutePath, format: result.formate };
     }
 
@@ -158,26 +158,26 @@ export class SchemaAnalyser {
      * Method to iterate over the schema object in a recursive and flatten the required properties
      */
     public flattenSchema(sample: Map<string, any>): FlattenSchema[] {
-        let array = new Array();
+        const array: any[] = [];
         const recursive = (data: any, path: string, requiredProps: string[], schemaPath: string) => {
             _.map(data, (value, key) => {
-                let isMultipleTypes = '';
-                if(_.has(value, 'anyOf')) isMultipleTypes = 'anyOf';
-                if(_.has(value, 'oneOf')) isMultipleTypes = 'oneOf';
-                if (_.isPlainObject(value) && (_.has(value, 'properties'))) {
-                    array.push(this._flattenSchema(key, value.type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value['format']))
-                    recursive(value['properties'], `${path}.${key}`, value['required'], `${schemaPath}.properties.${key}`);
-                } else if(_.isPlainObject(value)) {
-                    if (value.type === 'array') {
-                        array.push(this._flattenSchema(key, value.type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value['format']))
-                        if (_.has(value, 'items') && _.has(value["items"], 'properties')) {
-                            recursive(value["items"]['properties'], `${path}.${key}[*]`, value["items"]['required'], `${schemaPath}.properties.${key}.items`);
+                let isMultipleTypes = "";
+                if (_.has(value, "anyOf")) isMultipleTypes = "anyOf";
+                if (_.has(value, "oneOf")) isMultipleTypes = "oneOf";
+                if (_.isPlainObject(value) && (_.has(value, "properties"))) {
+                    array.push(this._flattenSchema(key, value.type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value["format"]))
+                    recursive(value["properties"], `${path}.${key}`, value["required"], `${schemaPath}.properties.${key}`);
+                } else if (_.isPlainObject(value)) {
+                    if (value.type === "array") {
+                        array.push(this._flattenSchema(key, value.type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value["format"]))
+                        if (_.has(value, "items") && _.has(value["items"], "properties")) {
+                            recursive(value["items"]["properties"], `${path}.${key}[*]`, value["items"]["required"], `${schemaPath}.properties.${key}.items`);
                         }
-                    } else if(isMultipleTypes != '') {
-                        array.push(this._flattenSchema(key, value[isMultipleTypes][0].type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value['format']))
-                        array.push(this._flattenSchema(key, value[isMultipleTypes][1].type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value['format']))
+                    } else if (isMultipleTypes != "") {
+                        array.push(this._flattenSchema(key, value[isMultipleTypes][0].type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value["format"]))
+                        array.push(this._flattenSchema(key, value[isMultipleTypes][1].type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value["format"]))
                     } else {
-                        array.push(this._flattenSchema(key, value.type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value['format']))
+                        array.push(this._flattenSchema(key, value.type, _.includes(requiredProps, key), `${path}.${key}`, `${schemaPath}.properties.${key}`, value["format"]))
                     }
                 }
             })

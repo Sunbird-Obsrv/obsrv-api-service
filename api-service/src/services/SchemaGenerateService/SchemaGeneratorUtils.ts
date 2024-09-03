@@ -6,21 +6,21 @@ import { UniqueValues, FieldSchema, RollupSummary } from "../../types/SchemaMode
 export const generateRollupSummary = (uniqueValues: UniqueValues) => {
     const summary: RollupSummary = {};
     Object.entries(uniqueValues).map(([field, value]) => {
-        let data: Record<string, any> = {};
+        const data: Record<string, any> = {};
         _.map(value, (item: string) => {
             if (!_.has(data, [field, item])) _.set(data, [field, item], 1);
             else data[field][item] += 1;
         });
         const resultData: Record<string, any> = {};
         _.map(_.keys(data), (path: string) => {
-            Object.entries(data[path]).map(([key, value]: any) => {
+            Object.entries(data[path]).map(([, value]: any) => {
                 const totalValue = _.sum(_.values(data[path]));
                 const ratio = Math.round((value / totalValue) * 100);
                 if (!_.has(resultData, path)) _.set(resultData, path, ratio);
                 else if (ratio > _.get(resultData, path))
                     _.set(resultData, path, ratio);
             });
-            let fieldName = parseSchemaPath(path);
+            const fieldName = parseSchemaPath(path);
             summary[fieldName] = {
                 path: `$.${path}`,
                 cardinality: 100 - _.get(resultData, path),

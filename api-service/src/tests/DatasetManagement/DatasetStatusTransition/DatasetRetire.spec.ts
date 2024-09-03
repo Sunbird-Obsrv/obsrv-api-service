@@ -1,9 +1,9 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
 import httpStatus from "http-status";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import _ from "lodash";
 import { TestInputsForDatasetStatusTransition } from "./Fixtures";
 import { Dataset } from "../../../models/Dataset";
@@ -29,7 +29,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
 
     it("Dataset status transition success: When the action is to Retire dataset", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "Live", type: "dataset" })
+            return Promise.resolve(TestInputsForDatasetStatusTransition.SCHEMA_TO_RETIRE)
         })
         chai.spy.on(DatasetTransformations, "update", () => {
             return Promise.resolve({})
@@ -44,7 +44,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             return Promise.resolve({})
         })
         chai.spy.on(Datasource, "findAll", () => {
-            return Promise.resolve(["telemetry"])
+            return Promise.resolve([{ datasource_ref: "telemetry" }])
         })
         chai.spy.on(druidHttpService, "post", () => {
             return Promise.resolve({})
@@ -90,12 +90,6 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         })
         chai.spy.on(Dataset, "update", () => {
             return Promise.resolve({})
-        })
-        chai.spy.on(Dataset, "findAll", () => {
-            return Promise.resolve()
-        })
-        chai.spy.on(DatasetDraft, "findAll", () => {
-            return Promise.resolve()
         })
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})
@@ -185,7 +179,7 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Dataset not found to retire")
+                res.body.error.message.should.be.eq("Dataset not found for dataset: telemetry")
                 res.body.error.code.should.be.eq("DATASET_NOT_FOUND")
                 done();
             })
@@ -193,19 +187,19 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
 
     it("Dataset status transition failure: When dataset is already retired", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "Retired", type: "dataset" })
+            return Promise.resolve({ ...TestInputsForDatasetStatusTransition.SCHEMA_TO_RETIRE, status: "Retired" })
         })
         chai
             .request(app)
             .post("/v2/datasets/status-transition")
             .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_RETIRE)
             .end((err, res) => {
-                res.should.have.status(httpStatus.BAD_REQUEST);
+                res.should.have.status(httpStatus.CONFLICT);
                 res.body.should.be.a("object")
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Failed to Retire dataset as it is not in live state")
+                res.body.error.message.should.be.eq("Transition failed for dataset: dataset-all-fields7 status:Retired with status transition to Retire")
                 res.body.error.code.should.be.eq("DATASET_RETIRE_FAILURE")
                 done();
             })
@@ -213,19 +207,13 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
 
     it("Dataset status transition failure: When dataset to retire is used by other datasets", (done) => {
         chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", type: "master-dataset", status: "Live" })
+            return Promise.resolve({ ...TestInputsForDatasetStatusTransition.SCHEMA_TO_RETIRE, type: "master" })
         })
         chai.spy.on(Dataset, "findAll", () => {
-            return Promise.resolve([{ dataset_id: "telemetry", denorm_config: { denorm_fields: [{ dataset_id: "telemetry" }] } }])
+            return Promise.resolve([{ dataset_id: "telemetry", denorm_config: { denorm_fields: [{ dataset_id: "dataset-all-fields7" }] } }])
         })
         chai.spy.on(DatasetDraft, "findAll", () => {
-            return Promise.resolve([{ dataset_id: "telemetry", denorm_config: { denorm_fields: [{ dataset_id: "telemetry" }] } }])
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
+            return Promise.resolve([{ dataset_id: "telemetry", denorm_config: { denorm_fields: [{ dataset_id: "dataset-all-fields7" }] } }])
         })
         chai
             .request(app)
@@ -237,78 +225,10 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
                 res.body.id.should.be.eq("api.datasets.status-transition");
                 res.body.params.status.should.be.eq("FAILED")
                 res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Failed to retire dataset as it is used by other datasets")
+                res.body.error.message.should.be.eq("Failed to retire dataset as it is in use. Please retire or delete dependent datasets before retiring this dataset")
                 res.body.error.code.should.be.eq("DATASET_IN_USE")
                 done();
             });
     });
 
-    it("Dataset status transition failure: When setting retire status to live records fail", (done) => {
-        chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", status: "Live", type: "dataset" })
-        })
-        chai.spy.on(Dataset, "update", () => {
-            return Promise.reject({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/status-transition")
-            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_RETIRE)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq("api.datasets.status-transition");
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
-                done();
-            });
-    });
-
-    it("Dataset status transition failure: Failed to restart pipeline", (done) => {
-        chai.spy.on(Dataset, "findOne", () => {
-            return Promise.resolve({ dataset_id: "telemetry", type: "dataset", status: "Live", })
-        })
-        chai.spy.on(DatasetTransformations, "update", () => {
-            return Promise.resolve({})
-        })
-        chai.spy.on(DatasetSourceConfig, "update", () => {
-            return Promise.resolve({})
-        })
-        chai.spy.on(Datasource, "update", () => {
-            return Promise.resolve({})
-        })
-        chai.spy.on(Dataset, "update", () => {
-            return Promise.resolve({})
-        })
-        chai.spy.on(Datasource, "findAll", () => {
-            return Promise.resolve(["telemetry"])
-        })
-        chai.spy.on(commandHttpService, "post", () => {
-            return Promise.reject({})
-        })
-        const t = chai.spy.on(sequelize, "transaction", () => {
-            return Promise.resolve(sequelize.transaction)
-        })
-        chai.spy.on(t, "rollback", () => {
-            return Promise.resolve({})
-        })
-        chai
-            .request(app)
-            .post("/v2/datasets/status-transition")
-            .send(TestInputsForDatasetStatusTransition.VALID_SCHEMA_FOR_RETIRE)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.INTERNAL_SERVER_ERROR);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq("api.datasets.status-transition");
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.error.message.should.be.eq("Failed to perform status transition on datasets")
-                done();
-            });
-    });
 })

@@ -1,5 +1,5 @@
 import express from "express";
-import notificationHandler from '../controllers/NotificationChannel/Notification';
+import notificationHandler from "../controllers/NotificationChannel/Notification";
 import { setDataToRequestObject } from "../middlewares/setDataToRequestObject";
 import customAlertHandler from "../controllers/Alerts/Alerts";
 import metricAliasHandler from "../controllers/Alerts/Metric";

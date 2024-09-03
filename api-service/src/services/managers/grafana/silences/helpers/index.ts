@@ -19,7 +19,7 @@ const disableSilence = (silenceId: string) => {
 
 const getCurrentSilenceStatus = async (silenceId: string) => { 
     const response = await getSilence(silenceId);
-    const currentSilenceStatus = _.get(response, 'data.status.state');
+    const currentSilenceStatus = _.get(response, "data.status.state");
     return currentSilenceStatus;
 }
 

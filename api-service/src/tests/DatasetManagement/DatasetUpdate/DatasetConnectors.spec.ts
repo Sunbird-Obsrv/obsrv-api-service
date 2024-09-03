@@ -8,32 +8,30 @@ import { DatasetDraft } from "../../../models/DatasetDraft";
 import _ from "lodash";
 import { TestInputsForDatasetUpdate, msgid, validVersionKey } from "./Fixtures";
 import { apiId } from "../../../controllers/DatasetUpdate/DatasetUpdate"
-import { sequelize } from "../../../connections/databaseConnection";
 
 chai.use(spies);
 chai.should();
 chai.use(chaiHttp);
 
-describe("DATASET TAGS UPDATE", () => {
+describe("DATASET CONNECTORS UPDATE", () => {
 
     afterEach(() => {
         chai.spy.restore();
     });
 
-    it("Success: Dataset tags successfully added", (done) => {
+    it("Success: Dataset connectors successfully added", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", type: "event", version_key: validVersionKey, denorm_config: { denorm_fields: [] },  api_version: "v2"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"event", api_version: "v2", connectors_config:[]
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        
         chai
             .request(app)
             .patch("/v2/datasets/update")
-            .send(TestInputsForDatasetUpdate.DATASET_UPDATE_TAG_ADD)
+            .send(TestInputsForDatasetUpdate.DATASET_UPDATE_CONNECTORS_ADD)
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
@@ -47,20 +45,19 @@ describe("DATASET TAGS UPDATE", () => {
             });
     });
 
-    it("Success: Dataset tags successfully removed", (done) => {
+    it("Success: Dataset connectors successfully removed", (done) => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve({
-                id: "telemetry", status: "Draft", type: "event", version_key: validVersionKey, tags: ["tag1", "tag2"],  api_version: "v2"
+                id: "telemetry", status: "Draft", version_key: validVersionKey, type:"event", api_version: "v2", connectors_config:[{"id":"6c3fc8c2-357d-489b-b0c9-afdde6e5c6c0","connector_id":"kafka","connector_config":{"type":"kafka","topic":"telemetry.ingest","kafkaBrokers":"kafka-headless.kafka.svc:9092"},"version":"v1"}]
             })
         })
         chai.spy.on(DatasetDraft, "update", () => {
             return Promise.resolve({ dataValues: { id: "telemetry", message: "Dataset is updated successfully" } })
         })
-        
         chai
             .request(app)
             .patch("/v2/datasets/update")
-            .send(TestInputsForDatasetUpdate.DATASET_UPDATE_TAG_REMOVE)
+            .send(TestInputsForDatasetUpdate.DATASET_UPDATE_CONNECTORS_REMOVE)
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")

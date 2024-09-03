@@ -1,8 +1,8 @@
-import app from "../../../../app";
+import app from "../../../app";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import spies from "chai-spies";
-import { describe, it } from 'mocha';
+import { describe, it } from "mocha";
 import _ from "lodash";
 import { TestInputsForSqlWrapper } from "./Fixtures";
 import httpStatus from "http-status";
