@@ -36,7 +36,7 @@ const datasetRead = async (req: Request, res: Response) => {
         throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
     }
     if (dataset.connectors_config) {
-        dataset.connectors_config = processConnectorsConfig(dataset.connectors_config);
+        dataset.connectors_config =  processConnectorsConfig(dataset.connectors_config);
     }
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
