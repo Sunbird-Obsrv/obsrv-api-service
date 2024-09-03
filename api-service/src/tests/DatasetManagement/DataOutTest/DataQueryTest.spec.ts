@@ -89,8 +89,8 @@ describe("QUERY API TESTS", () => {
                 res.body.params.status.should.be.eq("FAILED");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.params.should.have.property("resmsgid");
-                res.body.error.message.should.be.eq("Unable to process the query.");
-                res.body.error.code.should.be.eq("INTERNAL_SERVER_ERROR");
+                res.body.error.message.should.be.eq("Request failed with status code 500");
+                res.body.error.code.should.be.eq("ERR_BAD_RESPONSE");
                 res.body.responseCode.should.be.eq("INTERNAL_SERVER_ERROR");
                 done();
             });
@@ -115,8 +115,8 @@ describe("QUERY API TESTS", () => {
                 res.body.params.status.should.be.eq("FAILED");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.params.should.have.property("resmsgid");
-                res.body.error.message.should.be.eq("Unable to process the query.");
-                res.body.error.code.should.be.eq("INTERNAL_SERVER_ERROR");
+                res.body.error.message.should.be.eq("Request failed with status code 500");
+                res.body.error.code.should.be.eq("ERR_BAD_RESPONSE");
                 res.body.responseCode.should.be.eq("INTERNAL_SERVER_ERROR");
                 done();
             });

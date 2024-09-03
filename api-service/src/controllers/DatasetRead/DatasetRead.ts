@@ -66,7 +66,7 @@ const readDataset = async (datasetId: string, attributes: string[]): Promise<any
         return;
     }
     const api_version = _.get(dataset, "api_version")
-    let datasetConfigs: any = {}
+    const datasetConfigs: any = {}
     const transformations_config = await datasetService.getTransformations(datasetId, ["field_key", "transformation_function", "mode", "metadata"])
     if (api_version !== "v2") {
         datasetConfigs["connectors_config"] = await getV1Connectors(datasetId)

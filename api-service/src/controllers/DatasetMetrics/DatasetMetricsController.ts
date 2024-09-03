@@ -10,7 +10,7 @@ import axios from "axios";
 import { config } from "../../configs/Config";
 
 const getBaseUrl = (url: string) => {
-    if (_.startsWith(url, '/prom')) return config.query_api.prometheus.url + _.replace(url, '/prom', '')
+    if (_.startsWith(url, "/prom")) return config.query_api.prometheus.url + _.replace(url, "/prom", "")
 }
 
 const datasetMetrics = async (req: Request, res: Response) => {
@@ -19,13 +19,13 @@ const datasetMetrics = async (req: Request, res: Response) => {
         logger.error({ message: isValidSchema?.message, code: "INVALID_QUERY" })
         throw obsrvError("", "INVALID_QUERY", isValidSchema.message, "BAD_REQUEST", 400)
     }
-    let { query } = req.body || {};
-    let endpoint = query.url;
-    if (_.startsWith(endpoint, '/prom')) {
+    const { query } = req.body || {};
+    const endpoint = query.url;
+    if (_.startsWith(endpoint, "/prom")) {
         query.url = getBaseUrl(endpoint)
         const { url, method, headers = {}, body = {}, params = {}, ...rest } = query;
         const apiResponse = await axios.request({ url, method, headers, params, data: body, ...rest })
-        const data = _.get(apiResponse, 'data');
+        const data = _.get(apiResponse, "data");
         return res.json(data);
     }
     else {
