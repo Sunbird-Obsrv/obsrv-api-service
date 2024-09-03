@@ -436,6 +436,7 @@ class ConnectorRegistry:
     def copy_connector_to_runtime(self, runtime: str, connector_source: str):
         if runtime == "spark":
             return self.copy_connector_to_spark(connector_source)
+                            
 
     def copy_connector_to_spark(self, connector_source: str):
         print(f"Connector Registry | copying {connector_source} to spark")
@@ -483,7 +484,29 @@ class ConnectorRegistry:
                 message="failed to copy the connector to spark",
                 statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+        if self.metadata['metadata']['technology'] == "python":
+            pip_install_cmd = [
+                "kubectl",
+                "exec",
+                f"pod/{spark_pod}",
+                "-n",
+                "spark",
+                "--",
+                "bash",
+                "-c",
+                f"pip install -r /data/connectors/{connector_source}/requirements.txt",
+            ]
 
+            pip_install_result = subprocess.run(pip_install_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(f"Connector Registry | pip_install_result:  {pip_install_result}")
+            if pip_install_result.returncode != 0:
+                return RegistryResponse(
+                    status="failure",
+                    message="failed to install the requirements on spark",
+                    statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+                
         return RegistryResponse(
             status="success",
             message="connector copied to spark successfully",
