@@ -114,4 +114,5 @@ export const config = {
     "access_token": process.env.grafana_token || ""
   },
   "user_token_public_key": process.env.user_token_public_key || "",
+  "is_RBAC_enabled": false
 }
