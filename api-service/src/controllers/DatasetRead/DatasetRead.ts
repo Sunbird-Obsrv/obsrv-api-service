@@ -36,19 +36,7 @@ const datasetRead = async (req: Request, res: Response) => {
         throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
     }
     if (dataset.connectors_config) {
-        dataset.connectors_config = dataset?.connectors_config.map((connector: any) => {
-            let connector_config = _.get(connector, "connector_config")
-            const authMechanism = _.get(connector_config, ["authenticationMechanism"])
-            if (authMechanism && authMechanism.encrypted) {
-                connector_config = {
-                    ...connector_config,
-                    authenticationMechanism: JSON.parse(cipherService.decrypt(authMechanism.encryptedValues))}
-            }
-            return {
-                ...connector,
-                connector_config: _.isObject(connector_config) ? connector_config : JSON.parse(cipherService.decrypt(connector_config))
-            }
-        });
+        dataset.connectors_config = processConnectorsConfig(dataset.connectors_config);
     }
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
@@ -74,7 +62,7 @@ const readDraftDataset = async (datasetId: string, attributes: string[]): Promis
 
 const readDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
     const dataset = await datasetService.getDataset(datasetId, attributes, true);
-    if(!dataset) {
+    if (!dataset) {
         return;
     }
     const api_version = _.get(dataset, "api_version")
@@ -102,6 +90,25 @@ const readDataset = async (datasetId: string, attributes: string[]): Promise<any
         datasetConfigs["transformations_config"] = transformations_config;
     }
     return { ...dataset, ...datasetConfigs };
+}
+
+const processConnectorsConfig = (connectorsConfig: any) => {
+    return connectorsConfig.map((connector: any) => {
+        let connector_config = _.get(connector, "connector_config");
+        const authMechanism = _.get(connector_config, ["authenticationMechanism"]);
+
+        if (authMechanism && authMechanism.encrypted) {
+            connector_config = {
+                ...connector_config,
+                authenticationMechanism: JSON.parse(cipherService.decrypt(authMechanism.encryptedValues))
+            };
+        }
+
+        return {
+            ...connector,
+            connector_config: _.isObject(connector_config) ? connector_config : JSON.parse(cipherService.decrypt(connector_config))
+        };
+    });
 }
 
 export default datasetRead;
