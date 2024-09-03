@@ -103,5 +103,4 @@ class DatasetCommand(ICommand):
                 "Failed to get dataset configurations from export API, dataset_id: ",
                 dataset_id,
             )
-            print("Dataset record details: ", json.dumps(dataset_record))
             return False

@@ -24,7 +24,7 @@ const allowedTransitions: Record<string, any> = {
 }
 const liveDatasetActions = ["Retire", "Archive", "Purge"]
 
-const validateRequest =  (req: Request, datasetId: any) => {
+const validateRequest = (req: Request, datasetId: any) => {
     const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
     if (!isRequestValid.isValid) {
         throw obsrvError(datasetId, invalidRequest, isRequestValid.message, "BAD_REQUEST", 400)
@@ -32,7 +32,7 @@ const validateRequest =  (req: Request, datasetId: any) => {
 }
 
 const validateDataset = (dataset: any, datasetId: any, action: string) => {
-    
+
     if (_.isEmpty(dataset)) {
         throw obsrvError(datasetId, datasetNotFound, `Dataset not found for dataset: ${datasetId}`, "NOT_FOUND", 404)
     }
@@ -41,7 +41,7 @@ const validateDataset = (dataset: any, datasetId: any, action: string) => {
         throw obsrvError(datasetId, "DATASET_API_VERSION_MISMATCH", "Draft dataset api version is not v2. Perform a read api call with mode=edit to migrate the dataset", "BAD_REQUEST", 400)
     }
 
-    if(!_.includes(allowedTransitions[action], dataset.status)) {
+    if (!_.includes(allowedTransitions[action], dataset.status)) {
         throw obsrvError(datasetId, `DATASET_${_.toUpper(action)}_FAILURE`, `Transition failed for dataset: ${dataset.id} status:${dataset.status} with status transition to ${action}`, "CONFLICT", 409)
     }
 
@@ -54,10 +54,10 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     const { dataset_id, status } = _.get(req.body, "request");
     validateRequest(req, dataset_id);
 
-    const dataset:Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
+    const dataset: Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
     validateDataset(dataset, dataset_id, status);
 
-    switch(status) {
+    switch (status) {
         case "Delete":
             await deleteDataset(dataset);
             break;
@@ -74,7 +74,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
             await archiveDataset(dataset);
             break;
         case "Purge":
-            await purgeDataset(dataset);        
+            await purgeDataset(dataset);
             break;
     }
 
@@ -95,10 +95,11 @@ const readyForPublish = async (dataset: Record<string, any>) => {
     const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
     defaultConfigs = _.omit(defaultConfigs, ["router_config"])
-    if (draftDataset?.type === "master") {
+    defaultConfigs = _.omit(defaultConfigs, "dedup_config.dedup_key");
+    if (draftDataset?.type === 'master') {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }
-    _.mergeWith(draftDataset,defaultConfigs,draftDataset, (objValue, srcValue) => {
+    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue) => {
         if (_.isBoolean(objValue) && _.isBoolean(srcValue)) {
             return objValue;
         }
@@ -128,7 +129,7 @@ const readyForPublish = async (dataset: Record<string, any>) => {
 const publishDataset = async (dataset: Record<string, any>) => {
 
     const draftDataset: Record<string, any> = await datasetService.getDraftDataset(dataset.dataset_id) as unknown as Record<string, any>
-    
+
     await validateAndUpdateDenormConfig(draftDataset);
     await updateMasterDataConfig(draftDataset)
     await datasetService.publishDataset(draftDataset)
@@ -138,9 +139,9 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
 
     // 1. Check if there are denorm fields and dependent master datasets are published
     const denormConfig = _.get(draftDataset, "denorm_config")
-    if(denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
+    if (denormConfig && !_.isEmpty(denormConfig.denorm_fields)) {
         const datasetIds = _.map(denormConfig.denorm_fields, "dataset_id")
-        if(_.includes(datasetIds, draftDataset.id)) {
+        if (_.includes(datasetIds, draftDataset.id)) {
             throw {
                 code: "SELF_REFERENCING_MASTER_DATA",
                 message: `The denorm master dataset is self-referencing itself`,
@@ -148,26 +149,26 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
                 statusCode: 409
             }
         }
-        const masterDatasets = await datasetService.findDatasets({id: datasetIds, type: "master"}, ["id", "status", "dataset_config", "api_version"])
+        const masterDatasets = await datasetService.findDatasets({ id: datasetIds, type: "master" }, ["id", "status", "dataset_config", "api_version"])
         const masterDatasetsStatus = _.map(denormConfig.denorm_fields, (denormField) => {
             const md = _.find(masterDatasets, (master) => { return denormField.dataset_id === master.id })
-            const datasetStatus : Record<string, any> = {
+            const datasetStatus: Record<string, any> = {
                 dataset_id: denormField.dataset_id,
                 exists: (md) ? true : false,
-                isLive:  (md) ? md.status === "Live" : false,
+                isLive: (md) ? md.status === "Live" : false,
                 status: (md) ? md.status : false
             }
-            if(!_.isEmpty(md)){
-                if(md.api_version === "v2")
-                    datasetStatus["denorm_field"] = _.merge(denormField, {redis_db: md.dataset_config.cache_config.redis_db});
-                else 
-                    datasetStatus["denorm_field"] = _.merge(denormField, {redis_db: md.dataset_config.redis_db});
+            if (!_.isEmpty(md)) {
+                if (md.api_version === "v2")
+                    datasetStatus["denorm_field"] = _.merge(denormField, { redis_db: md.dataset_config.cache_config.redis_db });
+                else
+                    datasetStatus["denorm_field"] = _.merge(denormField, { redis_db: md.dataset_config.redis_db });
             }
 
             return datasetStatus;
         })
-        const invalidMasters = _.filter(masterDatasetsStatus, {isLive: false})
-        if(_.size(invalidMasters) > 0) {
+        const invalidMasters = _.filter(masterDatasetsStatus, { isLive: false })
+        if (_.size(invalidMasters) > 0) {
             const invalidIds = _.map(invalidMasters, "dataset_id")
             throw {
                 code: "DEPENDENT_MASTER_DATA_NOT_LIVE",
@@ -193,7 +194,7 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
         draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
         if (draftDataset.dataset_config.cache_config.redis_db === 0) {
             const { results }: any = await datasetService.getNextRedisDBIndex()
-            if(_.isEmpty(results)) {
+            if (_.isEmpty(results)) {
                 throw {
                     code: "REDIS_DB_INDEX_FETCH_FAILED",
                     message: `Unable to fetch the redis db index for the master data`,
@@ -222,14 +223,14 @@ const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
         const liveDatasets = await datasetService.findDatasets({ status: DatasetStatus.Live }, ["dataset_config", "dataset_id"]) || []
         const draftDatasets = await datasetService.findDraftDatasets({ status: [DatasetStatus.ReadyToPublish, DatasetStatus.Draft] }, ["denorm_config", "id", "status"]) || []
         const allDatasets = _.union(liveDatasets, draftDatasets)
-        const extractDenormFields = _.map(allDatasets, function(depDataset) {
-            return {dataset_id: _.get(depDataset, "id"), status: _.get(depDataset, "status"), denorm_datasets: _.map(_.get(depDataset, "denorm_config.denorm_fields"), "dataset_id")}
+        const extractDenormFields = _.map(allDatasets, function (depDataset) {
+            return { dataset_id: _.get(depDataset, "id"), status: _.get(depDataset, "status"), denorm_datasets: _.map(_.get(depDataset, "denorm_config.denorm_fields"), "dataset_id") }
         })
-        const deps = _.filter(extractDenormFields, function(depDS) { return _.includes(depDS.denorm_datasets, dataset.id)})
+        const deps = _.filter(extractDenormFields, function (depDS) { return _.includes(depDS.denorm_datasets, dataset.id) })
         if (_.size(deps) > 0) {
 
             const denormErrMsg = `Failed to retire dataset as it is in use. Please retire or delete dependent datasets before retiring this dataset`
-            throw obsrvError(dataset.id, "DATASET_IN_USE", denormErrMsg, "BAD_REQUEST", 400, undefined, _.map(deps, function(o) { return _.omit(o, "denorm_datasets")}))
+            throw obsrvError(dataset.id, "DATASET_IN_USE", denormErrMsg, "BAD_REQUEST", 400, undefined, _.map(deps, function (o) { return _.omit(o, "denorm_datasets") }))
         }
     }
 }

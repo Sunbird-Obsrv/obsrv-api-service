@@ -96,7 +96,6 @@ class DatasetService {
         const dataset_id = _.get(dataset, "id")
         const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
         const transaction = await sequelize.transaction();
-
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
             await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
@@ -125,12 +124,14 @@ class DatasetService {
         const transformationFields = ["field_key", "transformation_function", "mode", "metadata"]
         const transformations = _.includes([DatasetStatus.Live], status) ? await this.getTransformations(dataset_id, transformationFields) : await this.getDraftTransformations(dataset_id, transformationFields);
         draftDataset["transformations_config"] = _.map(transformations, (config) => {
+            const section: any = _.get(config, "metadata.section");
+            config = _.omit(config, "transformation_function.condition")
             return {
                 field_key: _.get(config, ["field_key"]),
                 transformation_function: {
                     ..._.get(config, ["transformation_function"]),
                     datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
-                    category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                    category: this.getTransformationCategory(section)
                 },
                 mode: _.get(config, ["mode"])
             }
@@ -147,6 +148,7 @@ class DatasetService {
         })
         draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         draftDataset["sample_data"] = dataset_config?.mergedEvent
+        draftDataset["status"] = DatasetStatus.Draft
         return draftDataset;
     }
 
@@ -156,6 +158,8 @@ class DatasetService {
             case "pii":
                 return "pii";
             case "additionalFields":
+                return "derived";
+            case "derived":
                 return "derived";
             default:
                 return "transform";
@@ -184,12 +188,14 @@ class DatasetService {
             })
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
             draftDataset["transformations_config"] = _.map(transformations, (config) => {
+                const section: any = _.get(config, "metadata.section");
+                config = _.omit(config, "transformation_function.condition")
                 return {
                     field_key: _.get(config, "field_key"),
                     transformation_function: {
                         ..._.get(config, ["transformation_function"]),
                         datatype: _.get(config, "metadata._transformedFieldDataType") || "string",
-                        category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                        category: this.getTransformationCategory(section),
                     },
                     mode: _.get(config, "mode")
                 }
@@ -198,8 +204,9 @@ class DatasetService {
             draftDataset["sample_data"] = dataset_config?.mergedEvent
             draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
-            const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
-            draftDataset["connectors_config"] = connectors
+            const v1connectors = await getV1Connectors(draftDataset.dataset_id);
+            const v2connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
+            draftDataset["connectors_config"] = _.concat(v1connectors, v2connectors)
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
@@ -308,7 +315,7 @@ class DatasetService {
             await transaction.rollback()
             throw obsrvError(draftDataset.id, "FAILED_TO_PUBLISH_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
-        await executeCommand(draftDataset.id, "PUBLISH_DATASET");
+        await executeCommand(draftDataset.dataset_id, "PUBLISH_DATASET");
 
     }
 
@@ -347,7 +354,7 @@ class DatasetService {
         return {
             id: _.join([datasource, type], "_"),
             datasource: draftDataset.dataset_id,
-            dataset_id: draftDataset.dataset_id,
+            dataset_id: draftDataset.id,
             datasource_ref: datasource,
             type
         }
@@ -359,7 +366,9 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
 
     const datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
-    const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV2 = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV1 = await getV1Connectors(dataset_id)
+    const connectors = _.concat(connectorsV1,connectorsV2)
 
     if (!_.isEmpty(transformations)) {
         datasetRecord["transformations_config"] = transformations
@@ -368,6 +377,19 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
         datasetRecord["connectors_config"] = connectors
     }
     return datasetRecord;
+}
+
+export const getV1Connectors = async (datasetId: string) => {
+    const v1connectors = await datasetService.getConnectorsV1(datasetId, ["id", "connector_type", "connector_config"]);
+    const modifiedV1Connectors = _.map(v1connectors, (config) => {
+        return {
+            id: _.get(config, "id"),
+            connector_id: _.get(config, "connector_type"),
+            connector_config: _.get(config, "connector_config"),
+            version: "v1"
+        }
+    })
+    return modifiedV1Connectors;
 }
 
 export const datasetService = new DatasetService();

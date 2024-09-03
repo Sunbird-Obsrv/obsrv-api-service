@@ -26,8 +26,8 @@ const apiId = "api.data.in";
 const errorCode = "DATASET_UPDATE_FAILURE"
 
 const dataIn = async (req: Request, res: Response) => {
-    try {
-        const requestBody = req.body;
+
+    const requestBody = req.body;
         const datasetId = req.params.datasetId.trim();
 
         const isValidSchema = schemaValidation(requestBody, validationSchema)
@@ -35,29 +35,20 @@ const dataIn = async (req: Request, res: Response) => {
             logger.error({ apiId, message: isValidSchema?.message, code: "DATA_INGESTION_INVALID_INPUT" })
             return ResponseHandler.errorResponse({ message: isValidSchema?.message, statusCode: 400, errCode: "BAD_REQUEST", code: "DATA_INGESTION_INVALID_INPUT" }, req, res);
         }
-        const dataset = await datasetService.getDataset(datasetId, ["id"], true)
+        const dataset = await datasetService.getDataset(datasetId, ["id", "entry_topic", "api_version", "dataset_config"], true)
         if (!dataset) {
             logger.error({ apiId, message: `Dataset with id ${datasetId} not found in live table`, code: "DATASET_NOT_FOUND" })
             return ResponseHandler.errorResponse(errorObject.datasetNotFound, req, res);
         }
-        const entryTopic = _.get(dataset, "dataValues.dataset_config.entry_topic")
+        const { entry_topic, dataset_config, api_version } = dataset
+        const entryTopic = api_version !== "v2" ? _.get(dataset_config, "entry_topic") : entry_topic
         if (!entryTopic) {
             logger.error({ apiId, message: "Entry topic not found", code: "TOPIC_NOT_FOUND" })
             return ResponseHandler.errorResponse(errorObject.topicNotFound, req, res);
         }
-        await send(addMetadataToEvents(datasetId, requestBody), _.get(dataset, "dataValues.dataset_config.entry_topic"))
+        await send(addMetadataToEvents(datasetId, requestBody), entryTopic)
         ResponseHandler.successResponse(req, res, { status: 200, data: { message: "Data ingested successfully" } });
-    }
-    catch (err: any) {
-        const code = _.get(err, "code") || errorCode
-        logger.error({ ...err, apiId, code })
-        let errorMessage = err;
-        const statusCode = _.get(err, "statusCode")
-        if (!statusCode || statusCode == 500) {
-            errorMessage = { code: "DATA_INGESTION_FAILED", message: "Failed to ingest data" }
-        }
-        ResponseHandler.errorResponse(errorMessage, req, res);
-    }
+
 }
 
 const addMetadataToEvents = (datasetId: string, payload: any) => {

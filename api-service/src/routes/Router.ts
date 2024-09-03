@@ -27,8 +27,9 @@ import DatasetCopy from "../controllers/DatasetCopy/DatasetCopy";
 import ConnectorsList from "../controllers/ConnectorsList/ConnectorsList";
 import ConnectorsRead from "../controllers/ConnectorsRead/ConnectorsRead";
 import DatasetImport from "../controllers/DatasetImport/DatasetImport";
-import {OperationType, telemetryAuditStart} from "../services/telemetry";
+import { OperationType, telemetryAuditStart } from "../services/telemetry";
 import telemetryActions from "../telemetry/telemetryActions";
+import datasetMetrics from "../controllers/DatasetMetrics/DatasetMetricsController";
 import checkRBAC from "../middlewares/RBAC_middleware";
 
 export const router = express.Router();
@@ -60,3 +61,5 @@ router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), o
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), checkRBAC.handler(), sqlQuery);
+router.post("/data/metrics", setDataToRequestObject("api.data.metrics"), onRequest({ entity: Entity.Data_out }), datasetMetrics)
+
