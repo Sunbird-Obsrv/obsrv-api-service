@@ -29,7 +29,7 @@ import ConnectorsRead from "../controllers/ConnectorsRead/ConnectorsRead";
 import DatasetImport from "../controllers/DatasetImport/DatasetImport";
 import { OperationType, telemetryAuditStart } from "../services/telemetry";
 import telemetryActions from "../telemetry/telemetryActions";
-import nativeQuery from "../controllers/QueryWrapper/NativeQueryWrapper";
+import datasetMetrics from "../controllers/DatasetMetrics/DatasetMetricsController";
 
 export const router = express.Router();
 
@@ -60,4 +60,4 @@ router.post("/datasets/import", setDataToRequestObject("api.datasets.import"), o
 
 //Wrapper Service
 router.post("/obsrv/data/sql-query", setDataToRequestObject("api.obsrv.data.sql-query"), onRequest({ entity: Entity.Data_out }), sqlQuery);
-router.post("/data/metrics", setDataToRequestObject("api.data.metrics"), onRequest({ entity: Entity.Data_out }), nativeQuery)
+router.post("/data/metrics", setDataToRequestObject("api.data.metrics"), onRequest({ entity: Entity.Data_out }), datasetMetrics)

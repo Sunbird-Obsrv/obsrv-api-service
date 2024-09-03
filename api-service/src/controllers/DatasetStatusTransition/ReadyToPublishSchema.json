@@ -14,11 +14,17 @@
     },
     "status": {
       "type": "string",
-      "enum": ["Draft"]
+      "enum": [
+        "Draft"
+      ]
     },
     "type": {
       "type": "string",
-      "enum": ["event", "transaction", "master"]
+      "enum": [
+        "event",
+        "transaction",
+        "master"
+      ]
     },
     "name": {
       "type": "string",
@@ -36,10 +42,16 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["Strict", "IgnoreNewFields"]
+          "enum": [
+            "Strict",
+            "IgnoreNewFields"
+          ]
         }
       },
-      "required": ["validate", "mode"]
+      "required": [
+        "validate",
+        "mode"
+      ]
     },
     "extraction_config": {
       "type": "object",
@@ -78,9 +90,15 @@
               "dedup_key": {
                 "minLength": 1
               }
-            }
+            },
+            "required": [
+              "dedup_key",
+              "dedup_period"
+            ]
           },
-          "required": ["drop_duplicates", "dedup_key", "dedup_period"],
+          "required": [
+            "drop_duplicates"
+          ],
           "additionalProperties": false
         }
       },
@@ -133,9 +151,15 @@
           "dedup_key": {
             "minLength": 1
           }
-        }
+        },
+        "required": [
+          "dedup_key",
+          "dedup_period"
+        ]
       },
-      "required": ["drop_duplicates", "dedup_key", "dedup_period"],
+      "required": [
+        "drop_duplicates"
+      ],
       "additionalProperties": false
     },
     "data_schema": {
@@ -160,7 +184,10 @@
           "type": "boolean"
         }
       },
-      "required": ["type", "properties"],
+      "required": [
+        "type",
+        "properties"
+      ],
       "additionalProperties": false
     },
     "denorm_config": {
@@ -200,17 +227,27 @@
             },
             "oneOf": [
               {
-                "required": ["dataset_id", "denorm_out_field", "denorm_key"]
+                "required": [
+                  "dataset_id",
+                  "denorm_out_field",
+                  "denorm_key"
+                ]
               },
               {
-                "required": ["dataset_id", "denorm_out_field", "jsonata_expr"]
+                "required": [
+                  "dataset_id",
+                  "denorm_out_field",
+                  "jsonata_expr"
+                ]
               }
             ],
             "additionalProperties": false
           }
         }
       },
-      "required": ["denorm_fields"],
+      "required": [
+        "denorm_fields"
+      ],
       "additionalProperties": false
     },
     "router_config": {
@@ -221,7 +258,9 @@
           "minLength": 1
         }
       },
-      "required": ["topic"],
+      "required": [
+        "topic"
+      ],
       "additionalProperties": false
     },
     "dataset_config": {
@@ -253,9 +292,13 @@
               "default": false
             }
           },
-          "required": ["olap_store_enabled", "lakehouse_enabled", "cache_enabled"],
+          "required": [
+            "olap_store_enabled",
+            "lakehouse_enabled",
+            "cache_enabled"
+          ],
           "additionalProperties": false
-        }, 
+        },
         "keys_config": {
           "type": "object",
           "properties": {
@@ -273,7 +316,10 @@
               "minLength": 1
             }
           },
-          "required": ["data_key", "timestamp_key"],
+          "required": [
+            "data_key",
+            "timestamp_key"
+          ],
           "additionalProperties": false
         },
         "cache_config": {
@@ -290,11 +336,18 @@
               "type": "integer"
             }
           },
-          "required": ["redis_db_host", "redis_db_port"],
+          "required": [
+            "redis_db_host",
+            "redis_db_port"
+          ],
           "additionalProperties": false
         }
       },
-      "required": ["indexing_config", "keys_config", "cache_config"],
+      "required": [
+        "indexing_config",
+        "keys_config",
+        "cache_config"
+      ],
       "additionalProperties": false
     },
     "tags": {
@@ -337,7 +390,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["type", "expr"],
+                "required": [
+                  "type",
+                  "expr"
+                ],
                 "additionalProperties": false
               },
               "datatype": {
@@ -345,19 +401,34 @@
               },
               "category": {
                 "type": "string",
-                "enum": ["pii", "transform", "derived"]
+                "enum": [
+                  "pii",
+                  "transform",
+                  "derived"
+                ]
               }
             },
-            "required": ["type", "expr", "category"],
+            "required": [
+              "type",
+              "expr",
+              "category"
+            ],
             "additionalProperties": false
           },
           "mode": {
             "type": "string",
-            "enum": ["Strict", "Lenient"]
+            "enum": [
+              "Strict",
+              "Lenient"
+            ]
           }
         },
         "additionalProperties": false,
-        "required": ["field_key", "transformation_function", "mode"]
+        "required": [
+          "field_key",
+          "transformation_function",
+          "mode"
+        ]
       }
     },
     "connectors_config": {
@@ -392,7 +463,12 @@
           }
         },
         "additionalProperties": false,
-        "required": ["id", "connector_id", "connector_config", "version"]
+        "required": [
+          "id",
+          "connector_id",
+          "connector_config",
+          "version"
+        ]
       }
     }
   },
@@ -413,7 +489,9 @@
                 "minLength": 1
               }
             },
-            "required": ["data_key"]
+            "required": [
+              "data_key"
+            ]
           }
         }
       }
