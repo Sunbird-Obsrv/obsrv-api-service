@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { ResponseHandler } from "../helpers/ResponseHandler";
 import { config } from "../configs/Config";
+import _ from "lodash";
 
 enum roles {
   Admin = "admin",
@@ -122,7 +123,9 @@ export default {
   name: "rbac:middleware",
   handler: () => (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (config.is_RBAC_enabled === true) {
+      if (_.lowerCase(config.is_RBAC_enabled) === "false") {
+        next();
+      } else {
         const public_key = config.user_token_public_key;
         const token = req.get("x-user-token");
         if (!token) {
@@ -148,9 +151,9 @@ export default {
               res
             );
           }
-          if (decoded && typeof decoded == "object") {
+          if (decoded && _.isObject(decoded)) {
             const action = (req as any).id;
-            const hasAccess = decoded.roles.some(
+            const hasAccess = decoded?.roles?.some(
               (role: string) =>
                 accessControl[role] && accessControl[role].includes(action)
             );
@@ -168,8 +171,6 @@ export default {
             next();
           }
         });
-      } else {
-        next();
       }
     } catch (error) {
       next(error);
