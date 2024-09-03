@@ -175,7 +175,7 @@ class ConnectorCommand(ICommand):
                         namespace,
                         "--create-namespace",
                         "--set-json",
-                        f"flink_jobs={set_json_value.replace(" ", "")}"
+                        f"""flink_jobs={set_json_value.replace(" ", "")}"""
                     ]
                     
                     print("flink connector installation:  ", " ".join(helm_install_cmd))

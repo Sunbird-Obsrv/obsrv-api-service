@@ -315,7 +315,7 @@ class DatasetService {
             await transaction.rollback()
             throw obsrvError(draftDataset.id, "FAILED_TO_PUBLISH_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
-        await executeCommand(draftDataset.id, "PUBLISH_DATASET");
+        await executeCommand(draftDataset.dataset_id, "PUBLISH_DATASET");
 
     }
 
@@ -354,7 +354,7 @@ class DatasetService {
         return {
             id: _.join([datasource, type], "_"),
             datasource: draftDataset.dataset_id,
-            dataset_id: draftDataset.dataset_id,
+            dataset_id: draftDataset.id,
             datasource_ref: datasource,
             type
         }

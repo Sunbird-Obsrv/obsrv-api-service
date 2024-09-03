@@ -176,7 +176,7 @@ class DBCommand(ICommand):
                 draft_datasource.datasource,
                 dataset_id,
                 draft_datasource.datasource_ref, 
-                json.dumps(draft_datasource.ingestion_spec).replace("'", "''"),
+                json.dumps(draft_datasource.ingestion_spec),
                 draft_datasource.type,
                 json.dumps(draft_datasource.retention_period).replace("'", "''"),
                 json.dumps(draft_datasource.archival_policy).replace("'", "''"),
@@ -191,7 +191,7 @@ class DBCommand(ICommand):
                 json.dumps(draft_datasource.metadata).replace("'", "''"),
 
                 draft_datasource.datasource,
-                json.dumps(draft_datasource.ingestion_spec).replace("'", "''"),
+                json.dumps(draft_datasource.ingestion_spec),
                 draft_datasource.type,
                 json.dumps(draft_datasource.retention_period).replace("'", "''"),
                 json.dumps(draft_datasource.archival_policy).replace("'", "''"),
