@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import { config } from "../configs/Config";
 const druidPort = _.get(config, "query_api.druid.port");
 const druidHost = _.get(config, "query_api.druid.host");
-export const nativeQueryEndpoint = `${druidHost}:${druidPort}${config.query_api.druid.native_query_path}`;
+const nativeQueryEndpoint = `${druidHost}:${druidPort}${config.query_api.druid.native_query_path}`;
 const sqlQueryEndpoint = `${druidHost}:${druidPort}${config.query_api.druid.sql_query_path}`;
 
 export const executeNativeQuery = async (payload: any) => {
