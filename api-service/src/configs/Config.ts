@@ -4,7 +4,7 @@ const env = process.env.system_env || "local"
 
 export const config = {
   "env": env,
-  "api_port": process.env.api_port || 3005,
+  "api_port": process.env.api_port || 3000,
   "body_parser_limit": process.env.body_parser_limit || "100mb",
   "version": "1.0",
   "query_api": {
