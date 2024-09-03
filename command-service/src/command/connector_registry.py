@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
+import subprocess
 from fastapi import status
 
 from config import Config
@@ -175,7 +176,9 @@ class ConnectorRegistry:
     def process_metadata(self, rel_path, connector_source) -> RegistryResponse:
         result = []
         tenant = self.metadata.get("metadata", {}).get("tenant", "")
-
+        
+        self.copy_connector_to_runtime(self.metadata['metadata']['runtime'], connector_source)
+        
         if tenant == "multiple":
             connector_objects = self.metadata["connectors"]
             for obj in connector_objects:
@@ -210,6 +213,10 @@ class ConnectorRegistry:
                     )
                 query, params = self.build_insert_query(registry_meta)
                 success = self.execute_query(query, params)
+                
+                subprocess.run(["rm", "-rf", self.extraction_path])
+                subprocess.run(["rm", "-rf", self.download_path])
+                         
                 if not success:
                     return RegistryResponse(
                         status="failure",
@@ -259,6 +266,10 @@ class ConnectorRegistry:
             )
             query, params = self.build_insert_query(registry_meta)
             success = self.execute_query(query, params)
+            
+            subprocess.run(["rm", "-rf", self.extraction_path])
+            subprocess.run(["rm", "-rf", self.download_path])
+            
             if not success:
                 return RegistryResponse(
                     status="failure",
@@ -271,6 +282,7 @@ class ConnectorRegistry:
                 connector_info=[registry_meta.to_dict()],
                 statusCode=status.HTTP_200_OK,
             )
+
 
     def execute_query(self, query, params) -> bool:
         try:
@@ -420,6 +432,63 @@ class ConnectorRegistry:
             print(
                 f"Connector Registry | An error occurred during the execution of Query: {e}"
             )
+    
+    def copy_connector_to_runtime(self, runtime: str, connector_source: str):
+        if runtime == "spark":
+            return self.copy_connector_to_spark(connector_source)
+
+    def copy_connector_to_spark(self, connector_source: str):
+        print(f"Connector Registry | copying {connector_source} to spark")
+        ## get name of the spark pod using kubectl
+        spark_pod_cmd = [
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            "spark",
+            "-l",
+            "app.kubernetes.io/name=spark,app.kubernetes.io/component=master",
+            "-o",
+            "jsonpath='{.items[0].metadata.name}'",
+        ]
+
+        spark_pod_result = subprocess.run(spark_pod_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        print(f"Connector Registry | spark_pod_result:  {spark_pod_result}")
+
+        if spark_pod_result.returncode != 0:
+            return RegistryResponse(
+                status="failure",
+                message="failed to get the spark pod",
+                statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        spark_pod = spark_pod_result.stdout.decode("utf-8").replace("'", "")
+        print(f"Connector Registry | spark_pod:  {spark_pod}")
+
+        ## copy the connector to the spark pod under /data/connectors/{source}
+        source_path = os.path.join(self.extraction_path, connector_source)
+        copy_cmd = [
+            "kubectl",
+            "cp",
+            f"{source_path}",
+            f"spark/{spark_pod}:/data/connectors/{connector_source}",
+        ]
+
+        copy_result = subprocess.run(copy_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f"Connector Registry | copy_result:  {copy_result}")
+        if copy_result.returncode != 0:
+            return RegistryResponse(
+                status="failure",
+                message="failed to copy the connector to spark",
+                statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return RegistryResponse(
+            status="success",
+            message="connector copied to spark successfully",
+            statusCode=status.HTTP_200_OK,
+        )
 
 class ExtractionUtil:
     def extract_gz(tar_path, extract_path):

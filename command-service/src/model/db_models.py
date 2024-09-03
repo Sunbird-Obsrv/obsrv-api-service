@@ -123,5 +123,5 @@ class ConnectorInstance:
     connector_id: str
     operations_config: dict
     connector_runtime: str
-    connector_source: str
+    connector_source: dict
     technology: str
