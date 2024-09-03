@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "properties": {
+        "query": {
+            "type": "object",
+            "nullable": true
+        }
+    },
+    "required": [
+        "query"
+    ]
+}

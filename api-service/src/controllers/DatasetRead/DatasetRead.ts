@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import _ from "lodash";
 import { ResponseHandler } from "../../helpers/ResponseHandler";
 import { DatasetDraft } from "../../models/DatasetDraft";
-import { datasetService } from "../../services/DatasetService";
+import { datasetService, getV1Connectors } from "../../services/DatasetService";
 import { obsrvError } from "../../types/ObsrvError";
 import { cipherService } from "../../services/CipherService";
 
@@ -36,10 +36,7 @@ const datasetRead = async (req: Request, res: Response) => {
         throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
     }
     if (dataset.connectors_config) {
-        dataset.connectors_config = dataset.connectors_config.map((connector: any) => ({
-            ...connector,
-            connector_config: JSON.parse(cipherService.decrypt(connector.connector_config))
-        }));
+        dataset.connectors_config =  processConnectorsConfig(dataset.connectors_config);
     }
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
@@ -65,7 +62,53 @@ const readDraftDataset = async (datasetId: string, attributes: string[]): Promis
 
 const readDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
     const dataset = await datasetService.getDataset(datasetId, attributes, true);
-    return dataset;
+    if (!dataset) {
+        return;
+    }
+    const api_version = _.get(dataset, "api_version")
+    let datasetConfigs: any = {}
+    const transformations_config = await datasetService.getTransformations(datasetId, ["field_key", "transformation_function", "mode", "metadata"])
+    if (api_version !== "v2") {
+        datasetConfigs["connectors_config"] = await getV1Connectors(datasetId)
+        datasetConfigs["transformations_config"] = _.map(transformations_config, (config) => {
+            const section: any = _.get(config, "metadata.section") || _.get(config, "transformation_function.category");
+            return {
+                field_key: _.get(config, "field_key"),
+                transformation_function: {
+                    ..._.get(config, ["transformation_function"]),
+                    datatype: _.get(config, "metadata._transformedFieldDataType") || _.get(config, "transformation_function.datatype") || "string",
+                    category: datasetService.getTransformationCategory(section),
+                },
+                mode: _.get(config, "mode")
+            }
+        })
+    }
+    else {
+        const v1connectors = await getV1Connectors(datasetId)
+        const v2connectors = await datasetService.getConnectors(datasetId, ["id", "connector_id", "connector_config", "operations_config"]);
+        datasetConfigs["connectors_config"] = _.concat(v1connectors, v2connectors)
+        datasetConfigs["transformations_config"] = transformations_config;
+    }
+    return { ...dataset, ...datasetConfigs };
+}
+
+const processConnectorsConfig = (connectorsConfig: any) => {
+    return connectorsConfig.map((connector: any) => {
+        let connector_config = _.get(connector, "connector_config");
+        const authMechanism = _.get(connector_config, ["authenticationMechanism"]);
+
+        if (authMechanism && authMechanism.encrypted) {
+            connector_config = {
+                ...connector_config,
+                authenticationMechanism: JSON.parse(cipherService.decrypt(authMechanism.encryptedValues))
+            };
+        }
+
+        return {
+            ...connector,
+            connector_config: _.isObject(connector_config) ? connector_config : JSON.parse(cipherService.decrypt(connector_config))
+        };
+    });
 }
 
 export default datasetRead;

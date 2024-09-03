@@ -143,16 +143,14 @@ class TableGenerator extends BaseTableGenerator {
     }
 
     private getDruidFlattenSpec = (allFields: Record<string, any>) => {
-        return _.union(
-            _.map(allFields, (field) => {
-                return {
-                    type: "path",
-                    expr: field.expr,
-                    name: field.name
-                }
-            }),
-            rawIngestionSpecDefaults.flattenSpec
-        )
+        const allfields = _.map(allFields, (field) => {
+            return {
+                type: "path",
+                expr: field.expr,
+                name: field.name
+            }
+        });
+        return _.uniqBy([...allfields, ...rawIngestionSpecDefaults.flattenSpec], "name")
     }
 
     getHudiIngestionSpecForCreate = (dataset: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
