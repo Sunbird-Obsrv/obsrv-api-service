@@ -23,7 +23,6 @@ const errorObject = {
     }
 }
 const apiId = "api.data.in";
-const errorCode = "DATASET_UPDATE_FAILURE"
 
 const dataIn = async (req: Request, res: Response) => {
 

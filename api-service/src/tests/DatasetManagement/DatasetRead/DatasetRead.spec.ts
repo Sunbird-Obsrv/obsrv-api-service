@@ -31,9 +31,18 @@ describe("DATASET READ API", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ "name": "sb-telemetry", "version": 1 })
         })
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve([])
+        })
+        chai.spy.on(ConnectorInstances, "findAll", () => {
+            return Promise.resolve([])
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve([])
+        })
         chai
             .request(app)
-            .get("/v2/datasets/read/sb-telemetry?fields=name,version")
+            .get("/v2/datasets/read/sb-telemetry?fields=name,version,connectors_config,transformations_config")
             .end((err, res) => {
                 res.should.have.status(httpStatus.OK);
                 res.body.should.be.a("object")
@@ -42,7 +51,7 @@ describe("DATASET READ API", () => {
                 res.body.result.should.be.a("object")
                 res.body.result.name.should.be.eq("sb-telemetry")
                 const result = JSON.stringify(res.body.result)
-                result.should.be.eq(JSON.stringify({ name: "sb-telemetry", version: 1 }))
+                result.should.be.eq(JSON.stringify({ "name": "sb-telemetry", "version": 1, "connectors_config": [], "transformations_config": [] }))
                 done();
             });
     });
@@ -69,6 +78,15 @@ describe("DATASET READ API", () => {
     });
 
     it("Dataset read success: Fetch live dataset when mode param not provided", (done) => {
+        chai.spy.on(DatasetTransformations, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA)
+        })
+        chai.spy.on(ConnectorInstances, "findAll", () => {
+            return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V2)
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve([])
+        })
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve(TestInputsForDatasetRead.LIVE_SCHEMA)
         })
@@ -83,7 +101,7 @@ describe("DATASET READ API", () => {
                 res.body.result.should.be.a("object")
                 res.body.result.status.should.be.eq("Live")
                 const result = JSON.stringify(res.body.result)
-                result.should.be.eq(JSON.stringify({ ...TestInputsForDatasetRead.LIVE_SCHEMA }))
+                result.should.be.eq(JSON.stringify({ ...TestInputsForDatasetRead.LIVE_SCHEMA, connectors_config: TestInputsForDatasetRead.CONNECTORS_SCHEMA_V2, transformations_config: TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA }))
                 done();
             });
     });
@@ -97,6 +115,9 @@ describe("DATASET READ API", () => {
         })
         chai.spy.on(DatasetTransformations, "findAll", () => {
             return Promise.resolve(TestInputsForDatasetRead.TRANSFORMATIONS_SCHEMA)
+        })
+        chai.spy.on(DatasetSourceConfig, "findAll", () => {
+            return Promise.resolve([])
         })
         chai.spy.on(ConnectorInstances, "findAll", () => {
             return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V2)
@@ -267,7 +288,7 @@ describe("DATASET READ API", () => {
             return Promise.resolve(TestInputsForDatasetRead.CONNECTORS_SCHEMA_V1)
         })
         chai.spy.on(Dataset, "findAll", () => {
-            return Promise.resolve([{"dataset_id":"master_dataset", "dataset_config":{"cache_config":{"redis_db":20}}}])
+            return Promise.resolve([{ "dataset_id": "master_dataset", "dataset_config": { "cache_config": { "redis_db": 20 } } }])
         })
         chai
             .request(app)
