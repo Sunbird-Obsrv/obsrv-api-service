@@ -6,8 +6,8 @@ import axios from "axios";
 import httpStatus from "http-status";
 import busboy from "busboy";
 import { PassThrough } from "stream";
-import { generatePreSignedUrl } from "../GenerateSignedURL/helper";
 import { registerConnector } from "../../connections/commandServiceConnection";
+import { generatePreSignedUrl } from "../GenerateSignedURL/helper";
 
 export const apiId = "api.connector.register";
 export const code = "FAILED_TO_REGISTER_CONNECTOR";

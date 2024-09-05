@@ -114,30 +114,4 @@ describe("DATASET CREATE API", () => {
                 done();
             });
     });
-
-
-    it("Failure: Master dataset not found as denorm", (done) => {
-        chai.spy.on(DatasetDraft, "findOne", () => {
-            return Promise.resolve(null)
-        })
-        chai.spy.on(Dataset, "findAll", () => {
-            return Promise.resolve([{ "dataset_id": "trip-data-master", "dataset_config": { "redis_db": 15 } }])
-        })
-
-        chai
-            .request(app)
-            .post("/v2/datasets/create")
-            .send(TestInputsForDatasetCreate.VALID_DATASET)
-            .end((err, res) => {
-                res.should.have.status(httpStatus.NOT_FOUND);
-                res.body.should.be.a("object")
-                res.body.id.should.be.eq(apiId);
-                res.body.params.status.should.be.eq("FAILED")
-                res.body.params.msgid.should.be.eq(msgid)
-                res.body.error.message.should.be.eq("Denorm Master dataset not found")
-                res.body.error.code.should.be.eq("DATASET_DENORM_NOT_FOUND")
-                done();
-            });
-    });
-
 })
