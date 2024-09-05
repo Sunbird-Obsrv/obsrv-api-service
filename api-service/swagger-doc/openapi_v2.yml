@@ -78,7 +78,6 @@ paths:
                     denorm_fields:
                       - denorm_key: eid
                         denorm_out_field: userdata
-                        dataset_id: master-telemetry
                   transformations_config:
                     - field_key: eid
                       transformation_function:
@@ -979,7 +978,7 @@ paths:
                         redis_db_port: 6379
                         index_data: true
                         redis_db: 70
-                        files_upload_path: []
+                        file_upload_path: []
                         configurations:
                           indexConfiguration:
                             index:
