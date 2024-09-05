@@ -106,10 +106,6 @@ export const DatasetDraft = sequelize.define("datasets_draft", {
     type: DataTypes.STRING,
     allowNull: false
   },
-  api_version: {
-    type: DataTypes.STRING,
-    defaultValue: "v2"
-  }
 }, {
   timestamps: true,
   createdAt: "created_date",
