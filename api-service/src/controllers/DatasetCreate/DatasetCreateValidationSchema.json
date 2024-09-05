@@ -36,6 +36,9 @@
           "type": "string",
           "minLength": 1
         },
+        "client_state": {
+          "type": "object"
+        },
         "validation_config": {
           "type": "object",
           "properties": {
@@ -68,6 +71,9 @@
             "is_batch_event": {
               "type": "boolean",
               "default": true
+            },
+            "batch_id": {
+              "type": "string"
             },
             "extraction_key": {
               "type": "string",
@@ -160,6 +166,9 @@
             "type": {
               "type": "string",
               "minLength": 1
+            },
+            "required": {
+              "type": "array"
             },
             "properties": {
               "type": "object",

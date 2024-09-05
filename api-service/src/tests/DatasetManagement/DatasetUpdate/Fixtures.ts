@@ -191,7 +191,7 @@ export const TestInputsForDatasetUpdate = {
             "dataset_config": {
                 "data_key": "eid",
                 "timestamp_key": "ets",
-                "file_upload_path": ["/config/file.json"]
+                "files_upload_path": ["/config/file.json"]
             }
         }
     },
@@ -233,7 +233,11 @@ export const TestInputsForDatasetUpdate = {
                 {
                     "values": {
                         "field_key": "key1",
-                        "transformation_function": {},
+                        "transformation_function": {
+                            "type": "mask",
+                            "expr": "eid",
+                            "condition": null
+                        },
                         "mode": "Strict",
                         "metadata": {}
                     },
@@ -340,14 +344,16 @@ export const TestInputsForDatasetUpdate = {
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "upsert"
                     },
                     {
                         "values": {
                             "denorm_key": "actor.id",
-                            "denorm_out_field": "userdata"
+                            "denorm_out_field": "userdata",
+                            "dataset_id" : "master-telemetry"
                         },
                         "action": "upsert"
                     }
