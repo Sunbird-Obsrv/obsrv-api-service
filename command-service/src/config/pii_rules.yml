@@ -1,0 +1,118 @@
+keys:
+  address:
+    rule: '\baddress\b|\blocation\b|\bloc\b|\baddr\b|\badd\b'
+    locale: ''
+    code: 'en'
+    resourceKey: pii.descriptions.m001
+  financial:
+    rule: '\bcredit\b|\bdebit\b|\baccount\b|\btransaction\b|\btxn\b|\biban\b|\bswift\b'
+    locale: ''
+    code: 'en'
+    resourceKey: pii.descriptions.m002
+  id:
+    rule: '\bid\b'
+    locale: ''
+    code: 'en'
+    resourceKey: pii.descriptions.m003
+  internet:
+    rule: '\bemail\b|\bip\b'
+    locale: ''
+    code: 'en'
+    resourceKey: pii.descriptions.m004
+  phone:
+    rule: '\bphone\b|\bnumber\b|\bno\b|\bno\.\b|\bnum\b|\bmobile\b|\bcontact\b'
+    locale: ''
+    code: 'en'
+    resourceKey: pii.descriptions.m005
+  name:
+    rule: '\bname\b'
+    locale: ''
+    code: 'en'
+    resourceKey: pii.descriptions.m006
+values:
+  address:
+    india:
+      rule: '(?:\bAN\b|\bAP\b|\bAD\b|\bAR\b|\bAS\b|\bBH\b|\bCH\b|\bCT\b|\bDN\b|\bDL\b|\bGA\b|\bGJ\b|\bHR\b|\bHP\b|\bJK\b|\bJH\b|\bKA\b|\bKL\b|\bLD\b|\bMP\b|\bMH\b|\bMN\b|\bME\b|\bMI\b|\bNL\b|\bOR\b|\bPY\b|\bPB\b|\bRJ\b|\bSK\b|\bTN\b|\bTS\b|\bTR\b|\bUP\b|\bUT\b|\bWB\b)'
+      locale: 'India'
+      code: 'en'
+      resourceKey: pii.descriptions.m007
+    us: 
+      rule: '\d{1,4} [\w\s]{1,20}(?:\bstreet\b|\bst\b|\bavenue\b|\bave\b|\broad\b|\brd\b|\bhighway\b|\bhwy\b|\bsquare\b|\bsq\b|\btrail\b|\btrl\b|\bdrive\b|\bdr\b|\bcourt\b|\bct\b|\bpark\b|\bparkway\b|\bpkwy\b|\bcircle\b|\bcir\b|\bboulevard\b|\bblvd\b)\W?(?=\s|$)'
+      locale: 'USA'
+      code: 'en'
+      resourceKey: pii.descriptions.m008
+  financial:
+    credit_card: 
+      rule: '((?:(?:\\d{4}[- ]?){3}\\d{4}|\\d{15,16}))(?![\\d])'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m009
+    iban_number: 
+      rule: '[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z\d]?){0,16}'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m010
+  id:
+    aadhaar: 
+      rule: '\b\d{4}[ -]\d{4}[ -]\d{4}'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m011
+    pan: 
+      rule: '\b[A-Z]{4}\d{4}[A-Z]'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m012
+    ssn: 
+      rule: '(?:\d{3}-\d{2}-\d{4})'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m013
+  internet: 
+    email:
+      rule: '(?i)([A-Za-z0-9!#$%&*+\/=?^_{|.}~-]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m014
+    ipv4: 
+      rule: &IPv4 '(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m015
+    ipv6: 
+      rule: &IPv6 '\s*(?!.*::.*::)(?:(?!:)|:(?=:))(?:[0-9a-f]{0,4}(?:(?<=::)|(?<!::):)){6}(?:[0-9a-f]{0,4}(?:(?<=::)|(?<!::):)[0-9a-f]{0,4}(?:(?<=::)|(?<!:)|(?<=:)(?<!::):)|(?:25[0-4]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-4]|2[0-4]\d|1\d\d|[1-9]?\d)){3})\s*'
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m016
+    ip_pattern: 
+      rule: !join [*IPv4, '|' , *IPv6]
+      locale: ''
+      code: 'en'
+      resourceKey: pii.descriptions.m017
+  phone:
+    india: 
+      rule: \b(?:\+?91)?[6-9]\d{9}\b|\b(?:(?:\+91)|0)?\d{3,4}[ -]?\d{8}\b
+      locale: 'India'
+      code: 'en'
+      resourceKey: pii.descriptions.m018
+    france:
+      rule: '\b(0?11)?330?[\d]{9}\b'
+      locale: 'France'
+      code: 'en'
+      resourceKey: pii.descriptions.m018
+    germany:
+      rule: '\b[\d\w]\d{2}[\d\w]{6}\d[\d\w]\b'
+      locale: 'Germany'
+      code: 'en'
+      resourceKey: pii.descriptions.m018
+    uk:
+      rule: '\b(0?11)?44[\d]{10,11}\b'
+      locale: 'UK'
+      code: 'en'
+      resourceKey: pii.descriptions.m018
+    us:
+      rule: '\b((\+|\b)1[\-\. ])?\(?\b[\d]{3,5}([\-\. ]|\) ?)[\d]{3}[\-\. ][\d]{4}\b'
+      locale: 'USA'
+      code: 'en'
+      resourceKey: pii.descriptions.m018
+  

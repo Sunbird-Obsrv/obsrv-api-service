@@ -1,0 +1,29 @@
+## JDBC Connector
+technology: scala
+connector-source: jdbc-connector-1.0.0
+instance-id: nyt-psql.1
+main_class: org.sunbird.obsrv.connector.JDBCConnector
+main_file: jdbc-connector-1.0.0.jar
+
+
+## Object Store Connector
+# technology: python
+# connector-source: object_store_connector-0.1.0
+# instance-id: s3.new-york-taxi-data.1
+# main_file: object_store_connector/__main__.py
+
+schedule: 0 * * * * # Every hour
+
+## Defaults
+
+python_path: /opt/bitnami/python/bin/python
+
+spark:
+  host: http://spark-master-svc.spark.svc.cluster.local:8998/batches/
+  master:
+    host: spark-master-svc.spark.svc.cluster.local
+    port: 7077
+  driver:
+    extraJavaOptions: -Dlog4j.configuration=file:/opt/bitnami/spark/conf/log4j.properties
+  executor:
+    extraJavaOptions: -Dlog4j.configuration=file:/opt/bitnami/spark/conf/log4j.properties
