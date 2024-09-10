@@ -152,6 +152,7 @@ export default {
             );
           }
           if (decoded && _.isObject(decoded)) {
+            (req as any).userInfo = decoded;
             const action = (req as any).id;
             const hasAccess = decoded?.roles?.some(
               (role: string) =>
