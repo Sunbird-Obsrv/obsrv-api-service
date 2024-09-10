@@ -55,6 +55,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     validateRequest(req, dataset_id);
 
     const dataset: Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
+    const userRole = (req as any)?.userInfo?.roles[0] || "SYSTEM";
     validateDataset(dataset, dataset_id, status);
 
     switch (status) {
@@ -62,13 +63,13 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
             await deleteDataset(dataset);
             break;
         case "ReadyToPublish":
-            await readyForPublish(dataset);
+            await readyForPublish(dataset, userRole);
             break;
         case "Live":
-            await publishDataset(dataset);
+            await publishDataset(dataset, userRole);
             break;
         case "Retire":
-            await retireDataset(dataset);
+            await retireDataset(dataset, userRole);
             break;
         case "Archive":
             await archiveDataset(dataset);
@@ -90,7 +91,7 @@ const deleteDataset = async (dataset: Record<string, any>) => {
 }
 
 
-const readyForPublish = async (dataset: Record<string, any>) => {
+const readyForPublish = async (dataset: Record<string, any>, updated_by: any) => {
 
     const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
@@ -99,7 +100,14 @@ const readyForPublish = async (dataset: Record<string, any>) => {
     if (draftDataset?.type === "master") {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }
-    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue) => {
+    _.set(draftDataset, "updated_by", updated_by);
+    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue ,key) => {
+        if (key === "created_by"|| key === "updated_by") {
+            if (objValue !== "SYSTEM") {
+                return objValue;
+            }
+            return srcValue;
+        }
         if (_.isBoolean(objValue) && _.isBoolean(srcValue)) {
             return objValue;
         }
@@ -126,10 +134,11 @@ const readyForPublish = async (dataset: Record<string, any>) => {
  * 
  * @param dataset 
  */
-const publishDataset = async (dataset: Record<string, any>) => {
+const publishDataset = async (dataset: Record<string, any>, userRole: any) => {
 
     const draftDataset: Record<string, any> = await datasetService.getDraftDataset(dataset.dataset_id) as unknown as Record<string, any>
-
+    _.set(draftDataset, ["updated_by"], userRole);
+    console.log(draftDataset);
     await validateAndUpdateDenormConfig(draftDataset);
     await updateMasterDataConfig(draftDataset)
     await datasetService.publishDataset(draftDataset)
@@ -208,10 +217,10 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
     }
 }
 
-const retireDataset = async (dataset: Record<string, any>) => {
+const retireDataset = async (dataset: Record<string, any>, updated_by: any) => {
 
     await canRetireIfMasterDataset(dataset);
-    await datasetService.retireDataset(dataset);
+    await datasetService.retireDataset(dataset, updated_by);
     await restartPipeline(dataset);
 }
 
