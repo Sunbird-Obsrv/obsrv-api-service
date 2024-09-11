@@ -13,6 +13,7 @@ const telemetryObject = { type: "alert", ver: "1.0.0" };
 const createAlertHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const alertPayload = getAlertPayload(req.body);
+    _.set(alertPayload, "created_by", (req as any)?.userInfo?.roles[0]);
     const response = await Alert.create(alertPayload);
     updateTelemetryAuditEvent({ request: req, object: { id: response?.dataValues?.id, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: response.dataValues.id } });
@@ -30,6 +31,7 @@ const publishAlertHandler = async (req: Request, res: Response, next: NextFuncti
     const { alertId } = req.params;
     const rulePayload: Record<string, any> | null = await getAlertRule(alertId);
     if (!rulePayload) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
+    _.set(rulePayload, "updated_by", (req as any)?.userInfo?.roles[0]);
     if (rulePayload.status == "live") {
       await deleteAlertRule(rulePayload, false);
     }
@@ -87,6 +89,7 @@ const deleteAlertHandler = async (req: Request, res: Response, next: NextFunctio
       return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
     }
     const rulePayload = ruleModel.toJSON();
+    _.set(rulePayload, "updated_by", (req as any)?.userInfo?.roles[0]);
     await deleteAlertRule(rulePayload, hardDelete === "true");
     updateTelemetryAuditEvent({ request: req, currentRecord: rulePayload, object: { id: alertId, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: alertId } });
@@ -104,11 +107,13 @@ const updateAlertHandler = async (req: Request, res: Response, next: NextFunctio
     if (!ruleModel) { return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND }) }
     const rulePayload = ruleModel.toJSON();
     if (rulePayload.status == "live") {
+      _.set(rulePayload, "updated_by", (req as any)?.userInfo?.roles[0]);
       await deleteAlertRule(rulePayload, false);
       await retireAlertSilence(alertId);
     }
     const updatedPayload = getAlertPayload({ ...req.body, manager: rulePayload?.manager });
-    await Alert.update({ ...updatedPayload, status: "draft" }, { where: { id: alertId } });
+    const userRole = (req as any)?.userInfo?.roles[0];
+    await Alert.update({ ...updatedPayload, status: "draft", updated_by: userRole }, { where: { id: alertId } });
     updateTelemetryAuditEvent({ request: req, currentRecord: rulePayload, object: { id: alertId, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: alertId } });
   } catch (error: any) {

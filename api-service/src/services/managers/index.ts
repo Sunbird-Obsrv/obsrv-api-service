@@ -24,16 +24,16 @@ const getService = (manager: string) => {
 };
 
 export const publishAlert = async (payload: Record<string, any>) => {
-  const { id, manager } = payload;
+  const { id, manager, updated_by } = payload;
   const service = getService(manager);
   const publishResponse = await service.publishAlert(payload)
-  await updateStatus(id, "live");
+  await updateStatus(id, "live", updated_by);
   return publishResponse;
 };
 
 
-const updateStatus = (id: string, status: string) => {
-  return Alert.update({ status }, { where: { id } });
+const updateStatus = (id: string, status: string, updated_by: string) => {
+  return Alert.update({ status, updated_by }, { where: { id } });
 }
 
 const deleteRule = (id: string) => {
@@ -41,7 +41,7 @@ const deleteRule = (id: string) => {
 }
 
 export const deleteAlertRule = async (payload: Record<string, any>, hardDelete: boolean) => {
-  const { id, manager, status } = payload;
+  const { id, manager, status, updated_by } = payload;
 
   if (status == "live") {
     try {
@@ -56,7 +56,7 @@ export const deleteAlertRule = async (payload: Record<string, any>, hardDelete: 
     return deleteRule(id);
   }
 
-  return updateStatus(id, "retired");
+  return updateStatus(id, "retired", updated_by);
 }
 
 
