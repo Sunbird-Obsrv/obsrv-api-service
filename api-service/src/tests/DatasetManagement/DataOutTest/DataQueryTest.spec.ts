@@ -7,6 +7,7 @@ import { config } from "../../../configs/Config";
 import chaiSpies from "chai-spies"
 import { describe, it } from "mocha";
 import { Datasource } from "../../../models/Datasource";
+import { druidHttpService } from "../../../connections/druidConnection";
 chai.use(chaiSpies)
 chai.should();
 chai.use(chaiHttp);
@@ -32,6 +33,11 @@ describe("QUERY API TESTS", () => {
             return Promise.resolve(
                 response
             )
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -74,6 +80,11 @@ describe("QUERY API TESTS", () => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
         })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["test.1_rollup_week"])
@@ -100,6 +111,11 @@ describe("QUERY API TESTS", () => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
         })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["test.1_rollup_week"])
@@ -125,6 +141,11 @@ describe("QUERY API TESTS", () => {
     it("Query api success : it should fetch information from druid data source for native query", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -153,6 +174,11 @@ describe("QUERY API TESTS", () => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
         })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["test.1_rollup_week"])
@@ -179,6 +205,11 @@ describe("QUERY API TESTS", () => {
     it("Query api success : it should allow druid to query when a valid sql query is given", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -222,6 +253,11 @@ describe("QUERY API TESTS", () => {
     it("it should set threshold to default when threshold is greater than maximum threshold", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
