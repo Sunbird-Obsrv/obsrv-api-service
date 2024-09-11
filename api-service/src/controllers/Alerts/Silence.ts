@@ -20,12 +20,14 @@ const createHandler = async (request: Request, response: Response, next: NextFun
 
         const start_date = new Date(startDate);
         const end_date = new Date(endDate);
+        const userRole = (request as any)?.userInfo?.roles[0];
         const silenceBody = {
             id: grafanaResponse.silenceId,
             manager: grafanaResponse.manager,
             alert_id: alertId,
             start_time: start_date,
             end_time: end_date,
+            created_by : userRole,
         }
         const sileneResponse = await Silence.create(silenceBody);
         updateTelemetryAuditEvent({ request, object: { id: sileneResponse?.dataValues?.id, ...telemetryObject } });
@@ -78,10 +80,12 @@ const updateHandler = async (request: Request, response: Response, next: NextFun
         await updateSilence(silenceObject, payload);
         const updatedStartTime = new Date(payload.startTime);
         const updatedEndTime = new Date(payload.endTime);
+        const userRole = (request as any)?.userInfo?.roles[0];
         const updatedSilence = {
             ...silenceObject,
             start_time: updatedStartTime,
-            end_time: updatedEndTime
+            end_time: updatedEndTime,
+            updated_by: userRole,
         }
         const silenceResponse = await Silence.update(updatedSilence, { where: { id } })
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { silenceResponse } })
