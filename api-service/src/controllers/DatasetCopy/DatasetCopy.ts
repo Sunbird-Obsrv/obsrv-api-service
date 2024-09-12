@@ -40,8 +40,8 @@ const datasetCopy = async (req: Request, res: Response) => {
     validateRequest(req);
     const newDatasetId = _.get(req, "body.request.destination.datasetId");
     const dataset = await fetchDataset(req);
-    const userRole = (req as any)?.userID || "SYSTEM";
-    _.set(dataset, "created_by", userRole);
+    const userID = (req as any)?.userID || "SYSTEM";
+    _.set(dataset, "created_by", userID);
     updateRecords(dataset, newDatasetId)
     const response = await datasetService.createDraftDataset(dataset).catch(err => {
         if (err?.name === "SequelizeUniqueConstraintError") {

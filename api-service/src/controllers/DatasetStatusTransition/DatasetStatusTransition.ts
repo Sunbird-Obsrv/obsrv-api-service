@@ -55,7 +55,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     validateRequest(req, dataset_id);
 
     const dataset: Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
-    const userRole = (req as any)?.userID || "SYSTEM";
+    const userID = (req as any)?.userID || "SYSTEM";
     validateDataset(dataset, dataset_id, status);
 
     switch (status) {
@@ -63,13 +63,13 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
             await deleteDataset(dataset);
             break;
         case "ReadyToPublish":
-            await readyForPublish(dataset, userRole);
+            await readyForPublish(dataset, userID);
             break;
         case "Live":
-            await publishDataset(dataset, userRole);
+            await publishDataset(dataset, userID);
             break;
         case "Retire":
-            await retireDataset(dataset, userRole);
+            await retireDataset(dataset, userID);
             break;
         case "Archive":
             await archiveDataset(dataset);
@@ -134,10 +134,10 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
  * 
  * @param dataset 
  */
-const publishDataset = async (dataset: Record<string, any>, userRole: any) => {
+const publishDataset = async (dataset: Record<string, any>, userID: any) => {
 
     const draftDataset: Record<string, any> = await datasetService.getDraftDataset(dataset.dataset_id) as unknown as Record<string, any>
-    _.set(draftDataset, ["updated_by"], userRole);
+    _.set(draftDataset, ["updated_by"], userID);
     console.log(draftDataset);
     await validateAndUpdateDenormConfig(draftDataset);
     await updateMasterDataConfig(draftDataset)

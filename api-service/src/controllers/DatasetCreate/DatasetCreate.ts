@@ -34,8 +34,8 @@ const datasetCreate = async (req: Request, res: Response) => {
     
     await validateRequest(req)
     const draftDataset = getDraftDataset(req.body.request)
-    const userRole = (req as any)?.userID || "SYSTEM";
-    _.set(draftDataset, "created_by", userRole);
+    const userID = (req as any)?.userID || "SYSTEM";
+    _.set(draftDataset, "created_by", userID);
     const dataset = await datasetService.createDraftDataset(draftDataset);
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }

@@ -13,8 +13,8 @@ const telemetryObject = { type: "alert", ver: "1.0.0" };
 const createAlertHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const alertPayload = getAlertPayload(req.body);
-    const userRole = (req as any)?.userID || "SYSTEM";
-    _.set(alertPayload, "created_by", userRole);
+    const userID = (req as any)?.userID || "SYSTEM";
+    _.set(alertPayload, "created_by", userID);
     const response = await Alert.create(alertPayload);
     updateTelemetryAuditEvent({ request: req, object: { id: response?.dataValues?.id, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: response.dataValues.id } });
@@ -32,8 +32,8 @@ const publishAlertHandler = async (req: Request, res: Response, next: NextFuncti
     const { alertId } = req.params;
     const rulePayload: Record<string, any> | null = await getAlertRule(alertId);
     if (!rulePayload) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
-    const userRole = (req as any)?.userID || "SYSTEM";
-    _.set(rulePayload, "updated_by", userRole);
+    const userID = (req as any)?.userID || "SYSTEM";
+    _.set(rulePayload, "updated_by", userID);
     if (rulePayload.status == "live") {
       await deleteAlertRule(rulePayload, false);
     }
@@ -91,8 +91,8 @@ const deleteAlertHandler = async (req: Request, res: Response, next: NextFunctio
       return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
     }
     const rulePayload = ruleModel.toJSON();
-    const userRole = (req as any)?.userID || "SYSTEM";
-    _.set(rulePayload, "updated_by", userRole);
+    const userID = (req as any)?.userID || "SYSTEM";
+    _.set(rulePayload, "updated_by", userID);
     await deleteAlertRule(rulePayload, hardDelete === "true");
     updateTelemetryAuditEvent({ request: req, currentRecord: rulePayload, object: { id: alertId, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: alertId } });
@@ -109,14 +109,14 @@ const updateAlertHandler = async (req: Request, res: Response, next: NextFunctio
     const ruleModel = await getAlertRule(alertId);
     if (!ruleModel) { return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND }) }
     const rulePayload = ruleModel.toJSON();
-    const userRole = (req as any)?.userID || "SYSTEM";
+    const userID = (req as any)?.userID || "SYSTEM";
     if (rulePayload.status == "live") {
-      _.set(rulePayload, "updated_by", userRole);
+      _.set(rulePayload, "updated_by", userID);
       await deleteAlertRule(rulePayload, false);
       await retireAlertSilence(alertId);
     }
     const updatedPayload = getAlertPayload({ ...req.body, manager: rulePayload?.manager });
-    await Alert.update({ ...updatedPayload, status: "draft", updated_by: userRole }, { where: { id: alertId } });
+    await Alert.update({ ...updatedPayload, status: "draft", updated_by: userID }, { where: { id: alertId } });
     updateTelemetryAuditEvent({ request: req, currentRecord: rulePayload, object: { id: alertId, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: alertId } });
   } catch (error: any) {

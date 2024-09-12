@@ -92,10 +92,10 @@ class DatasetService {
         return responseData;
     }
 
-    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>, userRole: string): Promise<any> => {
+    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>, userID: string): Promise<any> => {
         const dataset_id = _.get(dataset, "id")
         const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
-        _.set(draftDataset, "updated_by", userRole);
+        _.set(draftDataset, "updated_by", userID);
         const transaction = await sequelize.transaction();
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
@@ -167,7 +167,7 @@ class DatasetService {
         }
     }
 
-    createDraftDatasetFromLive = async (dataset: Model<any, any>, userRole: string) => {
+    createDraftDatasetFromLive = async (dataset: Model<any, any>, userID: string) => {
 
         const draftDataset: any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
         const dataset_config: any = _.get(dataset, "dataset_config");
@@ -233,7 +233,7 @@ class DatasetService {
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
-        draftDataset["created_by"] = userRole;
+        draftDataset["created_by"] = userID;
         const result = await DatasetDraft.create(draftDataset);
         return _.get(result, "dataValues")
     }

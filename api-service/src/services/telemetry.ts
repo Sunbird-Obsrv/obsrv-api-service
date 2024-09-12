@@ -10,14 +10,14 @@ const telemetryTopic = _.get(appConfig, "telemetry_dataset");
 export enum OperationType { CREATE = 1, UPDATE, PUBLISH, RETIRE, LIST, GET }
 
 
-const getDefaults = (userInfo:any) => {
+const getDefaults = (userID:any) => {
     return {
         eid: "AUDIT",
         ets: Date.now(),
         ver: "1.0.0",
         mid: v4(),
         actor: {
-            id: userInfo?.id || "SYSTEM",
+            id: userID || "SYSTEM",
             type: "User",
         },
         context: {
@@ -128,7 +128,7 @@ export const processAuditEvents = (request: Request) => {
             _.set(auditEvent, "edata.transition.toState", toState);
             _.set(auditEvent, "edata.transition.fromState", fromState);
         }
-        const telemetryEvent = getDefaults((request as any)?.userInfo);
+        const telemetryEvent = getDefaults((request as any)?.userID);
         _.set(telemetryEvent, "edata", edata);
         _.set(telemetryEvent, "object", { ...(object.id && object.type && { ...object, ver: "1.0.0" }) });
         sendTelemetryEvents(telemetryEvent);

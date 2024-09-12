@@ -38,8 +38,8 @@ export const updateQueryTemplate = async (req: Request, res: Response) => {
             logger.error({ apiId, msgid, resmsgid, templateId, requestBody: req?.body, message: `Invalid template provided, A template should consist of variables ${requiredVariables} and type of json,sql`, code: "QUERY_TEMPLATE_INVALID_INPUT" })
             return ResponseHandler.errorResponse({ statusCode: 400, message: `Invalid template provided, A template should consist of variables ${requiredVariables} and type of json,sql`, errCode: "BAD_REQUEST", code: "QUERY_TEMPLATE_INVALID_INPUT" }, req, res)
         }
-        const userRole = (req as any)?.userID || "SYSTEM";
-        requestBody.request.updated_by = userRole;
+        const userID = (req as any)?.userID || "SYSTEM";
+        requestBody.request.updated_by = userID;
         await QueryTemplate.update(requestBody?.request, { where: { template_id: templateId } })
         logger.info({ apiId, msgid, resmsgid, templateId, requestBody, message: `Query template updated successfully` })
         ResponseHandler.successResponse(req, res, { status: 200, data: { message: "Query template updated successfully", templateId } });

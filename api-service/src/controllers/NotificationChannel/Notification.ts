@@ -12,8 +12,8 @@ const telemetryObject = { type: "notificationChannel", ver: "1.0.0" };
 const createHandler = async (request: Request, response: Response, next: NextFunction) => {
     try {
         const payload = request.body;
-        const userRole = (request as any)?.userID || "SYSTEM";
-        _.set(payload, "created_by", userRole);
+        const userID = (request as any)?.userID || "SYSTEM";
+        _.set(payload, "created_by", userID);
         const notificationBody = await Notification.create(payload);
         updateTelemetryAuditEvent({ request, object: { id: notificationBody?.dataValues?.id, ...telemetryObject } });
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { id: notificationBody.dataValues.id } })
@@ -34,8 +34,8 @@ const updateHandler = async (request: Request, response: Response, next: NextFun
         if (_.get(notificationPayload, "status") === "live") {
             await updateNotificationChannel(notificationPayload);
         }
-        const userRole = (request as any)?.userID || "SYSTEM";
-        _.set(updatedPayload, "updated_by", userRole);
+        const userID = (request as any)?.userID || "SYSTEM";
+        _.set(updatedPayload, "updated_by", userID);
         await Notification.update({ ...updatedPayload, status: "draft" }, { where: { id } });
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { id } });
     } catch (err) {
@@ -78,8 +78,8 @@ const retireHandler = async (request: Request, response: Response, next: NextFun
         if (!notificationPayload) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
         updateTelemetryAuditEvent({ request, object: { id, ...telemetryObject }, currentRecord: notificationPayload });
         await updateNotificationChannel(notificationPayload);
-        const userRole = (request as any)?.userID || "SYSTEM";
-        await Notification.update({ status: "retired", updated_by: userRole }, { where: { id } })
+        const userID = (request as any)?.userID || "SYSTEM";
+        await Notification.update({ status: "retired", updated_by: userID }, { where: { id } })
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { id } });
     } catch (err) {
         const error = createError(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
@@ -96,8 +96,8 @@ const publishHandler = async (request: Request, response: Response, next: NextFu
         if (notificationPayload.status === "live") throw new Error(httpStatus[httpStatus.CONFLICT]);
         updateTelemetryAuditEvent({ request, object: { id, ...telemetryObject }, currentRecord: notificationPayload });
         await publishNotificationChannel(notificationPayload);
-        const userRole = (request as any)?.userID || "SYSTEM";
-        Notification.update({ status: "live", updated_by: userRole }, { where: { id } });
+        const userID = (request as any)?.userID || "SYSTEM";
+        Notification.update({ status: "live", updated_by: userID }, { where: { id } });
         ResponseHandler.successResponse(request, response, { status: httpStatus.OK, data: { id, status: "published" } });
     } catch (err) {
         const error = createError(httpStatus.INTERNAL_SERVER_ERROR, _.get(err, "message") || httpStatus[httpStatus.INTERNAL_SERVER_ERROR])
