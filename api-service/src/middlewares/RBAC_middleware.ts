@@ -178,10 +178,6 @@ export default {
           if (decoded && _.isObject(decoded)) {
             (req as any).userInfo = decoded;
             const action = (req as any).id;
-            // const hasAccess = decoded?.roles?.some(
-            //   (role: string) =>
-            //     accessControl[role] && accessControl[role].includes(action)
-            // );
             const hasAccess = decoded?.roles?.some((role: string) => {
               const apiGroups = accessControl.roles[role];
 
