@@ -20,7 +20,7 @@ const createHandler = async (request: Request, response: Response, next: NextFun
 
         const start_date = new Date(startDate);
         const end_date = new Date(endDate);
-        const userRole = (request as any)?.userInfo?.roles[0];
+        const userRole = (request as any)?.userID || "SYSTEM";
         const silenceBody = {
             id: grafanaResponse.silenceId,
             manager: grafanaResponse.manager,
@@ -80,7 +80,7 @@ const updateHandler = async (request: Request, response: Response, next: NextFun
         await updateSilence(silenceObject, payload);
         const updatedStartTime = new Date(payload.startTime);
         const updatedEndTime = new Date(payload.endTime);
-        const userRole = (request as any)?.userInfo?.roles[0];
+        const userRole = (request as any)?.userID;
         const updatedSilence = {
             ...silenceObject,
             start_time: updatedStartTime,

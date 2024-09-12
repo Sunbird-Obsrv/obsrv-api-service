@@ -42,7 +42,8 @@ export const createQueryTemplate = async (req: Request, res: Response) => {
         }
 
         const data = transformRequest(requestBody, templateName);
-        _.set(data, "created_by", (req as any)?.userInfo?.roles[0]);
+        const userRole = (req as any)?.userID || "SYSTEM";
+        _.set(data, "created_by", userRole);
         await QueryTemplate.create(data)
         logger.info({ apiId, msgid, resmsgid, requestBody: req?.body, message: `Query template created successfully` })
         return ResponseHandler.successResponse(req, res, { status: 200, data: { template_id: templateId, template_name: templateName, message: `The query template has been saved successfully` } });

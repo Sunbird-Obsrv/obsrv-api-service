@@ -30,7 +30,7 @@ const datasetRead = async (req: Request, res: Response) => {
     validateRequest(req);
     const { dataset_id } = req.params;
     const { fields, mode } = req.query;
-    const userRole = (req as any)?.userInfo?.roles[0];
+    const userRole = (req as any)?.userID || "SYSTEM";
     const attributes = !fields ? defaultFields : _.split(<string>fields, ",");
     const dataset = (mode == "edit") ? await readDraftDataset(dataset_id, attributes, userRole) : await readDataset(dataset_id, attributes)
     if (!dataset) {

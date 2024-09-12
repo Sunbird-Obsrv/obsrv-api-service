@@ -55,7 +55,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     validateRequest(req, dataset_id);
 
     const dataset: Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
-    const userRole = (req as any)?.userInfo?.roles[0] || "SYSTEM";
+    const userRole = (req as any)?.userID || "SYSTEM";
     validateDataset(dataset, dataset_id, status);
 
     switch (status) {
