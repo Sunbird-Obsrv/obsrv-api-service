@@ -18,7 +18,7 @@ const getDefaults = (userInfo:any) => {
         mid: v4(),
         actor: {
             id: userInfo?.id || "SYSTEM",
-            type: userInfo?.roles[0] || "User",
+            type: "User",
         },
         context: {
             env,
