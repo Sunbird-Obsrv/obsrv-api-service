@@ -16,7 +16,7 @@ let dataset_id: string;
 let requestBody: any;
 let msgid: string;
 const errCode = {
-    notFound: "DATA_OUT_SOURCE_NOT_FOUND",
+    notFound: "DATASOURCE_NOT_FOUND",
     invalidDateRange: "DATA_OUT_INVALID_DATE_RANGE"
 }
 
@@ -175,9 +175,12 @@ const getDataSourceRef = async (datasetId: string, srcGranularity?: string) => {
 
 const checkSupervisorAvailability = async (datasourceRef: string) => {
     const { data } = await druidHttpService.get("/druid/coordinator/v1/loadstatus");
-    const datasourceLoad = _.get(data, datasourceRef)
-    if (!(datasourceLoad && datasourceLoad === 100)) {
-        throw obsrvError("", "DATASOURCE_NOT_AVAILABLE", "Datasource not fully available to query", "RANGE_NOT_SATISFIABLE", 416)
+    const datasourceAvailaibility = _.get(data, datasourceRef)
+    if (_.isUndefined(datasourceAvailaibility)) {
+        throw obsrvError("", "DATASOURCE_NOT_AVAILABLE", "Datasource not available for querying", "NOT_FOUND", 404)
+    }
+    if (datasourceAvailaibility !== 100) {
+        throw obsrvError("", "DATASOURCE_NOT_FULLY_AVAILABLE", "Datasource not fully available for querying", "RANGE_NOT_SATISFIABLE", 416)
     }
 }
 

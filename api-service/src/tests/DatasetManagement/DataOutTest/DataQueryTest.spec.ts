@@ -52,7 +52,7 @@ describe("QUERY API TESTS", () => {
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.responseCode.should.be.eq("NOT_FOUND");
                 res.body.error.message.should.be.eq("Dataset telemetry-events with table week is not available for querying");
-                res.body.error.code.should.be.eq("DATA_OUT_SOURCE_NOT_FOUND");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
                 done();
             });
     });
@@ -71,7 +71,7 @@ describe("QUERY API TESTS", () => {
                 res.body.responseCode.should.be.eq("NOT_FOUND");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.error.message.should.be.eq("Datasource telemetry-events not available for querying");
-                res.body.error.code.should.be.eq("DATA_OUT_SOURCE_NOT_FOUND");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
                 done();
             });
     });
