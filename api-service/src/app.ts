@@ -22,7 +22,7 @@ app.use("/v2/", v2Router);
 app.use("/", druidProxyRouter);
 app.use("/alerts/v1", alertsRouter);
 app.use("/", metricRouter);
-// app.use("*", ResponseHandler.routeNotFound);
+app.use(/(.*)/, ResponseHandler.routeNotFound);
 app.use(obsrvErrorHandler);
 
 app.listen(config.api_port, () => {
