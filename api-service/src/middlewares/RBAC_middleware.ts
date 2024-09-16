@@ -27,8 +27,8 @@ export default {
         if (!token) {
           return ResponseHandler.errorResponse(
             {
-              statusCode: 403,
-              errCode: "FORBIDDEN",
+              statusCode: 401,
+              errCode: "Unauthorized access",
               message: "No token provided",
             },
             req,
@@ -48,6 +48,17 @@ export default {
             );
           }
           if (decoded && _.isObject(decoded)) {
+            if (!decoded?.id) {
+              return ResponseHandler.errorResponse(
+                {
+                  statusCode: 401,
+                  errCode: "Unauthorized access",
+                  message: "User ID is missing from the decoded token.",
+                },
+                req,
+                res
+              );
+            }
             (req as any).userID = decoded?.id;
             const action = (req as any).id;
             const hasAccess = decoded?.roles?.some((role: string) => {
@@ -62,8 +73,8 @@ export default {
             if (!hasAccess) {
               return ResponseHandler.errorResponse(
                 {
-                  statusCode: 401,
-                  errCode: "Unauthorized access",
+                  statusCode: 403,
+                  errCode: "FORBIDDEN",
                   message: "Access denied for the user",
                 },
                 req,
