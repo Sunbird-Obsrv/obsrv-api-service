@@ -20,7 +20,7 @@ const createHandler = async (request: Request, response: Response, next: NextFun
 
         const start_date = new Date(startDate);
         const end_date = new Date(endDate);
-        const userID = (request as any)?.userID || "SYSTEM";
+        const userID = (request as any)?.userID;
         const silenceBody = {
             id: grafanaResponse.silenceId,
             manager: grafanaResponse.manager,

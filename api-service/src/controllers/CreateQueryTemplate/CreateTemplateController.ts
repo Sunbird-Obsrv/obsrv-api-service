@@ -42,7 +42,7 @@ export const createQueryTemplate = async (req: Request, res: Response) => {
         }
 
         const data = transformRequest(requestBody, templateName);
-        const userID = (req as any)?.userID || "SYSTEM";
+        const userID = (req as any)?.userID;
         _.set(data, "created_by", userID);
         await QueryTemplate.create(data)
         logger.info({ apiId, msgid, resmsgid, requestBody: req?.body, message: `Query template created successfully` })

@@ -40,7 +40,7 @@ const datasetCopy = async (req: Request, res: Response) => {
     validateRequest(req);
     const newDatasetId = _.get(req, "body.request.destination.datasetId");
     const dataset = await fetchDataset(req);
-    const userID = (req as any)?.userID || "SYSTEM";
+    const userID = (req as any)?.userID;
     _.set(dataset, "created_by", userID);
     updateRecords(dataset, newDatasetId)
     const response = await datasetService.createDraftDataset(dataset).catch(err => {
