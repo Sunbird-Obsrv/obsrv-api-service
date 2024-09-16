@@ -59,6 +59,8 @@ const datasetUpdate = async (req: Request, res: Response) => {
     validateDataset(datasetModel, req)
     
     const draftDataset = mergeDraftDataset(datasetModel, datasetReq);
+    const userID = (req as any)?.userID;
+    _.set(draftDataset, "updated_by", userID )
     const response = await datasetService.updateDraftDataset(draftDataset);
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: response });
 }

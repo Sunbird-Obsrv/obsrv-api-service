@@ -15,18 +15,21 @@ const datasetImport = async (req: Request, res: Response) => {
         const migratedConfigs = migrateExportedDatasetV1(requestBody)
         datasetPayload = migratedConfigs;
     }
+    const userID = (req as any)?.userID;
+    _.set(datasetPayload, "created_by", userID);
     const { updatedDataset, ignoredFields } = await datasetImportValidation({ ...requestBody, "request": datasetPayload })
     const { successMsg, partialIgnored } = getResponseData(ignoredFields)
 
-    const dataset = await importDataset(updatedDataset, overwrite);
+    const dataset = await importDataset(updatedDataset, overwrite, userID);
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: successMsg, data: dataset, ...(!_.isEmpty(partialIgnored) && { ignoredFields: partialIgnored }) } });
 }
 
-const importDataset = async (dataset: Record<string, any>, overwrite: string | any) => {
+const importDataset = async (dataset: Record<string, any>, overwrite: string | any, userID : string) => {
     const dataset_id = _.get(dataset,"dataset_id")
     const response = await datasetService.createDraftDataset(dataset).catch(err => { return err })
     if (response?.name === "SequelizeUniqueConstraintError") {
         if (overwrite === "true") {
+            _.set(dataset, "updated_by", userID);
             const overwriteRes = await datasetService.updateDraftDataset(dataset).catch(()=>{
                 throw obsrvError(dataset_id, "DATASET_IMPORT_FAILURE", `Failed to import dataset: ${dataset_id} as overwrite failed`, "INTERNAL_SERVER_ERROR", 500);
             })
