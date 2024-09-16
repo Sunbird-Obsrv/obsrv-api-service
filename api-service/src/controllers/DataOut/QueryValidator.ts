@@ -156,7 +156,7 @@ const validateQueryRules = (queryPayload: any, limits: any) => {
         : { message: "Invalid date range! the date range cannot be a null value", statusCode: 400, errCode: "BAD_REQUEST", code: errCode.invalidDateRange };
 };
 
-const getDataSourceRef = async (datasetId: string, srcGranularity?: string) => {
+const getDataSourceRef = async (datasetId: string, requestGranularity?: string) => {
     const dataSources = await getDatasourceList(datasetId)
     if (_.isEmpty(dataSources)) {
         logger.error({ apiId, requestBody, msgid, dataset_id, message: `Datasource ${datasetId} not available in datasource live table`, code: errCode.notFound })
@@ -168,7 +168,7 @@ const getDataSourceRef = async (datasetId: string, srcGranularity?: string) => {
         if (!aggregated) {
             return true;
         }
-        return aggregated && srcGranularity ? granularity === srcGranularity : false;
+        return aggregated && requestGranularity ? granularity === requestGranularity : false;
     });
     return _.get(record, ["dataValues", "datasource_ref"])
 }
