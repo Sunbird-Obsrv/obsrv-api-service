@@ -4,6 +4,7 @@ import { ResponseHandler } from "../helpers/ResponseHandler";
 import { config } from "../configs/Config";
 import _ from "lodash";
 import userPermissions from "./userPermissions.json";
+import httpStatus from "http-status";
 interface AccessControl {
   apiGroups : {
     [key: string]: string[];
@@ -16,22 +17,18 @@ interface AccessControl {
 const accessControl: AccessControl = userPermissions;
 
 const errorHandler = (statusCode: number, message: string, req: Request, res: Response) => {
-  let errCode: string;
-  let code: string;
+  const errorMapping: Record<number, { errCode: string, code: string }> = {
+    401: {
+      errCode: httpStatus["401_NAME"],
+      code: "UNAUTHORIZED ACCESS",
+    },
+    403: {
+      errCode: httpStatus["403_NAME"],
+      code: "FORBIDDEN ACCESS",
+    },
+  };
 
-  switch (statusCode) {
-    case 401:
-      errCode = "Unauthorized access";
-      code = "UNAUTHORIZED ACCESS";
-      break;
-    case 403:
-      errCode = "Forbidden access";
-      code = "FORBIDDEN ACCESS";
-      break;
-    default:
-      errCode = "Unknown error";
-      code = "UNKNOWN ERROR";
-  }
+  const { errCode, code } = errorMapping[statusCode];
 
   return ResponseHandler.errorResponse(
     {
@@ -56,15 +53,15 @@ export default {
         const public_key = config.user_token_public_key;
         const token = req.get("x-user-token");
         if (!token) {
-          errorHandler(401, "No token provided", req, res);
+          return errorHandler(401, "No token provided", req, res);
         }
         jwt.verify(token as string, public_key, (err, decoded) => {
           if (err) {
-            errorHandler(401, "Token verification failed", req, res);
+            return errorHandler(401, "Token verification failed", req, res);
           }
           if (decoded && _.isObject(decoded)) {
             if (!decoded?.id) {
-              errorHandler(401, "User ID is missing from the decoded token.", req, res);
+              return errorHandler(401, "User ID is missing from the decoded token.", req, res);
             }
             (req as any).userID = decoded?.id;
             const action = (req as any).id;
@@ -89,7 +86,7 @@ export default {
 
               const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
 
-              errorHandler(403, errorMessage, req, res);
+              return errorHandler(403, errorMessage, req, res);
             }
             next();
           }
