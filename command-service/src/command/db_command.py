@@ -48,7 +48,6 @@ class DBCommand(ICommand):
             self._insert_datasource_record(dataset_id, draft_dataset_id)
             self._insert_connector_instances(dataset_id, draft_dataset_record)
             self._insert_dataset_transformations(dataset_id, draft_dataset_record)
-            self._delete_draft_dataset(dataset_id, draft_dataset_id)
             return ActionResponse(status="OK", status_code=200)
         else:
             return ActionResponse(
@@ -413,17 +412,3 @@ class DBCommand(ICommand):
             result = self.db_service.execute_upsert(sql=insert_query, params=params)
             print(f"Dataset Transformation {dataset_id + '_' + transformation.field_key} record inserted successfully...")
         return result
-    
-    def _delete_draft_dataset(self, dataset_id, draft_dataset_id):
-
-        self.db_service.execute_delete(sql=f"""DELETE from datasources_draft where dataset_id = %s""", params=(draft_dataset_id,))
-        print(f"Draft datasources/tables for {dataset_id} are deleted successfully...")
-
-        self.db_service.execute_delete(sql=f"""DELETE from dataset_transformations_draft where dataset_id = %s""", params=(draft_dataset_id,))
-        print(f"Draft transformations/tables for {dataset_id} are deleted successfully...")
-
-        self.db_service.execute_delete(sql=f"""DELETE from dataset_source_config_draft where dataset_id = %s""", params=(draft_dataset_id,))
-        print(f"Draft source config/tables for {dataset_id} are deleted successfully...")
-
-        self.db_service.execute_delete(sql=f"""DELETE from datasets_draft where id = %s""", params=(draft_dataset_id,))
-        print(f"Draft Dataset for {dataset_id} is deleted successfully...")
