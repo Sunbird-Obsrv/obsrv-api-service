@@ -15,6 +15,7 @@ const createAlertHandler = async (req: Request, res: Response, next: NextFunctio
     const alertPayload = getAlertPayload(req.body);
     const userID = (req as any)?.userID;
     _.set(alertPayload, "created_by", userID);
+    _.set(alertPayload, "updated_by", userID);
     const response = await Alert.create(alertPayload);
     updateTelemetryAuditEvent({ request: req, object: { id: response?.dataValues?.id, ...telemetryObject } });
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { id: response.dataValues.id } });
