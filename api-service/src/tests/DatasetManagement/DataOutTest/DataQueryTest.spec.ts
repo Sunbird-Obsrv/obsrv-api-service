@@ -19,6 +19,7 @@ const nativeQueryEndpointDruid = config?.query_api?.druid?.native_query_path;
 const sqlQueryEndpoint = config?.query_api?.druid?.sql_query_path;
 
 const response = [{ dataValues: { datasource_ref: "test.1_rollup_week", metadata: { aggregated: true, granularity: "week" } } }]
+const invalidResponse = [{ dataValues: { datasource_ref: "test.1_rollup_week", metadata: { aggregated: true, granularity: "n/a" } } }]
 const msgid = "e180ecac-8f41-4f21-9a21-0b3a1a368917";
 
 describe("QUERY API TESTS", () => {
@@ -71,6 +72,79 @@ describe("QUERY API TESTS", () => {
                 res.body.responseCode.should.be.eq("NOT_FOUND");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.error.message.should.be.eq("Datasource telemetry-events not available for querying");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
+                done();
+            });
+    });
+
+    it("Query api failure: Datasource not available in druid", (done) => {
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve(
+                response
+            )
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "telemetry_events": 100 }
+            })
+        })
+        chai
+            .request(app)
+            .post("/v2/data/query/telemetry-events")
+            .send(JSON.parse(TestQueries.VALID_QUERY))
+            .end((err, res) => {
+                res.should.have.status(404);
+                res.body.params.status.should.be.eq("FAILED");
+                res.body.responseCode.should.be.eq("NOT_FOUND");
+                res.body.params.msgid.should.be.eq(msgid);
+                res.body.error.message.should.be.eq("Datasource not available for querying");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_AVAILABLE");
+                done();
+            });
+    });
+
+    it("Query api failure: Datasource not fully loaded in druid", (done) => {
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve(
+                response
+            )
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 20 }
+            })
+        })
+        chai
+            .request(app)
+            .post("/v2/data/query/telemetry-events")
+            .send(JSON.parse(TestQueries.VALID_QUERY))
+            .end((err, res) => {
+                res.should.have.status(416);
+                res.body.params.status.should.be.eq("FAILED");
+                res.body.responseCode.should.be.eq("RANGE_NOT_SATISFIABLE");
+                res.body.params.msgid.should.be.eq(msgid);
+                res.body.error.message.should.be.eq("Datasource not fully available for querying");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FULLY_AVAILABLE");
+                done();
+            });
+    });
+
+    it("Query api failure: Datasource not found", (done) => {
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve(
+                invalidResponse
+            )
+        })
+        chai
+            .request(app)
+            .post("/v2/data/query/telemetry-events")
+            .send(JSON.parse(TestQueries.VALID_QUERY))
+            .end((err, res) => {
+                res.should.have.status(404);
+                res.body.params.status.should.be.eq("FAILED");
+                res.body.responseCode.should.be.eq("NOT_FOUND");
+                res.body.params.msgid.should.be.eq(msgid);
+                res.body.error.message.should.be.eq("Datasource not found to query");
                 res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
                 done();
             });

@@ -187,6 +187,9 @@ const checkSupervisorAvailability = async (datasourceRef: string) => {
 const setDatasourceRef = async (datasetId: string, payload: any): Promise<any> => {
     const granularity = _.get(payload, "context.aggregationLevel")
     const datasourceRef = await getDataSourceRef(datasetId, granularity);
+    if (!datasourceRef) {
+        throw obsrvError("", "DATASOURCE_NOT_FOUND", "Datasource not found to query", "NOT_FOUND", 404)
+    }
     await checkSupervisorAvailability(datasourceRef)
     const existingDatasources = await getDatasourceListFromDruid();
 
