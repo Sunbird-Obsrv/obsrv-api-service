@@ -81,7 +81,7 @@ export default {
                 return apiGroups.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
               });
               const rolesMessage = rolesWithAccess.length > 0
-                ? `Roles with access: ${rolesWithAccess.join(", ")}`
+                ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
                 : "No roles have this action";
 
               const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
