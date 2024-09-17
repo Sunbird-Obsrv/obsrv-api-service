@@ -18,11 +18,9 @@ const allowedTransitions: Record<string, any> = {
     Delete: [DatasetStatus.Draft, DatasetStatus.ReadyToPublish],
     ReadyToPublish: [DatasetStatus.Draft],
     Live: [DatasetStatus.ReadyToPublish],
-    Retire: [DatasetStatus.Live],
-    Archive: [DatasetStatus.Retired],
-    Purge: [DatasetStatus.Archived]
+    Retire: [DatasetStatus.Live]
 }
-const liveDatasetActions = ["Retire", "Archive", "Purge"]
+const liveDatasetActions = ["Retire"]
 
 const validateRequest = (req: Request, datasetId: any) => {
     const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
@@ -55,6 +53,7 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
     validateRequest(req, dataset_id);
 
     const dataset: Record<string, any> = (_.includes(liveDatasetActions, status)) ? await datasetService.getDataset(dataset_id, ["id", "status", "type", "api_version"], true) : await datasetService.getDraftDataset(dataset_id, ["id", "dataset_id", "status", "type", "api_version"])
+    const userID = (req as any)?.userID;
     validateDataset(dataset, dataset_id, status);
 
     switch (status) {
@@ -62,20 +61,16 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
             await deleteDataset(dataset);
             break;
         case "ReadyToPublish":
-            await readyForPublish(dataset);
+            await readyForPublish(dataset, userID);
             break;
         case "Live":
-            await publishDataset(dataset);
+            await publishDataset(dataset, userID);
             break;
         case "Retire":
-            await retireDataset(dataset);
+            await retireDataset(dataset, userID);
             break;
-        case "Archive":
-            await archiveDataset(dataset);
-            break;
-        case "Purge":
-            await purgeDataset(dataset);
-            break;
+        default:
+            throw obsrvError(dataset.id, "UNKNOWN_STATUS_TRANSITION", "Unknown status transition requested", "BAD_REQUEST", 400)
     }
 
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: `Dataset status transition to ${status} successful`, dataset_id } });
@@ -90,7 +85,7 @@ const deleteDataset = async (dataset: Record<string, any>) => {
 }
 
 
-const readyForPublish = async (dataset: Record<string, any>) => {
+const readyForPublish = async (dataset: Record<string, any>, updated_by: any) => {
 
     const draftDataset: any = await datasetService.getDraftDataset(dataset.dataset_id)
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
@@ -99,7 +94,14 @@ const readyForPublish = async (dataset: Record<string, any>) => {
     if (draftDataset?.type === "master") {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }
-    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue) => {
+    _.set(draftDataset, "updated_by", updated_by);
+    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue ,key) => {
+        if (key === "created_by"|| key === "updated_by") {
+            if (objValue !== "SYSTEM") {
+                return objValue;
+            }
+            return srcValue;
+        }
         if (_.isBoolean(objValue) && _.isBoolean(srcValue)) {
             return objValue;
         }
@@ -126,10 +128,12 @@ const readyForPublish = async (dataset: Record<string, any>) => {
  * 
  * @param dataset 
  */
-const publishDataset = async (dataset: Record<string, any>) => {
+const publishDataset = async (dataset: Record<string, any>, userID: any) => {
 
     const draftDataset: Record<string, any> = await datasetService.getDraftDataset(dataset.dataset_id) as unknown as Record<string, any>
-
+    _.set(draftDataset, ["created_by"], userID);
+    _.set(draftDataset, ["updated_by"], userID);
+    console.log(draftDataset);
     await validateAndUpdateDenormConfig(draftDataset);
     await updateMasterDataConfig(draftDataset)
     await datasetService.publishDataset(draftDataset)
@@ -208,10 +212,10 @@ const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
     }
 }
 
-const retireDataset = async (dataset: Record<string, any>) => {
+const retireDataset = async (dataset: Record<string, any>, updated_by: any) => {
 
     await canRetireIfMasterDataset(dataset);
-    await datasetService.retireDataset(dataset);
+    await datasetService.retireDataset(dataset, updated_by);
     await restartPipeline(dataset);
 }
 
@@ -237,16 +241,6 @@ const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
 
 export const restartPipeline = async (dataset: Record<string, any>) => {
     return executeCommand(dataset.id, "RESTART_PIPELINE")
-}
-
-const archiveDataset = async (dataset: Record<string, any>) => {
-
-    throw obsrvError(dataset.id, "ARCHIVE_NOT_IMPLEMENTED", "Archive functionality is not implemented", "NOT_IMPLEMENTED", 501)
-}
-
-const purgeDataset = async (dataset: Record<string, any>) => {
-
-    throw obsrvError(dataset.id, "PURGE_NOT_IMPLEMENTED", "Purge functionality is not implemented", "NOT_IMPLEMENTED", 501)
 }
 
 export default datasetStatusTransition;

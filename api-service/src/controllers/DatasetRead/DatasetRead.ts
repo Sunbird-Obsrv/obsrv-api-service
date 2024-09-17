@@ -30,8 +30,9 @@ const datasetRead = async (req: Request, res: Response) => {
     validateRequest(req);
     const { dataset_id } = req.params;
     const { fields, mode } = req.query;
+    const userID = (req as any)?.userID;
     const attributes = !fields ? defaultFields : _.split(<string>fields, ",");
-    const dataset = (mode == "edit") ? await readDraftDataset(dataset_id, attributes) : await readDataset(dataset_id, attributes)
+    const dataset = (mode == "edit") ? await readDraftDataset(dataset_id, attributes, userID) : await readDataset(dataset_id, attributes)
     if (!dataset) {
         throw obsrvError(dataset_id, "DATASET_NOT_FOUND", `Dataset with the given dataset_id:${dataset_id} not found`, "NOT_FOUND", 404);
     }
@@ -41,19 +42,19 @@ const datasetRead = async (req: Request, res: Response) => {
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: dataset });
 }
 
-const readDraftDataset = async (datasetId: string, attributes: string[]): Promise<any> => {
+const readDraftDataset = async (datasetId: string, attributes: string[], userID: string): Promise<any> => {
 
     const attrs = _.union(attributes, ["dataset_config", "api_version", "type", "id"])
     const draftDataset = await datasetService.getDraftDataset(datasetId, attrs);
     if (draftDataset) { // Contains a draft
         const apiVersion = _.get(draftDataset, ["api_version"]);
-        const dataset: any = (apiVersion === "v2") ? draftDataset : await datasetService.migrateDraftDataset(datasetId, draftDataset)
+        const dataset: any = (apiVersion === "v2") ? draftDataset : await datasetService.migrateDraftDataset(datasetId, draftDataset, userID)
         return _.pick(dataset, attributes);
     }
 
     const liveDataset = await datasetService.getDataset(datasetId, undefined, true);
     if (liveDataset) {
-        const dataset = await datasetService.createDraftDatasetFromLive(liveDataset)
+        const dataset = await datasetService.createDraftDatasetFromLive(liveDataset, userID)
         return _.pick(dataset, attributes);
     }
 

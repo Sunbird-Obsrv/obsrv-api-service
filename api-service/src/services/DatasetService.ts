@@ -92,9 +92,10 @@ class DatasetService {
         return responseData;
     }
 
-    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>): Promise<any> => {
+    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>, userID: string): Promise<any> => {
         const dataset_id = _.get(dataset, "id")
         const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
+        _.set(draftDataset, "updated_by", userID);
         const transaction = await sequelize.transaction();
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
@@ -166,7 +167,7 @@ class DatasetService {
         }
     }
 
-    createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
+    createDraftDatasetFromLive = async (dataset: Model<any, any>, userID: string) => {
 
         const draftDataset: any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
         const dataset_config: any = _.get(dataset, "dataset_config");
@@ -232,6 +233,7 @@ class DatasetService {
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
+        draftDataset["created_by"] = userID;
         const result = await DatasetDraft.create(draftDataset);
         return _.get(result, "dataValues")
     }
@@ -256,14 +258,14 @@ class DatasetService {
         }
     }
 
-    retireDataset = async (dataset: Record<string, any>) => {
+    retireDataset = async (dataset: Record<string, any>, updatedBy: any) => {
 
         const transaction = await sequelize.transaction();
         try {
-            await Dataset.update({ status: DatasetStatus.Retired }, { where: { id: dataset.id }, transaction });
-            await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
-            await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
-            await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
+            await Dataset.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { id: dataset.id }, transaction });
+            await DatasetSourceConfig.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
+            await Datasource.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
+            await DatasetTransformations.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
             await transaction.commit();
             await this.deleteDruidSupervisors(dataset);
         } catch (err: any) {
@@ -321,30 +323,39 @@ class DatasetService {
 
     private createDruidDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
+        const {created_by, updated_by} = draftDataset;
         const allFields = await tableGenerator.getAllFields(draftDataset, "druid");
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
         const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
+        _.set(draftDatasource, "created_by", created_by);
+        _.set(draftDatasource, "updated_by", updated_by);
         await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
+        const {created_by, updated_by} = draftDataset;
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
+        _.set(draftDatasource, "created_by", created_by);
+        _.set(draftDatasource, "updated_by", updated_by);
         await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
+        const {created_by, updated_by} = draftDataset;
         const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const dsId = _.join([draftDataset.dataset_id, "events", "hudi"], "_")
         const liveDatasource = await Datasource.findOne({ where: { id: dsId }, attributes: ["ingestion_spec"], raw: true }) as unknown as Record<string, any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
+        _.set(draftDatasource, "created_by", created_by);
+        _.set(draftDatasource, "updated_by", updated_by);
         await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
