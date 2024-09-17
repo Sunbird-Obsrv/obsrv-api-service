@@ -330,7 +330,7 @@ class DatasetService {
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         _.set(draftDatasource, "created_by", created_by);
         _.set(draftDatasource, "updated_by", updated_by);
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
@@ -342,7 +342,7 @@ class DatasetService {
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         _.set(draftDatasource, "created_by", created_by);
         _.set(draftDatasource, "updated_by", updated_by);
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
@@ -356,7 +356,7 @@ class DatasetService {
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         _.set(draftDatasource, "created_by", created_by);
         _.set(draftDatasource, "updated_by", updated_by);
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createDraftDatasource = (draftDataset: Record<string, any>, type: string): Record<string, any> => {

@@ -34,6 +34,7 @@ class DruidCommand(ICommand):
             print(
                 f"Invoking SUBMIT_INGESTION_TASKS command for dataset_id {dataset_id}..."
             )
+            task_submitted = 1
             for record in datasources_records:
                 if record["dataset_type"] == "event" and record["type"] == "druid":
                     print(f"Submitting ingestion task for datasource  ...")
@@ -41,8 +42,15 @@ class DruidCommand(ICommand):
                     response = self.http_service.post(
                         url=f"{self.router_url}/{self.supervisor_endpoint}",
                         body=ingestion_spec,
-                        headers={"Content-Type": "application/json"},
+                        headers={"Content-Type": "application/json"}
                     )
+                    if response.status != 200:
+                        task_submitted = 0
+                        break
+            if task_submitted:
+                query=f"SELECT id FROM datasets_draft WHERE dataset_id= %s"
+                response = self.db_service.execute_select_one(sql=query, params=(dataset_id,))
+                self._delete_draft_dataset(dataset_id, response[0])
             return ActionResponse(status="OK", status_code=200)
         else:
             print(
@@ -51,3 +59,17 @@ class DruidCommand(ICommand):
             return ActionResponse(
                 status="ERROR", status_code=404, error_message="DATASET_ID_NOT_FOUND"
             )
+
+    def _delete_draft_dataset(self, dataset_id, draft_dataset_id):
+
+        self.db_service.execute_delete(sql=f"""DELETE from datasources_draft where dataset_id = %s""", params=(draft_dataset_id,))
+        print(f"Draft datasources/tables for {dataset_id} are deleted successfully...")
+
+        self.db_service.execute_delete(sql=f"""DELETE from dataset_transformations_draft where dataset_id = %s""", params=(draft_dataset_id,))
+        print(f"Draft transformations/tables for {dataset_id} are deleted successfully...")
+
+        self.db_service.execute_delete(sql=f"""DELETE from dataset_source_config_draft where dataset_id = %s""", params=(draft_dataset_id,))
+        print(f"Draft source config/tables for {dataset_id} are deleted successfully...")
+
+        self.db_service.execute_delete(sql=f"""DELETE from datasets_draft where id = %s""", params=(draft_dataset_id,))
+        print(f"Draft Dataset for {dataset_id} is deleted successfully...")
