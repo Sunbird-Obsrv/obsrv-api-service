@@ -17,6 +17,7 @@ const datasetImport = async (req: Request, res: Response) => {
     }
     const userID = (req as any)?.userID;
     _.set(datasetPayload, "created_by", userID);
+    _.set(datasetPayload, "updated_by", userID);
     const { updatedDataset, ignoredFields } = await datasetImportValidation({ ...requestBody, "request": datasetPayload })
     const { successMsg, partialIgnored } = getResponseData(ignoredFields)
 

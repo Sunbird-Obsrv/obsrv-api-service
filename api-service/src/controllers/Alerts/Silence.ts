@@ -28,6 +28,7 @@ const createHandler = async (request: Request, response: Response, next: NextFun
             start_time: start_date,
             end_time: end_date,
             created_by : userID,
+            updated_by : userID,
         }
         const sileneResponse = await Silence.create(silenceBody);
         updateTelemetryAuditEvent({ request, object: { id: sileneResponse?.dataValues?.id, ...telemetryObject } });
