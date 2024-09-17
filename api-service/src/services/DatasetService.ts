@@ -325,7 +325,7 @@ class DatasetService {
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
         const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
@@ -334,7 +334,7 @@ class DatasetService {
         const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
@@ -345,7 +345,7 @@ class DatasetService {
         const liveDatasource = await Datasource.findOne({ where: { id: dsId }, attributes: ["ingestion_spec"], raw: true }) as unknown as Record<string, any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createDraftDatasource = (draftDataset: Record<string, any>, type: string): Record<string, any> => {
