@@ -139,7 +139,6 @@ const publishDataset = async (dataset: Record<string, any>, userID: any) => {
     const draftDataset: Record<string, any> = await datasetService.getDraftDataset(dataset.dataset_id) as unknown as Record<string, any>
     _.set(draftDataset, ["created_by"], userID);
     _.set(draftDataset, ["updated_by"], userID);
-    console.log(draftDataset);
     await validateAndUpdateDenormConfig(draftDataset);
     await updateMasterDataConfig(draftDataset)
     await datasetService.publishDataset(draftDataset)
