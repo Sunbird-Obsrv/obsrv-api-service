@@ -18,11 +18,9 @@ const allowedTransitions: Record<string, any> = {
     Delete: [DatasetStatus.Draft, DatasetStatus.ReadyToPublish],
     ReadyToPublish: [DatasetStatus.Draft],
     Live: [DatasetStatus.ReadyToPublish],
-    Retire: [DatasetStatus.Live],
-    Archive: [DatasetStatus.Retired],
-    Purge: [DatasetStatus.Archived]
+    Retire: [DatasetStatus.Live]
 }
-const liveDatasetActions = ["Retire", "Archive", "Purge"]
+const liveDatasetActions = ["Retire"]
 
 const validateRequest = (req: Request, datasetId: any) => {
     const isRequestValid: Record<string, any> = schemaValidation(req.body, StatusTransitionSchema)
@@ -71,12 +69,8 @@ const datasetStatusTransition = async (req: Request, res: Response) => {
         case "Retire":
             await retireDataset(dataset, userID);
             break;
-        case "Archive":
-            await archiveDataset(dataset);
-            break;
-        case "Purge":
-            await purgeDataset(dataset);
-            break;
+        default:
+            throw obsrvError(dataset.id, "UNKNOWN_STATUS_TRANSITION", "Unknown status transition requested", "BAD_REQUEST", 400)
     }
 
     ResponseHandler.successResponse(req, res, { status: httpStatus.OK, data: { message: `Dataset status transition to ${status} successful`, dataset_id } });
@@ -246,16 +240,6 @@ const canRetireIfMasterDataset = async (dataset: Record<string, any>) => {
 
 export const restartPipeline = async (dataset: Record<string, any>) => {
     return executeCommand(dataset.id, "RESTART_PIPELINE")
-}
-
-const archiveDataset = async (dataset: Record<string, any>) => {
-
-    throw obsrvError(dataset.id, "ARCHIVE_NOT_IMPLEMENTED", "Archive functionality is not implemented", "NOT_IMPLEMENTED", 501)
-}
-
-const purgeDataset = async (dataset: Record<string, any>) => {
-
-    throw obsrvError(dataset.id, "PURGE_NOT_IMPLEMENTED", "Purge functionality is not implemented", "NOT_IMPLEMENTED", 501)
 }
 
 export default datasetStatusTransition;

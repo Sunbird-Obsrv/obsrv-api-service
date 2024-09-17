@@ -8,6 +8,7 @@ import { Datasource } from "../../../models/Datasource";
 import nock from "nock";
 import { config } from "../../../configs/Config";
 import { templateQueryApiFixtures } from "./Fixtures";
+import { druidHttpService } from "../../../connections/druidConnection";
 const apiId = "api.query.template.query";
 const msgid = "4a7f14c3-d61e-4d4f-be78-181834eeff6d"
 
@@ -50,6 +51,11 @@ describe("QUERY TEMPLATE API", () => {
             return Promise.resolve(response)
         })
 
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_month": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["test.1_rollup_month"])
@@ -93,6 +99,11 @@ describe("QUERY TEMPLATE API", () => {
             return Promise.resolve(response)
         })
 
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_month": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["test.1_rollup_month"])
