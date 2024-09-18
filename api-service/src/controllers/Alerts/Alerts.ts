@@ -31,8 +31,9 @@ const createAlertHandler = async (req: Request, res: Response, next: NextFunctio
 const publishAlertHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { alertId } = req.params;
-    const rulePayload: Record<string, any> | null = await getAlertRule(alertId);
-    if (!rulePayload) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
+    const ruleModel: Record<string, any> | null = await getAlertRule(alertId);
+    if (!ruleModel) return next({ message: httpStatus[httpStatus.NOT_FOUND], statusCode: httpStatus.NOT_FOUND });
+    const rulePayload = ruleModel.toJSON();
     const userID = (req as any)?.userID;
     _.set(rulePayload, "updated_by", userID);
     if (rulePayload.status == "live") {

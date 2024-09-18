@@ -176,7 +176,7 @@ class AlertManagerService(ICommand):
                         "subComponent": dataset_name,
                         "metric": prom_metric,
                         "operator": operator,
-                        "threshold": threshold,
+                        "threshold": [+threshold],
                         "metricAlias": metric_alias,
                     }
                 },
