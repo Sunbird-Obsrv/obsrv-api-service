@@ -7,7 +7,7 @@ import { Metrics } from "../../models/Metric";
 import constants from "./constants";
 
 export const getAlertRule = (id: string) => {
-  return Alert.findOne({ where: { id }, raw: true });
+  return Alert.findOne({ where: { id } });
 }
 
 const getService = (manager: string) => {
