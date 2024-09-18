@@ -17,6 +17,7 @@ import { Datasource } from "../models/Datasource";
 import { obsrvError } from "../types/ObsrvError";
 import { druidHttpService } from "../connections/druidConnection";
 import { tableGenerator } from "./TableGenerator";
+import { deleteAlertByDataset, deleteMetricAliasByDataset } from "./managers";
 
 class DatasetService {
 
@@ -258,6 +259,11 @@ class DatasetService {
         }
     }
 
+    private deleteAlerts = async (dataset: any) => {
+        await deleteAlertByDataset(dataset);
+        await deleteMetricAliasByDataset(dataset);
+    }
+
     retireDataset = async (dataset: Record<string, any>, updatedBy: any) => {
 
         const transaction = await sequelize.transaction();
@@ -267,11 +273,13 @@ class DatasetService {
             await Datasource.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
             await DatasetTransformations.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
             await transaction.commit();
-            await this.deleteDruidSupervisors(dataset);
         } catch (err: any) {
             await transaction.rollback();
             throw obsrvError(dataset.id, "FAILED_TO_RETIRE_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
+        // Deleting dataset alerts and druid supervisors
+        await this.deleteDruidSupervisors(dataset);
+        await this.deleteAlerts(dataset);
     }
 
     findDatasources = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
@@ -379,7 +387,7 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
     const connectorsV2 = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
     const connectorsV1 = await getV1Connectors(dataset_id)
-    const connectors = _.concat(connectorsV1,connectorsV2)
+    const connectors = _.concat(connectorsV1, connectorsV2)
 
     if (!_.isEmpty(transformations)) {
         datasetRecord["transformations_config"] = transformations
