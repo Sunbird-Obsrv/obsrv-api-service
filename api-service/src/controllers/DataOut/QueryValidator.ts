@@ -4,10 +4,11 @@ import * as _ from "lodash";
 import moment from "moment";
 import { getDatasourceList } from "../../services/DatasourceService";
 import logger from "../../logger";
-import { getDatasourceListFromDruid } from "../../connections/druidConnection";
+import { druidHttpService, getDatasourceListFromDruid } from "../../connections/druidConnection";
 import { apiId } from "./DataOutController";
 import { ErrorObject } from "../../types/ResponseModel";
 import { Parser } from "node-sql-parser";
+import { obsrvError } from "../../types/ObsrvError";
 const parser = new Parser();
 
 const momentFormat = "YYYY-MM-DD HH:MM:SS";
@@ -15,7 +16,7 @@ let dataset_id: string;
 let requestBody: any;
 let msgid: string;
 const errCode = {
-    notFound: "DATA_OUT_SOURCE_NOT_FOUND",
+    notFound: "DATASOURCE_NOT_FOUND",
     invalidDateRange: "DATA_OUT_INVALID_DATE_RANGE"
 }
 
@@ -155,23 +156,41 @@ const validateQueryRules = (queryPayload: any, limits: any) => {
         : { message: "Invalid date range! the date range cannot be a null value", statusCode: 400, errCode: "BAD_REQUEST", code: errCode.invalidDateRange };
 };
 
-const getDataSourceRef = async (datasetId: string, granularity?: string) => {
+const getDataSourceRef = async (datasetId: string, requestGranularity?: string) => {
     const dataSources = await getDatasourceList(datasetId)
     if (_.isEmpty(dataSources)) {
         logger.error({ apiId, requestBody, msgid, dataset_id, message: `Datasource ${datasetId} not available in datasource live table`, code: errCode.notFound })
         throw { message: `Datasource ${datasetId} not available for querying`, statusCode: 404, errCode: "NOT_FOUND", code: errCode.notFound } as ErrorObject;
     }
-    const record = dataSources.filter((record: any) => {
-        const aggregatedRecord = _.get(record, "dataValues.metadata.aggregated")
-        if (granularity)
-            return aggregatedRecord && _.get(record, "dataValues.metadata.granularity") === granularity;
+    const record = dataSources.find((record: any) => {
+        const metadata = _.get(record, "dataValues.metadata", {});
+        const { aggregated, granularity } = metadata;
+        if (!aggregated) {
+            return true;
+        }
+        return aggregated && requestGranularity ? granularity === requestGranularity : false;
     });
-    return record[0]?.dataValues?.datasource_ref
+    return _.get(record, ["dataValues", "datasource_ref"])
+}
+
+const checkSupervisorAvailability = async (datasourceRef: string) => {
+    const { data } = await druidHttpService.get("/druid/coordinator/v1/loadstatus");
+    const datasourceAvailability = _.get(data, datasourceRef)
+    if (_.isUndefined(datasourceAvailability)) {
+        throw obsrvError("", "DATASOURCE_NOT_AVAILABLE", "Datasource not available for querying", "NOT_FOUND", 404)
+    }
+    if (datasourceAvailability !== 100) {
+        throw obsrvError("", "DATASOURCE_NOT_FULLY_AVAILABLE", "Datasource not fully available for querying", "RANGE_NOT_SATISFIABLE", 416)
+    }
 }
 
 const setDatasourceRef = async (datasetId: string, payload: any): Promise<any> => {
     const granularity = _.get(payload, "context.aggregationLevel")
     const datasourceRef = await getDataSourceRef(datasetId, granularity);
+    if (!datasourceRef) {
+        throw obsrvError("", "DATASOURCE_NOT_FOUND", "Datasource not found to query", "NOT_FOUND", 404)
+    }
+    await checkSupervisorAvailability(datasourceRef)
     const existingDatasources = await getDatasourceListFromDruid();
 
     if (!_.includes(existingDatasources.data, datasourceRef)) {

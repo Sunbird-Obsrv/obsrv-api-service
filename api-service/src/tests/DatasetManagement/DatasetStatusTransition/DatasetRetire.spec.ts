@@ -14,6 +14,7 @@ import { Datasource } from "../../../models/Datasource";
 import { commandHttpService } from "../../../connections/commandServiceConnection";
 import { druidHttpService } from "../../../connections/druidConnection";
 import { sequelize } from "../../../connections/databaseConnection";
+import { datasetService } from "../../../services/DatasetService";
 
 chai.use(spies);
 chai.should();
@@ -45,6 +46,9 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         })
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve([{ datasource_ref: "telemetry" }])
+        })
+        chai.spy.on(datasetService, "deleteAlerts", () => {
+            return Promise.resolve({})
         })
         chai.spy.on(druidHttpService, "post", () => {
             return Promise.resolve({})
@@ -91,6 +95,9 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
         chai.spy.on(Dataset, "update", () => {
             return Promise.resolve({})
         })
+        chai.spy.on(datasetService, "deleteAlerts", () => {
+            return Promise.resolve({})
+        })
         chai.spy.on(commandHttpService, "post", () => {
             return Promise.resolve({})
         })
@@ -128,6 +135,9 @@ describe("DATASET STATUS TRANSITION RETIRE", () => {
             return Promise.resolve({})
         })
         chai.spy.on(Datasource, "update", () => {
+            return Promise.resolve({})
+        })
+        chai.spy.on(datasetService, "deleteAlerts", () => {
             return Promise.resolve({})
         })
         chai.spy.on(Dataset, "update", () => {

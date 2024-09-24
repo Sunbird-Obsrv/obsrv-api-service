@@ -38,7 +38,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
         })
-        chai.spy.on(DatasourceDraft, "create", () => {
+        chai.spy.on(DatasourceDraft, "upsert", () => {
             return Promise.resolve({})
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
@@ -80,7 +80,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
         })
-        chai.spy.on(DatasourceDraft, "create", () => {
+        chai.spy.on(DatasourceDraft, "upsert", () => {
             return Promise.resolve({})
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
@@ -122,7 +122,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ "api_version":"v2", "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
         })
-        chai.spy.on(DatasourceDraft, "create", () => {
+        chai.spy.on(DatasourceDraft, "upsert", () => {
             return Promise.resolve({})
         })
         chai.spy.on(Datasource, "findOne", () => {
@@ -289,7 +289,7 @@ describe("DATASET STATUS TRANSITION LIVE", () => {
         chai.spy.on(Dataset, "findOne", () => {
             return Promise.resolve({ "data_schema": { "email": { "data_type": "string", "arrival_format": "string" } } })
         })
-        chai.spy.on(DatasourceDraft, "create", () => {
+        chai.spy.on(DatasourceDraft, "upsert", () => {
             return Promise.resolve({})
         })
         const t = chai.spy.on(sequelize, "transaction", () => {
