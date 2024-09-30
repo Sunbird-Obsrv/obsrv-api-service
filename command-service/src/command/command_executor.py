@@ -10,6 +10,7 @@ from command.db_command import DBCommand
 from command.druid_command import DruidCommand
 from command.flink_command import FlinkCommand
 from command.telemetry_command import TelemetryCommand
+from command.kafka_command import KafkaCommand
 from config import Config
 from model.data_models import Action, ActionResponse, CommandPayload
 from service.db_service import DatabaseService
@@ -49,6 +50,9 @@ class CommandExecutor:
         self.db_command = DBCommand(
             db_service=self.db_service, dataset_command=self.dataset_command
         )
+        self.create_kafka_topic = KafkaCommand(
+            config=self.config_obj, http_service=self.http_service, dataset_command=self.dataset_command
+        )
         self.audit_event_command = TelemetryCommand(
             telemetry_service=self.telemetry_service,
             dataset_command=self.dataset_command,
@@ -56,6 +60,7 @@ class CommandExecutor:
         self.action_commands = {}
         self.action_commands[Action.START_PIPELINE_JOBS.name] = self.flink_command
         self.action_commands[Action.MAKE_DATASET_LIVE.name] = self.db_command
+        self.action_commands[Action.CREATE_KAFKA_TOPIC.name] = self.create_kafka_topic
         self.action_commands[Action.SUBMIT_INGESTION_TASKS.name] = self.druid_command
         self.action_commands[Action.DEPLOY_CONNECTORS.name] = self.connector_command
         self.action_commands[Action.CREATE_ALERT_METRIC.name] = (
