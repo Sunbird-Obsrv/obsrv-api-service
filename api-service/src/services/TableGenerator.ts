@@ -86,6 +86,7 @@ class TableGenerator extends BaseTableGenerator {
     getDruidIngestionSpec = (dataset: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
 
         const { dataset_config, router_config } = dataset
+        const ingestionSpecDefaults = _.cloneDeep(rawIngestionSpecDefaults)
         return {
             "type": "kafka",
             "spec": {
@@ -94,10 +95,10 @@ class TableGenerator extends BaseTableGenerator {
                     "dimensionsSpec": { "dimensions": this.getDruidDimensions(allFields, this.getTimestampKey(dataset), dataset_config.keys_config.partition_key) },
                     "timestampSpec": { "column": this.getTimestampKey(dataset), "format": "auto" },
                     "metricsSpec": [],
-                    "granularitySpec": rawIngestionSpecDefaults.granularitySpec
+                    "granularitySpec": ingestionSpecDefaults.granularitySpec
                 },
-                "tuningConfig": rawIngestionSpecDefaults.tuningConfig,
-                "ioConfig": _.merge(rawIngestionSpecDefaults.ioConfig, {
+                "tuningConfig": ingestionSpecDefaults.tuningConfig,
+                "ioConfig": _.merge(ingestionSpecDefaults.ioConfig, {
                     "topic": router_config.topic,
                     "inputFormat": {
                         "flattenSpec": {
@@ -142,8 +143,8 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
-    private getDruidFlattenSpec = (allFields: Record<string, any>) => {
-        const allfields = _.map(allFields, (field) => {
+    private getDruidFlattenSpec = (fields: Record<string, any>) => {
+        const allfields = _.map(fields, (field) => {
             return {
                 type: "path",
                 expr: field.expr,
