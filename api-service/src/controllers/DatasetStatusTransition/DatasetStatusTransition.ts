@@ -95,8 +95,8 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
     }
     _.set(draftDataset, "updated_by", updated_by);
-    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue ,key) => {
-        if (key === "created_by"|| key === "updated_by") {
+    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue, key) => {
+        if (key === "created_by" || key === "updated_by") {
             if (objValue !== "SYSTEM") {
                 return objValue;
             }
@@ -182,9 +182,10 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
         }
 
         // 2. Populate redis db for denorm
+        const defaults = _.cloneDeep(defaultDatasetConfig)
         draftDataset["denorm_config"] = {
-            redis_db_host: defaultDatasetConfig.denorm_config.redis_db_host,
-            redis_db_port: defaultDatasetConfig.denorm_config.redis_db_port,
+            redis_db_host: defaults.denorm_config.redis_db_host,
+            redis_db_port: defaults.denorm_config.redis_db_port,
             denorm_fields: _.map(masterDatasetsStatus, "denorm_field")
         }
     }
@@ -193,7 +194,8 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
 const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
     if (draftDataset.type === "master") {
         const dataset_config = _.get(draftDataset, "dataset_config")
-        const datasetCacheConfig = _.get(defaultDatasetConfig, "dataset_config.cache_config")
+        const defaultConfigs = _.cloneDeep(defaultDatasetConfig)
+        const datasetCacheConfig = _.get(defaultConfigs, "dataset_config.cache_config")
         draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
         if (draftDataset.dataset_config.cache_config.redis_db === 0) {
             const { results }: any = await datasetService.getNextRedisDBIndex()

@@ -16,14 +16,17 @@ class KafkaCommand(ICommand):
         result = None
         if action == Action.CREATE_KAFKA_TOPIC.name:
             print(
-                f"Invoking START_PIPELINE_JOBS command for dataset_id {command_payload.dataset_id}..."
+                f"Invoking CREATE_KAFKA_TOPIC command for dataset_id {command_payload.dataset_id}..."
             )
+            self.config_obj = Config()
             dataset_id = command_payload.dataset_id
             live_dataset, data_version = self.dataset_command._check_for_live_record(
                 dataset_id
             )
             topic = live_dataset.router_config['topic']
-            result = self.create_kafka_topic(topic, "localhost:9092", 1, 1)
+            brokers = self.config_obj.find("kafka.brokers")
+            print(f"broker", brokers)
+            result = self.create_kafka_topic(topic, brokers, 1, 1)
         return result
 
 
