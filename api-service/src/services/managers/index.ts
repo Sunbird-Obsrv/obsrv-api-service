@@ -138,11 +138,7 @@ export const deleteAlertByDataset = async (payload: Record<string, any>) => {
 export const deleteMetricAliasByDataset = async (payload: Record<string, any>) => {
   try {
     const { name } = payload;
-    const metricAliasPayload = await Metrics.findAll({ where: { component: "datasets", subComponent: name } })
-    if (!metricAliasPayload) throw new Error(constants.METRIC_ALIAS_NOT_FOUND)
-    for (const payload of metricAliasPayload) {
-      await payload.destroy()
-    }
+    await Metrics.destroy({ where: { component: "datasets", subComponent: name } })
     return constants.METRIC_ALIAS_DELETED_SUCCESSFULLY;
   } catch (error: any) {
     throw new Error(constants.METRIC_ALIAS_NOT_DELETED);
