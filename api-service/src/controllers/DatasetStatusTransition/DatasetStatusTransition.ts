@@ -93,6 +93,7 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
     defaultConfigs = _.omit(defaultConfigs, "dedup_config.dedup_key");
     if (draftDataset?.type === "master") {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
+        defaultConfigs = _.omit(defaultConfigs, "dataset_config.cache_config.redis_db");
     }
     _.set(draftDataset, "updated_by", updated_by);
     _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue, key) => {
@@ -193,10 +194,17 @@ const validateAndUpdateDenormConfig = async (draftDataset: Record<string, any>) 
 
 const updateMasterDataConfig = async (draftDataset: Record<string, any>) => {
     if (draftDataset.type === "master") {
-        const dataset_config = _.get(draftDataset, "dataset_config")
-        const defaultConfigs = _.cloneDeep(defaultDatasetConfig)
-        const datasetCacheConfig = _.get(defaultConfigs, "dataset_config.cache_config")
-        draftDataset.dataset_config = { ...dataset_config, cache_config: datasetCacheConfig }
+        const datasetConfig = _.get(draftDataset, "dataset_config")
+        const defaultConfigs = _.cloneDeep(defaultDatasetConfig);
+
+        const defaultCacheConfig = _.get(defaultConfigs, "dataset_config.cache_config");
+        const currentCacheConfig = _.get(datasetConfig, "cache_config");
+        draftDataset.dataset_config = {
+            ...datasetConfig, cache_config: {
+                ...defaultCacheConfig, ..._.omit(currentCacheConfig, "redis_db"),
+                redis_db: _.get(currentCacheConfig, "redis_db")
+            }
+        };
         if (draftDataset.dataset_config.cache_config.redis_db === 0) {
             const { results }: any = await datasetService.getNextRedisDBIndex()
             if (_.isEmpty(results)) {
