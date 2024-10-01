@@ -5,11 +5,12 @@ import { config } from "../configs/Config";
 import _ from "lodash";
 import userPermissions from "./userPermissions.json";
 import httpStatus from "http-status";
+import { userService } from "../services/UserService";
 interface AccessControl {
-  apiGroups : {
+  apiGroups: {
     [key: string]: string[];
   },
-  roles : {
+  roles: {
     [key: string]: string[];
   }
 }
@@ -42,14 +43,16 @@ const errorHandler = (statusCode: number, message: string, req: Request, res: Re
   );
 };
 
+const authType = config.authenticationType;
+
 export default {
   name: "rbac:middleware",
-  handler: () => (req: Request, res: Response, next: NextFunction) => {
+  handler: () => async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (_.lowerCase(config.is_RBAC_enabled) === "false") {
         (req as any).userID = "SYSTEM";
         next();
-      } else {
+      } else if (authType === "basic") {
         const public_key = config.user_token_public_key;
         const token = req.get("x-user-token");
         if (!token) {
@@ -91,6 +94,52 @@ export default {
             next();
           }
         });
+      }
+      else if (authType === "keycloak") {
+        const token = req.get("x-user-token");
+
+        if (!token) {
+          return res.status(401).json({ message: "No token provided" });
+        }
+        const decoded = jwt.decode(token);
+        if (!decoded) {
+          return res.status(401).json({ message: "Invalid token" });
+        }
+        const userCondition: any = {};
+        userCondition.id = decoded.sub;
+        const userDetails = ["roles", "user_name"]
+        const user = await userService.getUser(userCondition, userDetails);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        (req as any).userID = decoded?.sub;
+        const action = (req as any).id;
+        const hasAccess = user?.roles?.some((role: string) => {
+          const apiGroups = accessControl.roles[role];
+
+          if (!apiGroups) return false;
+
+          return apiGroups.some((apiGroup: string) =>
+            accessControl.apiGroups[apiGroup]?.includes(action)
+          );
+        });
+        if (!hasAccess) {
+          const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
+            const apiGroups = accessControl.roles[role];
+            if (!apiGroups) return false;
+            return apiGroups.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
+          });
+          const rolesMessage = rolesWithAccess.length > 0
+            ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
+            : "No roles have this action";
+
+          const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
+
+          return errorHandler(403, errorMessage, req, res);
+        }
+        next();
       }
     } catch (error) {
       next(error);
