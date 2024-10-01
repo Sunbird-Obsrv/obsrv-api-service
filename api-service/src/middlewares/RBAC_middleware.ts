@@ -43,7 +43,90 @@ const errorHandler = (statusCode: number, message: string, req: Request, res: Re
   );
 };
 
-const authType = config.authenticationType;
+
+const basicToken = (token: string, req: Request, res: Response, next: NextFunction) => {
+  try {
+    const decoded = jwt.verify(token, config.user_token_public_key);
+    
+    if (!decoded || !_.isObject(decoded)) {
+      return errorHandler(401, "Token verification failed or invalid token", req, res);
+    }
+
+    (req as any).userID = decoded.id;
+    const action = (req as any).id;
+
+    if (decoded.roles) {
+      const hasAccess = decoded.roles.some((role: string) => {
+        const apiGroups = accessControl.roles[role];
+        return apiGroups?.some((apiGroup: string) =>
+          accessControl.apiGroups[apiGroup]?.includes(action)
+        );
+      });
+
+      if (hasAccess) {
+        return next();
+      }else {
+        const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
+          const apiGroups = accessControl.roles[role];
+          return apiGroups?.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
+        });
+
+        const rolesMessage = rolesWithAccess.length > 0
+          ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
+          : "No roles have this action";
+
+        const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
+        return errorHandler(403, errorMessage, req, res);
+      }
+    }
+
+    return errorHandler(403, "Access denied. User does not have permission to perform this action.", req, res);
+  } catch (error) {
+    return errorHandler(401, "Token verification error", req, res);
+  }
+};
+
+const keycloakTokenVerify = async (token: string, req: Request, res: Response, next: NextFunction) => {
+  try {
+    const decoded = jwt.decode(token);
+    if (decoded && _.isObject(decoded)) {
+      (req as any).userID = decoded.sub;
+      const action = (req as any).id;
+      const userCondition = { id: decoded.sub };
+      const userDetails = ["roles", "user_name"];
+      const user = await userService.getUser(userCondition, userDetails);
+
+      if (!user) {
+        return errorHandler(404, "User not found", req, res);
+      }
+
+      const hasAccess = user.roles?.some((role: string) => {
+        const apiGroups = accessControl.roles[role];
+        return apiGroups?.some((apiGroup: string) =>
+          accessControl.apiGroups[apiGroup]?.includes(action)
+        );
+      });
+
+      if(hasAccess){
+        return next();
+      }else {
+        const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
+          const apiGroups = accessControl.roles[role];
+          return apiGroups?.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
+        });
+
+        const rolesMessage = rolesWithAccess.length > 0
+          ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
+          : "No roles have this action";
+
+        const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
+        return errorHandler(403, errorMessage, req, res);
+      }
+    }
+  } catch (error) {
+    return errorHandler(401, "Token decode error", req, res);
+  }
+};
 
 export default {
   name: "rbac:middleware",
@@ -51,98 +134,22 @@ export default {
     try {
       if (_.lowerCase(config.is_RBAC_enabled) === "false") {
         (req as any).userID = "SYSTEM";
-        next();
-      } else if (authType === "basic") {
-        const public_key = config.user_token_public_key;
-        const token = req.get("x-user-token");
-        if (!token) {
-          return errorHandler(401, "No token provided", req, res);
-        }
-        jwt.verify(token as string, public_key, (err, decoded) => {
-          if (err) {
-            return errorHandler(401, "Token verification failed", req, res);
-          }
-          if (decoded && _.isObject(decoded)) {
-            if (!decoded?.id) {
-              return errorHandler(401, "User ID is missing from the decoded token.", req, res);
-            }
-            (req as any).userID = decoded?.id;
-            const action = (req as any).id;
-            const hasAccess = decoded?.roles?.some((role: string) => {
-              const apiGroups = accessControl.roles[role];
-
-              if (!apiGroups) return false;
-
-              return apiGroups.some((apiGroup: string) =>
-                accessControl.apiGroups[apiGroup]?.includes(action)
-              );
-            });
-            if (!hasAccess) {
-              const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
-                const apiGroups = accessControl.roles[role];
-                if (!apiGroups) return false;
-                return apiGroups.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
-              });
-              const rolesMessage = rolesWithAccess.length > 0
-                ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
-                : "No roles have this action";
-
-              const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
-
-              return errorHandler(403, errorMessage, req, res);
-            }
-            next();
-          }
-        });
+        return next();
       }
-      else if (authType === "keycloak") {
-        const token = req.get("x-user-token");
 
-        if (!token) {
-          return res.status(401).json({ message: "No token provided" });
-        }
-        const decoded = jwt.decode(token);
-        if (!decoded) {
-          return res.status(401).json({ message: "Invalid token" });
-        }
-        const userCondition: any = {};
-        userCondition.id = decoded.sub;
-        const userDetails = ["roles", "user_name"]
-        const user = await userService.getUser(userCondition, userDetails);
+      const token = req.get("x-user-token");
+      if (!token) {
+        return errorHandler(401, "No token provided", req, res);
+      }
 
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-
-        (req as any).userID = decoded?.sub;
-        const action = (req as any).id;
-        const hasAccess = user?.roles?.some((role: string) => {
-          const apiGroups = accessControl.roles[role];
-
-          if (!apiGroups) return false;
-
-          return apiGroups.some((apiGroup: string) =>
-            accessControl.apiGroups[apiGroup]?.includes(action)
-          );
-        });
-        if (!hasAccess) {
-          const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
-            const apiGroups = accessControl.roles[role];
-            if (!apiGroups) return false;
-            return apiGroups.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
-          });
-          const rolesMessage = rolesWithAccess.length > 0
-            ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
-            : "No roles have this action";
-
-          const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
-
-          return errorHandler(403, errorMessage, req, res);
-        }
-        next();
+      const decoded = jwt.decode(token);
+      if (decoded && _.isObject(decoded) && decoded.roles) {
+        return basicToken(token, req, res, next);
+      } else {
+        return await keycloakTokenVerify(token, req, res, next);
       }
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 };
