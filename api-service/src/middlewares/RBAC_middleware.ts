@@ -44,10 +44,41 @@ const errorHandler = (statusCode: number, message: string, req: Request, res: Re
 };
 
 
+const checkAccess = (decoded: any, action: string, req: Request, res: Response) => {
+  if (decoded.roles) {
+    const hasAccess = decoded.roles.some((role: string) => {
+      const apiGroups = accessControl.roles[role];
+      return apiGroups?.some((apiGroup: string) =>
+        accessControl.apiGroups[apiGroup]?.includes(action)
+      );
+    });
+
+    if (hasAccess) {
+      return true;
+    } else {
+      const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
+        const apiGroups = accessControl.roles[role];
+        return apiGroups?.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
+      });
+
+      const rolesMessage = rolesWithAccess.length > 0
+        ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
+        : "No roles have this action";
+
+      const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
+      errorHandler(403, errorMessage, req, res);
+      return false;
+    }
+  }
+
+  errorHandler(403, "Access denied. User does not have permission to perform this action.", req, res);
+  return false;
+};
+
 const basicToken = (token: string, req: Request, res: Response, next: NextFunction) => {
   try {
     const decoded = jwt.verify(token, config.user_token_public_key);
-    
+
     if (!decoded || !_.isObject(decoded)) {
       return errorHandler(401, "Token verification failed or invalid token", req, res);
     }
@@ -55,32 +86,9 @@ const basicToken = (token: string, req: Request, res: Response, next: NextFuncti
     (req as any).userID = decoded.id;
     const action = (req as any).id;
 
-    if (decoded.roles) {
-      const hasAccess = decoded.roles.some((role: string) => {
-        const apiGroups = accessControl.roles[role];
-        return apiGroups?.some((apiGroup: string) =>
-          accessControl.apiGroups[apiGroup]?.includes(action)
-        );
-      });
-
-      if (hasAccess) {
-        return next();
-      }else {
-        const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
-          const apiGroups = accessControl.roles[role];
-          return apiGroups?.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
-        });
-
-        const rolesMessage = rolesWithAccess.length > 0
-          ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
-          : "No roles have this action";
-
-        const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
-        return errorHandler(403, errorMessage, req, res);
-      }
+    if (checkAccess(decoded, action, req, res)) {
+      return next();
     }
-
-    return errorHandler(403, "Access denied. User does not have permission to perform this action.", req, res);
   } catch (error) {
     return errorHandler(401, "Token verification error", req, res);
   }
@@ -100,27 +108,8 @@ const keycloakTokenVerify = async (token: string, req: Request, res: Response, n
         return errorHandler(404, "User not found", req, res);
       }
 
-      const hasAccess = user.roles?.some((role: string) => {
-        const apiGroups = accessControl.roles[role];
-        return apiGroups?.some((apiGroup: string) =>
-          accessControl.apiGroups[apiGroup]?.includes(action)
-        );
-      });
-
-      if(hasAccess){
+      if (checkAccess(user, action, req, res)) {
         return next();
-      }else {
-        const rolesWithAccess = Object.keys(accessControl.roles).filter(role => {
-          const apiGroups = accessControl.roles[role];
-          return apiGroups?.some(apiGroup => accessControl.apiGroups[apiGroup]?.includes(action));
-        });
-
-        const rolesMessage = rolesWithAccess.length > 0
-          ? `The following roles have access to this action: ${rolesWithAccess.join(", ")}`
-          : "No roles have this action";
-
-        const errorMessage = `Access denied. User does not have permission to perform this action. ${rolesMessage}.`;
-        return errorHandler(403, errorMessage, req, res);
       }
     }
   } catch (error) {
