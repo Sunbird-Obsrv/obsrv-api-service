@@ -257,13 +257,14 @@ class DBCommand(ICommand):
                 data_class = DatasetConnectorConfigDraft, data = record
             )
             current_timestamp = dt.now()
+            operations_config =  connector_config.operations_config if connector_config.operations_config is not None else {}
             if connector_config.version == 'v2':
                 params = (
                     connector_config.id,
                     dataset_id,
                     connector_config.connector_id,
-                    json.dumps(connector_config.connector_config).replace("'", "''"),
-                    json.dumps(connector_config.operations_config).replace("'", "''"),
+                    connector_config.connector_config,
+                    json.dumps(operations_config).replace("'", "''"),
                     connector_config.data_format,
                     DatasetStatusType.Live.name,
                     json.dumps(emptyJson),
@@ -274,7 +275,7 @@ class DBCommand(ICommand):
                     current_timestamp,
                     current_timestamp,
 
-                    json.dumps(connector_config.connector_config).replace("'", "''"),
+                    connector_config.connector_config,
                     json.dumps(connector_config.operations_config).replace("'", "''"),
                     connector_config.data_format,
                     draft_dataset_record.get('updated_by'),

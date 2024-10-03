@@ -67,6 +67,7 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
 const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any): Record<string, any> => {
 
+    const cache_config = _.get(datasetModel, ["dataset_config", "cache_config"])
     const dataset: Record<string, any> = {
         version_key: Date.now().toString(),
         name: datasetReq.name || _.get(datasetModel, ["name"]),
@@ -76,7 +77,7 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if(datasetReq.extraction_config) dataset["extraction_config"] = datasetReq.extraction_config
     if(datasetReq.dedup_config) dataset["dedup_config"] = datasetReq.dedup_config
     if(datasetReq.data_schema) dataset["data_schema"] = datasetReq.data_schema
-    if(datasetReq.dataset_config) dataset["dataset_config"] = datasetReq.dataset_config
+    if(datasetReq.dataset_config) dataset["dataset_config"] = { ...datasetReq.dataset_config, cache_config }
     if(datasetReq.transformations_config) 
         dataset["transformations_config"] = mergeTransformationsConfig(_.get(datasetModel, ["transformations_config"]), datasetReq.transformations_config)
     if(datasetReq.denorm_config) dataset["denorm_config"] = mergeDenormConfig(_.get(datasetModel, ["denorm_config"]), datasetReq.denorm_config)

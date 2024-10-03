@@ -115,7 +115,8 @@ export const migrateExportedDatasetV1 = (requestPayload: Record<string, any>) =>
     const { drop_duplicates, dedup_key, dedup_period, extraction_key, enabled: is_batch_event } = batch
     dataset["extraction_config"] = { is_batch_event, extraction_key, dedup_config: { drop_duplicates, dedup_key, dedup_period } }
 
-    const { redis_db, redis_db_host, redis_db_port } = defaultDatasetConfig.dataset_config.cache_config;
+    const defaults = _.cloneDeep(defaultDatasetConfig);
+    const { redis_db, redis_db_host, redis_db_port } = defaults.dataset_config.cache_config;
     dataset["dataset_config"] = {
         indexing_config: { olap_store_enabled: true, lakehouse_enabled: false, cache_enabled: (type === DatasetType.master) },
         keys_config: { data_key, timestamp_key },

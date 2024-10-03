@@ -142,7 +142,10 @@ class AlertManagerService(ICommand):
             )
         else:
             error_data = json.loads(response.body)
-            error_message = error_data["params"]["errmsg"]
+            if "params" in error_data and "errmsg" in error_data["params"]:
+                error_message = error_data["params"]["errmsg"]
+            else:
+                error_message = "Failed to publish alerts"            
             return ActionResponse(
                 status="ERROR",
                 status_code=500,
@@ -195,7 +198,10 @@ class AlertManagerService(ICommand):
             self.publish_alert_rule(alert_id=alert_id)
         else:
             error_data = json.loads(response.body)
-            error_message = error_data["params"]["errmsg"]
+            if "params" in error_data and "errmsg" in error_data["params"]:
+                error_message = error_data["params"]["errmsg"]
+            else:
+                error_message = "Failed to publish alerts"    
             return ActionResponse(
                 status="ERROR",
                 status_code=500,
