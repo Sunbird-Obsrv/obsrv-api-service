@@ -3,7 +3,7 @@ from command.icommand import ICommand
 from config import Config
 from model.data_models import Action, ActionResponse, CommandPayload
 from service.http_service import HttpService
-from confluent_kafka.admin import AdminClient, NewTopic, KafkaError
+from confluent_kafka.admin import AdminClient, NewTopic, KafkaError, KafkaException
 from command.dataset_command import DatasetCommand
 
 class KafkaCommand(ICommand):
@@ -33,18 +33,21 @@ class KafkaCommand(ICommand):
 
 
     def create_kafka_topic(self, topic, broker, num_partitions, replication_factor):
-        admin_client = AdminClient({'bootstrap.servers': broker})
-        new_topic = [NewTopic(topic, num_partitions=num_partitions, replication_factor=replication_factor)]
         errValue = ActionResponse(status="ERROR", status_code=500)  
 
         try:
+            admin_client = AdminClient({'bootstrap.servers': broker})
+            new_topic = [NewTopic(topic, num_partitions=num_partitions, replication_factor=replication_factor)]
             fs = admin_client.create_topics(new_topic)
             for topic, f in fs.items():
                 f.result()
                 print(f"Topic '{topic}' created successfully")
                 return ActionResponse(status="OK", status_code=200)    
-        except KafkaError as topicEx:
-            print(f"Error:", topicEx)
+        except (KafkaError, KafkaException) as kafkaErr:
+            print(f"Kafka exception:", kafkaErr)
+            return errValue
+        except RuntimeError as e:
+            print(f"Runtime exception: {e}")
             return errValue
         except Exception as e:
             print(f"Error creating topic: {e}")
