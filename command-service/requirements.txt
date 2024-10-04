@@ -16,4 +16,5 @@ tenacity==8.2.2
 kafka-python-ng==2.2.2
 boto3
 prometheus-client
+confluent-kafka==2.5.3
 requests

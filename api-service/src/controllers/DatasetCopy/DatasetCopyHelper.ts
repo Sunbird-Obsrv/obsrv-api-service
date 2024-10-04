@@ -2,7 +2,8 @@ import * as _ from "lodash";
 import { DatasetStatus } from "../../types/DatasetModels";
 import { defaultDatasetConfig } from "../../configs/DatasetConfigDefault";
 import { config } from "../../configs/Config";
-const version = defaultDatasetConfig.version;
+const defaultConfigs = _.cloneDeep(defaultDatasetConfig);
+const version = defaultConfigs.version;
 
 export const updateRecords = (datasetRecord: Record<string, any>, newDatasetId: string): void => {
     const dataset_id = newDatasetId;
