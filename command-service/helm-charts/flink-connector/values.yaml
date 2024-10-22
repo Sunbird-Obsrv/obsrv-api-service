@@ -243,11 +243,14 @@ serviceMonitor:
     port: prom
 
 flink_jobs:
-  "kafka-connector-1-0-0":
-    "enabled": "false"
-    "connector_id": "kafka-connector-1.0.0"
-    "source": "kafka-connector-1.0.0"
-    "main_program": "kafka-connector-1.0.0.jar"
+  kafka-connector-1-0-0:
+    registry: sanketikahub
+    repository: flink-connectors
+    tag: 1.1.0
+    enabled: "false"
+    connector_id: "kafka-connector-1.0.0"
+    source: "kafka-connector-1.0.0"
+    main_program: "kafka-connector-1.0.0.jar"
 
 commonAnnotations:
   reloader.stakater.com/auto: "true"
