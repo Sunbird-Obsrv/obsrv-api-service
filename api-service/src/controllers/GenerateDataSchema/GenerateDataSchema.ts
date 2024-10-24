@@ -46,8 +46,8 @@ const schemaGenerate = (sample: Map<string, any>[], config: Record<string, any>)
         result.schema = removeFormats(result.schema)
         return result
     } else {
-        let { schema } = isBatch ? schemaInference.inferBatchSchema(<Map<string, any>[]>sample, extractionKey) : schemaInference.inferSchema(sample);
-        const { removedKeys } = isBatch ? schemaInference.inferBatchSchema(<Map<string, any>[]>sample, extractionKey) : schemaInference.inferSchema(sample);
+        // eslint-disable-next-line
+        let { schema, removedKeys } = isBatch ? schemaInference.inferBatchSchema(<Map<string, any>[]>sample, extractionKey) : schemaInference.inferSchema(sample);
         schema = schemaArrayValidator.validate(schema)
         const schemaCardinalityAnalyser = new SchemaCardinalityAnalyser(sample, schema)
         rollupInfo = schemaCardinalityAnalyser.analyse()
