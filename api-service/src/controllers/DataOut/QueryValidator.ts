@@ -7,9 +7,7 @@ import logger from "../../logger";
 import { druidHttpService, getDatasourceListFromDruid } from "../../connections/druidConnection";
 import { apiId } from "./DataOutController";
 import { ErrorObject } from "../../types/ResponseModel";
-import { Parser } from "node-sql-parser";
 import { obsrvError } from "../../types/ObsrvError";
-const parser = new Parser();
 
 const momentFormat = "YYYY-MM-DD HH:MM:SS";
 let dataset_id: string;
@@ -79,17 +77,15 @@ const setQueryLimits = (queryPayload: any) => {
     }
 
     if (_.isString(queryPayload?.query)) {
-        const vocabulary: any = parser.astify(queryPayload?.query);
-        const isLimitIncludes = JSON.stringify(vocabulary);
-        if (_.includes(isLimitIncludes, "{{LIMIT}}")) {
-            return queryPayload?.query
+        let query = queryPayload.query;
+        if (/\blimit\b/i.test(query)) {
+            return query;
         }
-        const limit = _.get(vocabulary, "limit")
-        if (limit === null) {
-            _.set(vocabulary, "limit.value[0].value", queryRules.common.maxResultRowLimit)
-            _.set(vocabulary, "limit.value[0].type", "number")
-            const convertToSQL = parser.sqlify(vocabulary);
-            queryPayload.query = convertToSQL
+        const limitRegex = /\bLIMIT\b\s+\d+/i;
+        if (!limitRegex.test(query)) {
+            const maxLimit = _.get(queryRules, "common.maxResultRowLimit");
+            query += ` LIMIT ${maxLimit}`;
+            queryPayload.query = query;
         }
     }
 }
