@@ -260,7 +260,7 @@ class DBCommand(ICommand):
             operations_config =  connector_config.operations_config if connector_config.operations_config is not None else {}
             if connector_config.version == 'v2':
                 params = (
-                    connector_config.id,
+                    "{0}-{1}".format(dataset_id, connector_config.id),
                     dataset_id,
                     connector_config.connector_id,
                     connector_config.connector_config,
@@ -273,7 +273,6 @@ class DBCommand(ICommand):
                     current_timestamp,
                     current_timestamp,
                     current_timestamp,
-
                     connector_config.connector_config,
                     json.dumps(connector_config.operations_config).replace("'", "''"),
                     draft_dataset_record.get('updated_by'),
