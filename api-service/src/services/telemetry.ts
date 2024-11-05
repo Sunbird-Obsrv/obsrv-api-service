@@ -50,7 +50,7 @@ const getDefaultEdata = ({ action }: any) => ({
 })
 
 const sendTelemetryEvents = async (event: Record<string, any>) => {
-    send({ messages: [{ value: JSON.stringify(event) }] }, telemetryTopic).catch(console.log);
+    send(event, telemetryTopic).catch(console.log);
 }
 
 const transformProps = (body: Record<string, any>) => {

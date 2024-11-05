@@ -5,8 +5,8 @@ export const connectionConfig = {
     postgres: {
         host: env.postgres_host || "localhost",
         port: env.postgres_port || 5432,
-        database: env.postgres_database || "obsrv",
-        username: env.postgres_username || "postgres",
+        database: env.postgres_database || "postgres",
+        username: env.postgres_username || "manjunathdavanam",
         password: env.postgres_password || "postgres",
     },
     kafka: {
