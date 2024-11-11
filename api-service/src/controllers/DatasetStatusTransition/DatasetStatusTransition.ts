@@ -107,7 +107,6 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
             return objValue;
         }
     });
-    console.log(draftDataset,"after merge")
 
     const datasetValid: Record<string, any> = schemaValidation(draftDataset, ReadyToPublishSchema)
     if (!datasetValid.isValid) {
