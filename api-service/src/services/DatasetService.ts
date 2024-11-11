@@ -344,8 +344,8 @@ class DatasetService {
     private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
         const {created_by, updated_by} = draftDataset;
-        const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
-        const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
+        const allFields = await tableGenerator.getAllFields(draftDataset, "datalake");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "datalake");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
         _.set(draftDatasource, "created_by", created_by);
@@ -356,9 +356,9 @@ class DatasetService {
     private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
         const {created_by, updated_by} = draftDataset;
-        const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
-        const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
-        const dsId = _.join([draftDataset.dataset_id, "events", "hudi"], "_")
+        const allFields = await tableGenerator.getAllFields(draftDataset, "datalake");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "datalake");
+        const dsId = _.join([draftDataset.dataset_id, "events", "datalake"], "_")
         const liveDatasource = await Datasource.findOne({ where: { id: dsId }, attributes: ["ingestion_spec"], raw: true }) as unknown as Record<string, any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
