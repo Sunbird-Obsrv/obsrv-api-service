@@ -260,7 +260,7 @@ class DBCommand(ICommand):
             operations_config =  connector_config.operations_config if connector_config.operations_config is not None else {}
             if connector_config.version == 'v2':
                 params = (
-                    "{0}-{1}".format(dataset_id, connector_config.id),
+                    connector_config.id,
                     dataset_id,
                     connector_config.connector_id,
                     connector_config.connector_config,
