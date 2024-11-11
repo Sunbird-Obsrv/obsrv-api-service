@@ -162,7 +162,9 @@ class TableGenerator extends BaseTableGenerator {
         return {
             dataset: dataset.dataset_id,
             schema: {
-                table: datasourceRef,
+                table: _.includes(datasourceRef, '-')
+                    ? _.replace(datasourceRef, /-/g, '_')
+                    : datasourceRef,
                 partitionColumn: partitionKey,
                 timestampColumn: timestampKey,
                 primaryKey: primaryKey,
@@ -201,9 +203,6 @@ class TableGenerator extends BaseTableGenerator {
     private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string): Record<string, any>[] => {
 
         const dataFields = _.cloneDeep(allFields);
-        _.remove(dataFields, { name: primaryKey })
-        _.remove(dataFields, { name: partitionKey })
-        _.remove(dataFields, { name: timestampKey })
         let index = 1;
         const transformFields = _.map(dataFields, (field) => {
             return {
