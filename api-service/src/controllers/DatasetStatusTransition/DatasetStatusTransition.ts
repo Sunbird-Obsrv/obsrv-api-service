@@ -96,7 +96,7 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.cache_config.redis_db");
     }
     _.set(draftDataset, "updated_by", updated_by);
-    _.mergeWith(draftDataset, defaultConfigs, draftDataset, (objValue, srcValue, key) => {
+    _.mergeWith(draftDataset, draftDataset,defaultConfigs, (objValue, srcValue, key) => {
         if (key === "created_by" || key === "updated_by") {
             if (objValue !== "SYSTEM") {
                 return objValue;
@@ -107,6 +107,8 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
             return objValue;
         }
     });
+    console.log(draftDataset,"after merge")
+
     const datasetValid: Record<string, any> = schemaValidation(draftDataset, ReadyToPublishSchema)
     if (!datasetValid.isValid) {
         throw {
