@@ -70,7 +70,6 @@ class DatasetCommand(ICommand):
         export_dataset = self.http_service.get(
             url=url
         )
-        print(export_dataset)
         if export_dataset.status == 200:
             result = json.loads(export_dataset.body)
             object_ = Object(
