@@ -190,7 +190,7 @@ class TableGenerator extends BaseTableGenerator {
 
         const primaryKey = this.getPrimaryKey(dataset);
         const partitionKey = this.getHudiPartitionKey(dataset);
-        const timestampKey = this.getTimestampKey(dataset, "lakehouse");
+        const timestampKey = this.getTimestampKey(dataset, "datalake");
         return {
             dataset: dataset.dataset_id,
             schema: {
