@@ -194,8 +194,8 @@ class TableGenerator extends BaseTableGenerator {
         return {
             dataset: dataset.dataset_id,
             schema: {
-                table: _.includes(datasourceRef, '-')
-                    ? _.replace(datasourceRef, /-/g, '_')
+                table: _.includes(datasourceRef, "-")
+                    ? _.replace(datasourceRef, /-/g, "_")
                     : datasourceRef,
                 partitionColumn: partitionKey,
                 timestampColumn: timestampKey,
@@ -232,6 +232,7 @@ class TableGenerator extends BaseTableGenerator {
         return newHudiSpec;
     }
 
+    // eslint-disable-next-line
     private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string): Record<string, any>[] => {
 
         const dataFields = _.cloneDeep(allFields);
@@ -315,12 +316,12 @@ class TableGenerator extends BaseTableGenerator {
     }
 
     private getPrimaryKey = (dataset: Record<string, any>): string => {
-        return _.replace(dataset.dataset_config.keys_config.data_key, '.', '_');
+        return _.replace(dataset.dataset_config.keys_config.data_key, ".", "_");
     }
 
     private getHudiPartitionKey = (dataset: Record<string, any>): string => {
         const partitionKey = dataset.dataset_config.keys_config.partition_key || dataset.dataset_config.keys_config.timestamp_key;
-        return _.replace(partitionKey, '.', '_')
+        return _.replace(partitionKey, ".", "_")
     }
 
     private getTimestampKey = (dataset: Record<string, any>, type: string): string => {
@@ -328,7 +329,7 @@ class TableGenerator extends BaseTableGenerator {
         if (type === "druid") {
             return timestamp;
         }
-        return _.replace(timestamp, '.', '_');
+        return _.replace(timestamp, ".", "_");
     }
 }
 
