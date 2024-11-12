@@ -87,6 +87,19 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if(datasetReq.tags) dataset["tags"] = mergeTags(_.get(datasetModel, ["tags"]), datasetReq.tags)
     if(datasetReq.sample_data) dataset["sample_data"] = datasetReq.sample_data
     if(datasetReq.type) dataset["type"] = datasetReq.type
+    if(fieldsRemoved.length > 0) {
+        const keys_config = _.get(dataset["dataset_config"] ? dataset["dataset_config"] : prev_dataset_config, ["keys_config"])
+        if(keys_config['data_key'] in fieldsRemoved) {
+            keys_config['data_key'] = '';
+        }
+        if(keys_config['primary_key'] in fieldsRemoved) {
+            keys_config['primary_key'] = '';
+        }
+        if(keys_config['timestamp_key'] in fieldsRemoved) {
+            keys_config['timestamp_key'] = '';
+        }
+        _.set(dataset["dataset_config"], 'keys_config', keys_config)        
+    }
     return dataset;
 }
 
