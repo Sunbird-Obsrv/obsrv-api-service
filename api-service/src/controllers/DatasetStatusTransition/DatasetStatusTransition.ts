@@ -91,12 +91,15 @@ const readyForPublish = async (dataset: Record<string, any>, updated_by: any) =>
     let defaultConfigs: any = _.cloneDeep(defaultDatasetConfig)
     defaultConfigs = _.omit(defaultConfigs, ["router_config"])
     defaultConfigs = _.omit(defaultConfigs, "dedup_config.dedup_key");
+    if (_.get(draftDataset, "dataset_config.keys_config")) {
+        defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config");
+    }
     if (draftDataset?.type === "master") {
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.keys_config.data_key");
         defaultConfigs = _.omit(defaultConfigs, "dataset_config.cache_config.redis_db");
     }
     _.set(draftDataset, "updated_by", updated_by);
-    _.mergeWith(draftDataset, draftDataset,defaultConfigs, (objValue, srcValue, key) => {
+    _.mergeWith(draftDataset, draftDataset, defaultConfigs, (objValue, srcValue, key) => {
         if (key === "created_by" || key === "updated_by") {
             if (objValue !== "SYSTEM") {
                 return objValue;
