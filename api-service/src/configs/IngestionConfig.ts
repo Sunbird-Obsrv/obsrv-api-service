@@ -54,6 +54,13 @@ export const rawIngestionSpecDefaults = {
         "type": "text",
         "expr": "$.obsrv_meta.syncts"
     },
+    "hudiSynctsField": {
+        "name": "obsrv_meta_syncts",
+        "arrival_format": "text",
+        "data_type": "date",
+        "type": "text",
+        "expr": "$.obsrv_meta.syncts"
+    },
     "dimensions": [
         {
             "type": "string",
@@ -62,6 +69,16 @@ export const rawIngestionSpecDefaults = {
         {
             "type": "string",
             "name": "obsrv.meta.source.id"
+        }
+    ],
+    "hudi_dimensions": [
+        {
+            "type": "string",
+            "name": "obsrv_meta_source_connector"
+        },
+        {
+            "type": "string",
+            "name": "obsrv_meta_source_id"
         }
     ],
     "flattenSpec": [
@@ -74,6 +91,18 @@ export const rawIngestionSpecDefaults = {
             "type": "path",
             "expr": "$.obsrv_meta.source.connectorInstance",
             "name": "obsrv.meta.source.id"
+        }
+    ],
+    "hudi_flattenSpec": [
+        {
+            "type": "path",
+            "expr": "$.obsrv_meta.source.connector",
+            "name": "obsrv_meta_source_connector"
+        },
+        {
+            "type": "path",
+            "expr": "$.obsrv_meta.source.connectorInstance",
+            "name": "obsrv_meta_source_id"
         }
     ]
 }
