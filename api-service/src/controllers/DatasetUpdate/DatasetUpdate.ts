@@ -67,7 +67,9 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
 const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any): Record<string, any> => {
 
-    const cache_config = _.get(datasetModel, ["dataset_config", "cache_config"])
+    const currentSchema = _.get(datasetModel, 'data_schema')
+    const fieldsRemoved = (datasetReq.data_schema) ? getMissingFieldsInNewSchema(datasetReq.data_schema, currentSchema) : []
+    const prev_dataset_config = _.get(datasetModel, ["dataset_config"])
     const dataset: Record<string, any> = {
         version_key: Date.now().toString(),
         name: datasetReq.name || _.get(datasetModel, ["name"]),
@@ -77,45 +79,87 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if(datasetReq.extraction_config) dataset["extraction_config"] = datasetReq.extraction_config
     if(datasetReq.dedup_config) dataset["dedup_config"] = datasetReq.dedup_config
     if(datasetReq.data_schema) dataset["data_schema"] = datasetReq.data_schema
-    if(datasetReq.dataset_config) dataset["dataset_config"] = { ...datasetReq.dataset_config, cache_config }
-    if(datasetReq.transformations_config) 
-        dataset["transformations_config"] = mergeTransformationsConfig(_.get(datasetModel, ["transformations_config"]), datasetReq.transformations_config)
-    if(datasetReq.denorm_config) dataset["denorm_config"] = mergeDenormConfig(_.get(datasetModel, ["denorm_config"]), datasetReq.denorm_config)
+    if(datasetReq.dataset_config) dataset["dataset_config"] = { ...prev_dataset_config, ...datasetReq.dataset_config }
+    if(datasetReq.transformations_config || fieldsRemoved.length > 0) 
+        dataset["transformations_config"] = mergeTransformationsConfig(_.get(datasetModel, ["transformations_config"]), datasetReq.transformations_config, fieldsRemoved)
+    if(datasetReq.denorm_config || fieldsRemoved.length > 0) dataset["denorm_config"] = mergeDenormConfig(_.get(datasetModel, ["denorm_config"]), datasetReq.denorm_config, fieldsRemoved)
     if(datasetReq.connectors_config) dataset["connectors_config"] = mergeConnectorsConfig(_.get(datasetModel, ["connectors_config"]), datasetReq.connectors_config)
     if(datasetReq.tags) dataset["tags"] = mergeTags(_.get(datasetModel, ["tags"]), datasetReq.tags)
     if(datasetReq.sample_data) dataset["sample_data"] = datasetReq.sample_data
     if(datasetReq.type) dataset["type"] = datasetReq.type
-
     return dataset;
 }
 
-const mergeTransformationsConfig = (currentConfigs: any, newConfigs: any) => {
-    const removeConfigs = _.map(_.filter(newConfigs, {action: "remove"}), "value.field_key")
-    const addConfigs = _.map(_.filter(newConfigs, {action: "upsert"}), "value")
+const getMissingFieldsInNewSchema = (newSchema: any, oldSchema: any) => {
 
-    return _.unionWith(
-        addConfigs,
-        _.reject(currentConfigs, (config) => { return _.includes(removeConfigs, config.field_key)}),
-        (a, b) => { 
-            return a.field_key === b.field_key
-        }  
-    )
+    const getRemovedPropertiesFieldsNested = (oldProperties: Record<string, any>, newProperties: Record<string, any>, path: string[] = []): string[] => {
+        let removedFields: string[] = [];
+        for (const key in oldProperties) {
+            const fullPath = [...path, key].join('.');
+            if (!(key in newProperties)) {
+                removedFields.push(fullPath);
+            } else if (typeof oldProperties[key] === 'object' && typeof newProperties[key] === 'object') {
+                removedFields = removedFields.concat(
+                    getRemovedPropertiesFieldsNested(oldProperties[key].properties || {}, newProperties[key].properties || {}, [...path, key])
+                );
+            }
+        }
+      
+        return removedFields;
+    }
+      
+    const getRemovedPropertiesFields = (oldSchema: any, newSchema: any): string[] => {
+        const oldProperties = oldSchema.properties || {};
+        const newProperties = newSchema.properties || {};
+        return getRemovedPropertiesFieldsNested(oldProperties, newProperties);
+    }
+      
+    // Example usage
+    const removedFieldsNested = getRemovedPropertiesFields(oldSchema, newSchema);
+    return removedFieldsNested
 }
 
-const mergeDenormConfig = (currentConfig: any, newConfig: any) => {
+const mergeTransformationsConfig = (currentConfigs: any, newConfigs: any, fieldsRemoved: string[]) => {
 
-    const removeConfigs = _.map(_.filter(newConfig.denorm_fields, {action: "remove"}), "value.denorm_out_field")
-    const addConfigs = _.map(_.filter(newConfig.denorm_fields, {action: "upsert"}), "value")
+    let updatedConfigs = currentConfigs;
+    if(newConfigs) {
+        const removeConfigs = _.map(_.filter(newConfigs, {action: "remove"}), "value.field_key")
+        const addConfigs = _.map(_.filter(newConfigs, {action: "upsert"}), "value")
 
-    const denormFields = _.unionWith(
-        addConfigs,
-        _.reject(currentConfig.denorm_fields, (config) => { return _.includes(removeConfigs, config.denorm_out_field)}),
-        (a, b) => { 
-            return a.denorm_out_field === b.denorm_out_field
-        }  
-    )
+        updatedConfigs = _.unionWith(
+            addConfigs,
+            _.reject(currentConfigs, (config) => { return _.includes(removeConfigs, config.field_key)}),
+            (a, b) => { 
+                return a.field_key === b.field_key
+            }  
+        )
+    }
+    if(fieldsRemoved.length > 0) {
+        updatedConfigs = _.reject(updatedConfigs, (config) => { return _.includes(fieldsRemoved, config.field_key)})
+    }
+    return updatedConfigs
+}
+
+const mergeDenormConfig = (currentConfig: any, newConfig: any, fieldsRemoved: string[]) => {
+
+    let updatedConfigs = currentConfig.denorm_fields;
+    if(newConfig) {
+        const removeConfigs = _.map(_.filter(newConfig.denorm_fields, {action: "remove"}), "value.denorm_out_field")
+        const addConfigs = _.map(_.filter(newConfig.denorm_fields, {action: "upsert"}), "value")
+
+        const denormFields = _.unionWith(
+            addConfigs,
+            _.reject(currentConfig.denorm_fields, (config) => { return _.includes(removeConfigs, config.denorm_out_field)}),
+            (a, b) => { 
+                return a.denorm_out_field === b.denorm_out_field
+            }  
+        )
+    }
+    if(fieldsRemoved.length > 0) {
+        updatedConfigs = _.reject(currentConfig.denorm_fields, (config) => { return _.includes(fieldsRemoved, config.denorm_key)})
+    }
     return {
-        denorm_fields: denormFields
+        denorm_fields: updatedConfigs
     }
 }
 

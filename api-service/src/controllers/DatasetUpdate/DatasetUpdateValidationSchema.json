@@ -224,7 +224,7 @@
               "additionalProperties": false
             }
           },
-          "required": ["indexing_config", "keys_config"],
+          "required": [],
           "additionalProperties": false
         },
         "transformations_config": {
