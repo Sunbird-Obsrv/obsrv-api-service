@@ -273,7 +273,6 @@ class DBCommand(ICommand):
                     current_timestamp,
                     current_timestamp,
                     current_timestamp,
-
                     connector_config.connector_config,
                     json.dumps(connector_config.operations_config).replace("'", "''"),
                     draft_dataset_record.get('updated_by'),
