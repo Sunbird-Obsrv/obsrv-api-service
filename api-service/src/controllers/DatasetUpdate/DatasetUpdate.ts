@@ -147,7 +147,7 @@ const getMissingFieldsInNewSchema = (newSchema: any, oldSchema: any) => {
 const mergeTransformationsConfig = (currentConfigs: any, newConfigs: any, fieldsRemoved: string[]) => {
 
     let updatedConfigs = currentConfigs;
-    if (newConfigs) {
+    if (newConfigs && newConfigs.length) {
         const removeConfigs = _.map(_.filter(newConfigs, { action: "remove" }), "value.field_key")
         const addConfigs = _.map(_.filter(newConfigs, { action: "upsert" }), "value")
 
@@ -168,7 +168,7 @@ const mergeTransformationsConfig = (currentConfigs: any, newConfigs: any, fields
 const mergeDenormConfig = (currentConfig: any, newConfig: any, fieldsRemoved: string[]) => {
 
     let updatedConfigs = currentConfig.denorm_fields;
-    if (newConfig) {
+    if (_.get(newConfig, "denorm_fields")) {
         const removeConfigs = _.map(_.filter(newConfig.denorm_fields, { action: "remove" }), "value.denorm_out_field")
         const addConfigs = _.map(_.filter(newConfig.denorm_fields, { action: "upsert" }), "value")
 
