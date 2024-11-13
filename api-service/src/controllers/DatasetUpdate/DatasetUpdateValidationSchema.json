@@ -170,8 +170,8 @@
               "default": true
             }
           },
-          "required": ["$schema", "type", "properties", "additionalProperties"],
-          "additionalProperties": false
+          "required": ["type", "properties"],
+          "additionalProperties": true
         },
         "dataset_config": {
           "type": "object",
