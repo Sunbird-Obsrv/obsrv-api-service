@@ -67,7 +67,7 @@ const datasetUpdate = async (req: Request, res: Response) => {
 
 const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any): Record<string, any> => {
 
-    const cache_config = _.get(datasetModel, ["dataset_config", "cache_config"]) || {}
+    const prev_dataset_config = _.get(datasetModel, ["dataset_config"])
     const currentSchema = _.get(datasetModel, 'data_schema')
     const fieldsRemoved = (datasetReq.data_schema) ? getMissingFieldsInNewSchema(datasetReq.data_schema, currentSchema) : []
     const dataset: Record<string, any> = {
@@ -79,8 +79,7 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if (datasetReq.extraction_config) dataset["extraction_config"] = datasetReq.extraction_config
     if (datasetReq.dedup_config) dataset["dedup_config"] = datasetReq.dedup_config
     if (datasetReq.data_schema) dataset["data_schema"] = datasetReq.data_schema
-    const updatedDatasetConfig = _.merge(_.get(datasetModel, "dataset_config"), { ...datasetReq.dataset_config, cache_config })
-    if (datasetReq.dataset_config) dataset["dataset_config"] = updatedDatasetConfig
+    if (datasetReq.dataset_config) dataset["dataset_config"] = { ...prev_dataset_config, ...datasetReq.dataset_config }
     if (datasetReq.transformations_config || fieldsRemoved.length > 0)
         dataset["transformations_config"] = mergeTransformationsConfig(_.get(datasetModel, ["transformations_config"]), datasetReq.transformations_config, fieldsRemoved)
     if (datasetReq.denorm_config || fieldsRemoved.length > 0) dataset["denorm_config"] = mergeDenormConfig(_.get(datasetModel, ["denorm_config"]), datasetReq.denorm_config, fieldsRemoved)
@@ -89,20 +88,29 @@ const mergeDraftDataset = (datasetModel: Model<any, any> | null, datasetReq: any
     if (datasetReq.sample_data) dataset["sample_data"] = datasetReq.sample_data
     if (datasetReq.type) dataset["type"] = datasetReq.type
     if (fieldsRemoved.length > 0) {
-        const keys_config = _.get(dataset, ["dataset_config", "keys_config"])
+        const keys_config = _.get(dataset["dataset_config"] ? dataset["dataset_config"] : prev_dataset_config, ["keys_config"])
+        let modified = false;
         if (_.includes(fieldsRemoved, keys_config['data_key'])) {
+            modified = true;
             keys_config['data_key'] = '';
         }
-        if (_.includes(fieldsRemoved, keys_config['primary_key'])) {
-            keys_config['primary_key'] = '';
-        }
         if (_.includes(fieldsRemoved, keys_config['partition_key'])) {
+            modified = true;
             keys_config['partition_key'] = '';
         }
         if (_.includes(fieldsRemoved, keys_config['timestamp_key'])) {
+            modified = true;
             keys_config['timestamp_key'] = '';
         }
-        _.set(dataset["dataset_config"], 'keys_config', keys_config)
+        if (modified) {
+            if (dataset["dataset_config"]) {
+                _.set(dataset["dataset_config"], 'keys_config', keys_config)
+            } else {
+                const keys_config = _.get(prev_dataset_config, ["keys_config"])
+                dataset["dataset_config"] = { ...prev_dataset_config }
+                _.set(dataset["dataset_config"], 'keys_config', keys_config)
+            }
+        }
     }
     return dataset;
 }
