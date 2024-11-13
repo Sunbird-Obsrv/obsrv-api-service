@@ -18,6 +18,7 @@ registry: sanketikahub
 repository: flink-connectors
 tag: 1.17.2-scala_2.12-java11
 imagePullSecrets: []
+imagePullPolicy: IfNotPresent
 
 ## Databases
 global:
@@ -205,65 +206,6 @@ log4j_console_properties: |
   logger.netty.name = org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline
   logger.netty.level = OFF
 
-baseconfig: |
-  kafka {
-    broker-servers = "{{ .Values.global.kafka.host }}:{{ .Values.global.kafka.port }}"
-    producer.broker-servers = "{{ .Values.global.kafka.host }}:{{ .Values.global.kafka.port }}"
-    consumer.broker-servers = "{{ .Values.global.kafka.host }}:{{ .Values.global.kafka.port }}"
-    zookeeper = "{{ .Values.global.zookeeper.host }}:{{ .Values.global.zookeeper.port }}"
-    producer {
-      max-request-size = 1572864
-      batch.size = 98304
-      linger.ms = 10
-      compression = "snappy"
-    }
-    output.system.event.topic = ${job.env}".system.events"
-
-    output.failed.topic = ${job.env}".failed"
-  }
-  job {
-    env = "{{ .Values.global.env }}"
-    enable.distributed.checkpointing = {{ .Values.checkpointing.enabled }}
-    statebackend {
-      base.url = "{{ .Values.checkpointing.statebackend }}"
-    }
-  }
-
-  task {
-    parallelism = 1
-    consumer.parallelism = 1
-    checkpointing.interval = 10000
-    checkpointing.pause.between.seconds = 10000
-    restart-strategy.attempts = 3
-    restart-strategy.delay = 30000 # in milli-seconds
-  }
-
-  redis.connection.timeout = 100
-  redis {
-    host = "{{ .Values.global.redis_dedup.host }}"
-    port = {{ .Values.global.redis_dedup.port }}
-  }
-
-  redis-meta {
-    host = "{{ .Values.global.redis_denorm.host }}"
-    port = {{ .Values.global.redis_denorm.port }}
-  }
-
-  postgres {
-    host = "{{ .Values.global.postgresql.host }}"
-    port = "{{ .Values.global.postgresql.port }}"
-    maxConnections = "{{ .Values.postgres.max_connections }}"
-    sslMode = "{{ .Values.postgres.sslmode }}"
-    user = "{{ .Values.global.postgresql.obsrv.user }}"
-    password = "{{ .Values.global.postgresql.obsrv.password }}"
-    database = "{{ .Values.global.postgresql.obsrv.name }}"
-  }
-
-  lms-cassandra {
-    host = "{{ .Values.global.cassandra.host }}"
-    port = "{{ .Values.global.cassandra.port }}"
-  }
-
 flink_resources:
   taskmanager:
     resources:
@@ -300,8 +242,10 @@ serviceMonitor:
     jobLabel: "app.kubernetes.io/name"
     port: prom
 
-flink_jobs:
-  
+
+# override flink_jobs
+# flink_jobs:
+
 
 commonAnnotations:
   reloader.stakater.com/auto: "true"

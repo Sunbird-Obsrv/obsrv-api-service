@@ -53,7 +53,9 @@ describe("DATASET UPDATE API", () => {
                 id: "telemetry", status: "Draft", type: "event", version_key: validVersionKey, tags: ["tag1", "tag2"], denorm_config: {
                     denorm_fields: [{
                         "denorm_key": "actor.id",
-                        "denorm_out_field": "mid"
+                        "denorm_out_field": "mid",
+                        "dataset_id" : "master-telemetry",
+                        "redis_db": 10
                     }]
                 }, api_version: "v2"
             })
@@ -80,7 +82,6 @@ describe("DATASET UPDATE API", () => {
     });
 
     it("Dataset updation failure: When no fields with dataset_id is provided in the request payload", (done) => {
-
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -101,7 +102,6 @@ describe("DATASET UPDATE API", () => {
         chai.spy.on(DatasetDraft, "findOne", () => {
             return Promise.resolve(null)
         })
-
         chai
             .request(app)
             .patch("/v2/datasets/update")
@@ -231,7 +231,6 @@ describe("DATASET UPDATE API", () => {
         });
 
         it("Failure: Failed to update the dataset name", (done) => {
-
             chai
                 .request(app)
                 .patch("/v2/datasets/update")

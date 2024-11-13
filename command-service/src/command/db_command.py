@@ -48,7 +48,6 @@ class DBCommand(ICommand):
             self._insert_datasource_record(dataset_id, draft_dataset_id)
             self._insert_connector_instances(dataset_id, draft_dataset_record)
             self._insert_dataset_transformations(dataset_id, draft_dataset_record)
-            self._delete_draft_dataset(dataset_id, draft_dataset_id)
             return ActionResponse(status="OK", status_code=200)
         else:
             return ActionResponse(
@@ -176,7 +175,7 @@ class DBCommand(ICommand):
                 draft_datasource.datasource,
                 dataset_id,
                 draft_datasource.datasource_ref, 
-                json.dumps(draft_datasource.ingestion_spec).replace("'", "''"),
+                json.dumps(draft_datasource.ingestion_spec),
                 draft_datasource.type,
                 json.dumps(draft_datasource.retention_period).replace("'", "''"),
                 json.dumps(draft_datasource.archival_policy).replace("'", "''"),
@@ -191,7 +190,7 @@ class DBCommand(ICommand):
                 json.dumps(draft_datasource.metadata).replace("'", "''"),
 
                 draft_datasource.datasource,
-                json.dumps(draft_datasource.ingestion_spec).replace("'", "''"),
+                json.dumps(draft_datasource.ingestion_spec),
                 draft_datasource.type,
                 json.dumps(draft_datasource.retention_period).replace("'", "''"),
                 json.dumps(draft_datasource.archival_policy).replace("'", "''"),
@@ -258,14 +257,14 @@ class DBCommand(ICommand):
                 data_class = DatasetConnectorConfigDraft, data = record
             )
             current_timestamp = dt.now()
+            operations_config =  connector_config.operations_config if connector_config.operations_config is not None else {}
             if connector_config.version == 'v2':
                 params = (
                     connector_config.id,
                     dataset_id,
                     connector_config.connector_id,
-                    json.dumps(connector_config.connector_config).replace("'", "''"),
-                    json.dumps(connector_config.operations_config).replace("'", "''"),
-                    connector_config.data_format,
+                    connector_config.connector_config,
+                    json.dumps(operations_config).replace("'", "''"),
                     DatasetStatusType.Live.name,
                     json.dumps(emptyJson),
                     json.dumps(emptyJson),
@@ -274,10 +273,8 @@ class DBCommand(ICommand):
                     current_timestamp,
                     current_timestamp,
                     current_timestamp,
-
-                    json.dumps(connector_config.connector_config).replace("'", "''"),
+                    connector_config.connector_config,
                     json.dumps(connector_config.operations_config).replace("'", "''"),
-                    connector_config.data_format,
                     draft_dataset_record.get('updated_by'),
                     current_timestamp,
                     current_timestamp,
@@ -285,10 +282,9 @@ class DBCommand(ICommand):
                 )
                 insert_query = f"""
                     INSERT INTO connector_instances(id, dataset_id, connector_id, connector_config, operations_config,
-                    data_format, status, connector_state, connector_stats, created_by, updated_by, created_date, 
+                    status, connector_state, connector_stats, created_by, updated_by, created_date, 
                     updated_date, published_date)
                     VALUES (
-                        %s,
                         %s,
                         %s,
                         %s,
@@ -306,7 +302,6 @@ class DBCommand(ICommand):
                     ON CONFLICT (id) DO UPDATE
                     SET connector_config = %s,
                     operations_config = %s,
-                    data_format = %s, 
                     updated_by = %s,
                     updated_date = %s,
                     published_date = %s,
@@ -413,17 +408,3 @@ class DBCommand(ICommand):
             result = self.db_service.execute_upsert(sql=insert_query, params=params)
             print(f"Dataset Transformation {dataset_id + '_' + transformation.field_key} record inserted successfully...")
         return result
-    
-    def _delete_draft_dataset(self, dataset_id, draft_dataset_id):
-
-        self.db_service.execute_delete(sql=f"""DELETE from datasources_draft where dataset_id = %s""", params=(draft_dataset_id,))
-        print(f"Draft datasources/tables for {dataset_id} are deleted successfully...")
-
-        self.db_service.execute_delete(sql=f"""DELETE from dataset_transformations_draft where dataset_id = %s""", params=(draft_dataset_id,))
-        print(f"Draft transformations/tables for {dataset_id} are deleted successfully...")
-
-        self.db_service.execute_delete(sql=f"""DELETE from dataset_source_config_draft where dataset_id = %s""", params=(draft_dataset_id,))
-        print(f"Draft source config/tables for {dataset_id} are deleted successfully...")
-
-        self.db_service.execute_delete(sql=f"""DELETE from datasets_draft where id = %s""", params=(draft_dataset_id,))
-        print(f"Draft Dataset for {dataset_id} is deleted successfully...")

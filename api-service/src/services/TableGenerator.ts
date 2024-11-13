@@ -15,7 +15,7 @@ class BaseTableGenerator {
         const properties: Record<string, any>[] = []
         const flatten = (schema: Record<string, any>, prev: string | undefined, prevExpr: string | undefined) => {
             _.mapKeys(schema, function (value, parentKey) {
-                const newKey = (prev) ? _.join([prev, parentKey], ".") : parentKey;
+                const newKey = (prev) ? type === "druid" ? _.join([prev, parentKey], ".") : _.replace(_.join([prev, parentKey], "_"), /\./g, "_") : parentKey;
                 const newExpr = (prevExpr) ? _.join([prevExpr, ".['", parentKey, "']"], "") : _.join(["$.['", parentKey, "']"], "");
                 switch (value["type"]) {
                     case "object":
@@ -24,7 +24,7 @@ class BaseTableGenerator {
                     case "array":
                         if (type === "druid" && _.get(value, "items.type") == "object" && _.get(value, "items.properties")) {
                             _.mapKeys(_.get(value, "items.properties"), function (value, childKey) {
-                                const objChildKey = _.join([newKey, childKey], ".")
+                                const objChildKey = type === "druid" ? _.join([newKey, childKey], ".") : _.replace(_.join([prev, childKey], "_"), /\./g, "_")
                                 properties.push(_.merge(_.pick(value, ["type", "arrival_format", "is_deleted"]), { expr: _.join([newExpr, "[*].['", childKey, "']"], ""), name: objChildKey, data_type: "array" }))
                             })
                         } else {
@@ -79,6 +79,38 @@ class BaseTableGenerator {
         _.remove(dataFields, { is_deleted: true }) // Delete all the excluded fields
         return dataFields;
     }
+
+    getAllFieldsHudi = async (dataset: Record<string, any>, type: string): Promise<Record<string, any>[]> => {
+
+        const { data_schema, denorm_config, transformations_config } = dataset
+        let dataFields = this.flattenSchema(data_schema, type);
+        if (!_.isEmpty(denorm_config.denorm_fields)) {
+            for (const denormField of denorm_config.denorm_fields) {
+                const denormDataset: any = await datasetService.getDataset(denormField.dataset_id, ["data_schema"], true);
+                const properties = this.flattenSchema(denormDataset.data_schema, type);
+                const transformProps = _.map(properties, (prop) => {
+                    _.set(prop, "name", _.join([_.replace(denormField.denorm_out_field, /\./g, "_"), prop.name], "_"));
+                    _.set(prop, "expr", _.replace(prop.expr, "$", "$." + denormField.denorm_out_field));
+                    return prop;
+                });
+                dataFields.push(...transformProps);
+            }
+        }
+        if (!_.isEmpty(transformations_config)) {
+            const transformationFields = _.map(transformations_config, (tf) => ({
+                expr: "$." + tf.field_key,
+                name: _.replace(tf.field_key, /\./g, "_"),
+                data_type: tf.transformation_function.datatype,
+                arrival_format: tf.transformation_function.datatype,
+                type: tf.transformation_function.datatype
+            }))
+            const originalFields = _.differenceBy(dataFields, transformationFields, "name")
+            dataFields = _.concat(originalFields, transformationFields)
+        }
+        dataFields.push(rawIngestionSpecDefaults.hudiSynctsField)
+        _.remove(dataFields, { is_deleted: true }) // Delete all the excluded fields
+        return dataFields;
+    }
 }
 
 class TableGenerator extends BaseTableGenerator {
@@ -86,18 +118,19 @@ class TableGenerator extends BaseTableGenerator {
     getDruidIngestionSpec = (dataset: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
 
         const { dataset_config, router_config } = dataset
+        const ingestionSpecDefaults = _.cloneDeep(rawIngestionSpecDefaults)
         return {
             "type": "kafka",
             "spec": {
                 "dataSchema": {
                     "dataSource": datasourceRef,
-                    "dimensionsSpec": { "dimensions": this.getDruidDimensions(allFields, this.getTimestampKey(dataset), dataset_config.keys_config.partition_key) },
-                    "timestampSpec": { "column": this.getTimestampKey(dataset), "format": "auto" },
+                    "dimensionsSpec": { "dimensions": this.getDruidDimensions(allFields, this.getTimestampKey(dataset, "druid"), dataset_config.keys_config.partition_key) },
+                    "timestampSpec": { "column": this.getTimestampKey(dataset, "druid"), "format": "auto" },
                     "metricsSpec": [],
-                    "granularitySpec": rawIngestionSpecDefaults.granularitySpec
+                    "granularitySpec": ingestionSpecDefaults.granularitySpec
                 },
-                "tuningConfig": rawIngestionSpecDefaults.tuningConfig,
-                "ioConfig": _.merge(rawIngestionSpecDefaults.ioConfig, {
+                "tuningConfig": ingestionSpecDefaults.tuningConfig,
+                "ioConfig": _.merge(ingestionSpecDefaults.ioConfig, {
                     "topic": router_config.topic,
                     "inputFormat": {
                         "flattenSpec": {
@@ -142,28 +175,28 @@ class TableGenerator extends BaseTableGenerator {
         }
     }
 
-    private getDruidFlattenSpec = (allFields: Record<string, any>) => {
-        return _.union(
-            _.map(allFields, (field) => {
-                return {
-                    type: "path",
-                    expr: field.expr,
-                    name: field.name
-                }
-            }),
-            rawIngestionSpecDefaults.flattenSpec
-        )
+    private getDruidFlattenSpec = (fields: Record<string, any>) => {
+        const allfields = _.map(fields, (field) => {
+            return {
+                type: "path",
+                expr: field.expr,
+                name: field.name
+            }
+        });
+        return _.uniqBy([...allfields, ...rawIngestionSpecDefaults.flattenSpec], "name")
     }
 
     getHudiIngestionSpecForCreate = (dataset: Record<string, any>, allFields: Record<string, any>[], datasourceRef: string) => {
 
         const primaryKey = this.getPrimaryKey(dataset);
         const partitionKey = this.getHudiPartitionKey(dataset);
-        const timestampKey = this.getTimestampKey(dataset);
+        const timestampKey = this.getTimestampKey(dataset, "datalake");
         return {
             dataset: dataset.dataset_id,
             schema: {
-                table: datasourceRef,
+                table: _.includes(datasourceRef, "-")
+                    ? _.replace(datasourceRef, /-/g, "_")
+                    : datasourceRef,
                 partitionColumn: partitionKey,
                 timestampColumn: timestampKey,
                 primaryKey: primaryKey,
@@ -199,12 +232,10 @@ class TableGenerator extends BaseTableGenerator {
         return newHudiSpec;
     }
 
+    // eslint-disable-next-line
     private getHudiColumnSpec = (allFields: Record<string, any>[], primaryKey: string, partitionKey: string, timestampKey: string): Record<string, any>[] => {
 
         const dataFields = _.cloneDeep(allFields);
-        _.remove(dataFields, { name: primaryKey })
-        _.remove(dataFields, { name: partitionKey })
-        _.remove(dataFields, { name: timestampKey })
         let index = 1;
         const transformFields = _.map(dataFields, (field) => {
             return {
@@ -213,7 +244,7 @@ class TableGenerator extends BaseTableGenerator {
                 "index": index++
             }
         })
-        _.each(rawIngestionSpecDefaults.dimensions, (field) => {
+        _.each(rawIngestionSpecDefaults.hudi_dimensions, (field) => {
             transformFields.push({
                 "type": field.type,
                 "name": field.name,
@@ -280,20 +311,25 @@ class TableGenerator extends BaseTableGenerator {
                     name: field.name
                 }
             }),
-            rawIngestionSpecDefaults.flattenSpec
+            rawIngestionSpecDefaults.hudi_flattenSpec
         )
     }
 
     private getPrimaryKey = (dataset: Record<string, any>): string => {
-        return dataset.dataset_config.keys_config.data_key;
+        return _.replace(dataset.dataset_config.keys_config.data_key, /\./g, "_");
     }
 
     private getHudiPartitionKey = (dataset: Record<string, any>): string => {
-        return dataset.dataset_config.keys_config.partition_key || dataset.dataset_config.keys_config.timestamp_key;
+        const partitionKey = dataset.dataset_config.keys_config.partition_key || dataset.dataset_config.keys_config.timestamp_key;
+        return _.replace(partitionKey, /\./g, "_")
     }
 
-    private getTimestampKey = (dataset: Record<string, any>): string => {
-        return dataset.dataset_config.keys_config.timestamp_key;
+    private getTimestampKey = (dataset: Record<string, any>, type: string): string => {
+        const timestamp = dataset.dataset_config.keys_config.timestamp_key;
+        if (type === "druid") {
+            return timestamp;
+        }
+        return _.replace(timestamp, /\./g, "_");
     }
 }
 

@@ -15,6 +15,7 @@ flink:
 commands:
   PUBLISH_DATASET:
     workflow:
+      - CREATE_KAFKA_TOPIC
       - MAKE_DATASET_LIVE
       - SUBMIT_INGESTION_TASKS
       - START_PIPELINE_JOBS
@@ -117,7 +118,7 @@ config_service:
   port: 4000
 
 druid:
-  router_host: localhost
+  router_host: http://localhost
   router_port: 8888
   supervisor_endpoint: indexer/v1/supervisor
 
@@ -166,6 +167,8 @@ kafka:
   brokers: localhost:9092
   telemetry:
     topic: system.telemetry.events
+  replication_factor: 1
+  no_of_partitions: 1
 
 connector_jobs:
   spark:

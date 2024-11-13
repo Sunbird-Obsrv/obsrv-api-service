@@ -4,10 +4,10 @@ import * as _ from "lodash";
 import moment from "moment";
 import { getDatasourceList } from "../../services/DatasourceService";
 import logger from "../../logger";
-import { getDatasourceListFromDruid } from "../../connections/druidConnection";
+import { druidHttpService, getDatasourceListFromDruid } from "../../connections/druidConnection";
 import { apiId } from "./DataOutController";
-import { ErrorObject } from "../../types/ResponseModel";
 import { Parser } from "node-sql-parser";
+import { obsrvError } from "../../types/ObsrvError";
 const parser = new Parser();
 
 const momentFormat = "YYYY-MM-DD HH:MM:SS";
@@ -15,7 +15,7 @@ let dataset_id: string;
 let requestBody: any;
 let msgid: string;
 const errCode = {
-    notFound: "DATA_OUT_SOURCE_NOT_FOUND",
+    notFound: "DATASOURCE_NOT_FOUND",
     invalidDateRange: "DATA_OUT_INVALID_DATE_RANGE"
 }
 
@@ -56,6 +56,27 @@ const getLimit = (queryLimit: number, maxRowLimit: number) => {
     return queryLimit > maxRowLimit ? maxRowLimit : queryLimit;
 };
 
+const parseSqlQuery = (queryPayload: any) => {
+    try {
+        const vocabulary: any = parser.astify(queryPayload?.query);
+        const isLimitIncludes = JSON.stringify(vocabulary);
+        if (_.includes(isLimitIncludes, "{{LIMIT}}")) {
+            return queryPayload?.query
+        }
+        const limit = _.get(vocabulary, "limit")
+        if (limit === null) {
+            _.set(vocabulary, "limit.value[0].value", queryRules.common.maxResultRowLimit)
+            _.set(vocabulary, "limit.value[0].type", "number")
+            let convertToSQL = parser.sqlify(vocabulary);
+            convertToSQL = convertToSQL.replace(/`/g, "\"");
+            queryPayload.query = convertToSQL
+        }
+        return true
+    } catch (error) {
+        logger.warn("Sql parser error", error)
+        return false
+    }
+}
 const setQueryLimits = (queryPayload: any) => {
     if (_.isObject(queryPayload?.query)) {
         const threshold = _.get(queryPayload, "query.threshold")
@@ -78,17 +99,18 @@ const setQueryLimits = (queryPayload: any) => {
     }
 
     if (_.isString(queryPayload?.query)) {
-        const vocabulary: any = parser.astify(queryPayload?.query);
-        const isLimitIncludes = JSON.stringify(vocabulary);
-        if (_.includes(isLimitIncludes, "{{LIMIT}}")) {
-            return queryPayload?.query
-        }
-        const limit = _.get(vocabulary, "limit")
-        if (limit === null) {
-            _.set(vocabulary, "limit.value[0].value", queryRules.common.maxResultRowLimit)
-            _.set(vocabulary, "limit.value[0].type", "number")
-            const convertToSQL = parser.sqlify(vocabulary);
-            queryPayload.query = convertToSQL
+        const validDruidSql = parseSqlQuery(queryPayload)
+        if (!validDruidSql) {
+            let query = queryPayload.query;
+            if (/\blimit\b/i.test(query)) {
+                return query;
+            }
+            const limitRegex = /\bLIMIT\b\s+\d+/i;
+            if (!limitRegex.test(query)) {
+                const maxLimit = _.get(queryRules, "common.maxResultRowLimit");
+                query += ` LIMIT ${maxLimit}`;
+                queryPayload.query = query;
+            }
         }
     }
 }
@@ -132,7 +154,7 @@ const validateDateRange = (fromDate: moment.Moment, toDate: moment.Moment, allow
     }
     else {
         logger.error({ apiId, requestBody, msgid, dataset_id, message: `Data range cannnot be more than ${allowedRange} days.`, code: errCode.invalidDateRange })
-        throw { message: `Invalid date range! make sure your range cannot be more than ${allowedRange} days`, statusCode: 400, errCode: "BAD_REQUEST", code: errCode.invalidDateRange } as ErrorObject;
+        throw obsrvError("", errCode.invalidDateRange, `Invalid date range! make sure your range cannot be more than ${allowedRange} days`, "BAD_REQUEST", 400);
     }
 };
 
@@ -155,28 +177,46 @@ const validateQueryRules = (queryPayload: any, limits: any) => {
         : { message: "Invalid date range! the date range cannot be a null value", statusCode: 400, errCode: "BAD_REQUEST", code: errCode.invalidDateRange };
 };
 
-const getDataSourceRef = async (datasetId: string, granularity?: string) => {
+const getDataSourceRef = async (datasetId: string, requestGranularity?: string) => {
     const dataSources = await getDatasourceList(datasetId)
     if (_.isEmpty(dataSources)) {
         logger.error({ apiId, requestBody, msgid, dataset_id, message: `Datasource ${datasetId} not available in datasource live table`, code: errCode.notFound })
-        throw { message: `Datasource ${datasetId} not available for querying`, statusCode: 404, errCode: "NOT_FOUND", code: errCode.notFound } as ErrorObject;
+        throw obsrvError("", errCode.notFound, `Datasource ${datasetId} not available for querying`, "NOT_FOUND", 404);
     }
-    const record = dataSources.filter((record: any) => {
-        const aggregatedRecord = _.get(record, "dataValues.metadata.aggregated")
-        if (granularity)
-            return aggregatedRecord && _.get(record, "dataValues.metadata.granularity") === granularity;
+    const record = dataSources.find((record: any) => {
+        const metadata = _.get(record, "dataValues.metadata", {});
+        const { aggregated, granularity } = metadata;
+        if (!aggregated) {
+            return true;
+        }
+        return aggregated && requestGranularity ? granularity === requestGranularity : false;
     });
-    return record[0]?.dataValues?.datasource_ref
+    return _.get(record, ["dataValues", "datasource_ref"])
+}
+
+const checkSupervisorAvailability = async (datasourceRef: string) => {
+    const { data } = await druidHttpService.get("/druid/coordinator/v1/loadstatus");
+    const datasourceAvailability = _.get(data, datasourceRef)
+    if (_.isUndefined(datasourceAvailability)) {
+        throw obsrvError("", "DATASOURCE_NOT_AVAILABLE", "Datasource not available for querying", "NOT_FOUND", 404)
+    }
+    if (datasourceAvailability !== 100) {
+        throw obsrvError("", "DATASOURCE_NOT_FULLY_AVAILABLE", "Datasource not fully available for querying", "RANGE_NOT_SATISFIABLE", 416)
+    }
 }
 
 const setDatasourceRef = async (datasetId: string, payload: any): Promise<any> => {
     const granularity = _.get(payload, "context.aggregationLevel")
     const datasourceRef = await getDataSourceRef(datasetId, granularity);
+    if (!datasourceRef) {
+        throw obsrvError("", "DATASOURCE_NOT_FOUND", "Datasource not found to query", "NOT_FOUND", 404)
+    }
+    await checkSupervisorAvailability(datasourceRef)
     const existingDatasources = await getDatasourceListFromDruid();
 
     if (!_.includes(existingDatasources.data, datasourceRef)) {
         logger.error({ apiId, requestBody, msgid, dataset_id, message: `Dataset ${datasetId} with table ${granularity} is not available for querying`, code: errCode.notFound })
-        throw { message: `Dataset ${datasetId} with table ${granularity} is not available for querying`, statusCode: 404, errCode: "NOT_FOUND", code: errCode.notFound } as ErrorObject;
+        throw obsrvError("", errCode.notFound,  `Dataset ${datasetId} with table ${granularity} is not available for querying`, "NOT_FOUND", 404);
     }
     if (_.isString(payload?.query)) {
         payload.query = payload.query.replace(datasetId, datasourceRef)

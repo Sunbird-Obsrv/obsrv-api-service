@@ -17,6 +17,7 @@ import { Datasource } from "../models/Datasource";
 import { obsrvError } from "../types/ObsrvError";
 import { druidHttpService } from "../connections/druidConnection";
 import { tableGenerator } from "./TableGenerator";
+import { deleteAlertByDataset, deleteMetricAliasByDataset } from "./managers";
 
 class DatasetService {
 
@@ -92,11 +93,11 @@ class DatasetService {
         return responseData;
     }
 
-    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>): Promise<any> => {
+    migrateDraftDataset = async (datasetId: string, dataset: Record<string, any>, userID: string): Promise<any> => {
         const dataset_id = _.get(dataset, "id")
         const draftDataset = await this.migrateDatasetV1(dataset_id, dataset);
+        _.set(draftDataset, "updated_by", userID);
         const transaction = await sequelize.transaction();
-
         try {
             await DatasetDraft.update(draftDataset, { where: { id: dataset_id }, transaction });
             await DatasetTransformationsDraft.destroy({ where: { dataset_id }, transaction });
@@ -125,12 +126,14 @@ class DatasetService {
         const transformationFields = ["field_key", "transformation_function", "mode", "metadata"]
         const transformations = _.includes([DatasetStatus.Live], status) ? await this.getTransformations(dataset_id, transformationFields) : await this.getDraftTransformations(dataset_id, transformationFields);
         draftDataset["transformations_config"] = _.map(transformations, (config) => {
+            const section: any = _.get(config, "metadata.section");
+            config = _.omit(config, "transformation_function.condition")
             return {
                 field_key: _.get(config, ["field_key"]),
                 transformation_function: {
                     ..._.get(config, ["transformation_function"]),
                     datatype: _.get(config, ["metadata._transformedFieldDataType"]) || "string",
-                    category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                    category: this.getTransformationCategory(section)
                 },
                 mode: _.get(config, ["mode"])
             }
@@ -147,6 +150,7 @@ class DatasetService {
         })
         draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         draftDataset["sample_data"] = dataset_config?.mergedEvent
+        draftDataset["status"] = DatasetStatus.Draft
         return draftDataset;
     }
 
@@ -157,12 +161,14 @@ class DatasetService {
                 return "pii";
             case "additionalFields":
                 return "derived";
+            case "derived":
+                return "derived";
             default:
                 return "transform";
         }
     }
 
-    createDraftDatasetFromLive = async (dataset: Model<any, any>) => {
+    createDraftDatasetFromLive = async (dataset: Model<any, any>, userID: string) => {
 
         const draftDataset: any = _.omit(dataset, ["created_date", "updated_date", "published_date"]);
         const dataset_config: any = _.get(dataset, "dataset_config");
@@ -184,12 +190,14 @@ class DatasetService {
             })
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode", "metadata"]);
             draftDataset["transformations_config"] = _.map(transformations, (config) => {
+                const section: any = _.get(config, "metadata.section");
+                config = _.omit(config, "transformation_function.condition")
                 return {
                     field_key: _.get(config, "field_key"),
                     transformation_function: {
                         ..._.get(config, ["transformation_function"]),
                         datatype: _.get(config, "metadata._transformedFieldDataType") || "string",
-                        category: this.getTransformationCategory(_.get(config, ["metadata.section"]))
+                        category: this.getTransformationCategory(section),
                     },
                     mode: _.get(config, "mode")
                 }
@@ -198,8 +206,9 @@ class DatasetService {
             draftDataset["sample_data"] = dataset_config?.mergedEvent
             draftDataset["validation_config"] = _.omit(_.get(dataset, "validation_config"), ["validation_mode"])
         } else {
-            const connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
-            draftDataset["connectors_config"] = connectors
+            const v1connectors = await getV1Connectors(draftDataset.dataset_id);
+            const v2connectors = await this.getConnectors(draftDataset.dataset_id, ["id", "connector_id", "connector_config", "operations_config"]);
+            draftDataset["connectors_config"] = _.concat(v1connectors, v2connectors)
             const transformations = await this.getTransformations(draftDataset.dataset_id, ["field_key", "transformation_function", "mode"]);
             draftDataset["transformations_config"] = transformations
         }
@@ -225,6 +234,7 @@ class DatasetService {
         draftDataset["version_key"] = Date.now().toString()
         draftDataset["version"] = _.add(_.get(dataset, ["version"]), 1); // increment the dataset version
         draftDataset["status"] = DatasetStatus.Draft
+        draftDataset["created_by"] = userID;
         const result = await DatasetDraft.create(draftDataset);
         return _.get(result, "dataValues")
     }
@@ -249,20 +259,27 @@ class DatasetService {
         }
     }
 
-    retireDataset = async (dataset: Record<string, any>) => {
+    private deleteAlerts = async (dataset: any) => {
+        await deleteAlertByDataset(dataset);
+        await deleteMetricAliasByDataset(dataset);
+    }
+
+    retireDataset = async (dataset: Record<string, any>, updatedBy: any) => {
 
         const transaction = await sequelize.transaction();
         try {
-            await Dataset.update({ status: DatasetStatus.Retired }, { where: { id: dataset.id }, transaction });
-            await DatasetSourceConfig.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
-            await Datasource.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
-            await DatasetTransformations.update({ status: DatasetStatus.Retired }, { where: { dataset_id: dataset.id }, transaction });
+            await Dataset.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { id: dataset.id }, transaction });
+            await DatasetSourceConfig.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
+            await Datasource.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
+            await DatasetTransformations.update({ status: DatasetStatus.Retired, updated_by: updatedBy }, { where: { dataset_id: dataset.id }, transaction });
             await transaction.commit();
-            await this.deleteDruidSupervisors(dataset);
         } catch (err: any) {
             await transaction.rollback();
             throw obsrvError(dataset.id, "FAILED_TO_RETIRE_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
+        // Deleting dataset alerts and druid supervisors
+        await this.deleteDruidSupervisors(dataset);
+        await this.deleteAlerts(dataset);
     }
 
     findDatasources = async (where?: Record<string, any>, attributes?: string[], order?: any): Promise<any> => {
@@ -308,37 +325,46 @@ class DatasetService {
             await transaction.rollback()
             throw obsrvError(draftDataset.id, "FAILED_TO_PUBLISH_DATASET", err.message, "SERVER_ERROR", 500, err);
         }
-        await executeCommand(draftDataset.id, "PUBLISH_DATASET");
+        await executeCommand(draftDataset.dataset_id, "PUBLISH_DATASET");
 
     }
 
     private createDruidDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
+        const {created_by, updated_by} = draftDataset;
         const allFields = await tableGenerator.getAllFields(draftDataset, "druid");
         const draftDatasource = this.createDraftDatasource(draftDataset, "druid");
         const ingestionSpec = tableGenerator.getDruidIngestionSpec(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        _.set(draftDatasource, "created_by", created_by);
+        _.set(draftDatasource, "updated_by", updated_by);
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
-        const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
-        const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
+        const {created_by, updated_by} = draftDataset;
+        const allFields = await tableGenerator.getAllFieldsHudi(draftDataset, "datalake");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "datalake");
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForCreate(draftDataset, allFields, draftDatasource.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        _.set(draftDatasource, "created_by", created_by);
+        _.set(draftDatasource, "updated_by", updated_by);
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private updateHudiDataSource = async (draftDataset: Record<string, any>, transaction: Transaction) => {
 
-        const allFields = await tableGenerator.getAllFields(draftDataset, "hudi");
-        const draftDatasource = this.createDraftDatasource(draftDataset, "hudi");
-        const dsId = _.join([draftDataset.dataset_id, "events", "hudi"], "_")
+        const {created_by, updated_by} = draftDataset;
+        const allFields = await tableGenerator.getAllFieldsHudi(draftDataset, "datalake");
+        const draftDatasource = this.createDraftDatasource(draftDataset, "datalake");
+        const dsId = _.join([draftDataset.dataset_id, "events", "datalake"], "_")
         const liveDatasource = await Datasource.findOne({ where: { id: dsId }, attributes: ["ingestion_spec"], raw: true }) as unknown as Record<string, any>
         const ingestionSpec = tableGenerator.getHudiIngestionSpecForUpdate(draftDataset, liveDatasource?.ingestion_spec, allFields, draftDatasource?.datasource_ref);
         _.set(draftDatasource, "ingestion_spec", ingestionSpec)
-        await DatasourceDraft.create(draftDatasource, { transaction })
+        _.set(draftDatasource, "created_by", created_by);
+        _.set(draftDatasource, "updated_by", updated_by);
+        await DatasourceDraft.upsert(draftDatasource, { transaction })
     }
 
     private createDraftDatasource = (draftDataset: Record<string, any>, type: string): Record<string, any> => {
@@ -347,7 +373,7 @@ class DatasetService {
         return {
             id: _.join([datasource, type], "_"),
             datasource: draftDataset.dataset_id,
-            dataset_id: draftDataset.dataset_id,
+            dataset_id: draftDataset.id,
             datasource_ref: datasource,
             type
         }
@@ -359,7 +385,9 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
 
     const datasetRecord = await datasetService.getDataset(dataset_id, undefined, true)
     const transformations = await datasetService.getTransformations(dataset_id, ["field_key", "transformation_function", "mode"])
-    const connectors = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV2 = await datasetService.getConnectors(dataset_id, ["id", "connector_id", "connector_config", "operations_config"])
+    const connectorsV1 = await getV1Connectors(dataset_id)
+    const connectors = _.concat(connectorsV1, connectorsV2)
 
     if (!_.isEmpty(transformations)) {
         datasetRecord["transformations_config"] = transformations
@@ -368,6 +396,19 @@ export const getLiveDatasetConfigs = async (dataset_id: string) => {
         datasetRecord["connectors_config"] = connectors
     }
     return datasetRecord;
+}
+
+export const getV1Connectors = async (datasetId: string) => {
+    const v1connectors = await datasetService.getConnectorsV1(datasetId, ["id", "connector_type", "connector_config"]);
+    const modifiedV1Connectors = _.map(v1connectors, (config) => {
+        return {
+            id: _.get(config, "id"),
+            connector_id: _.get(config, "connector_type"),
+            connector_config: _.get(config, "connector_config"),
+            version: "v1"
+        }
+    })
+    return modifiedV1Connectors;
 }
 
 export const datasetService = new DatasetService();

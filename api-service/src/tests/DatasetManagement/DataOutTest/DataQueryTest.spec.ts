@@ -7,6 +7,7 @@ import { config } from "../../../configs/Config";
 import chaiSpies from "chai-spies"
 import { describe, it } from "mocha";
 import { Datasource } from "../../../models/Datasource";
+import { druidHttpService } from "../../../connections/druidConnection";
 chai.use(chaiSpies)
 chai.should();
 chai.use(chaiHttp);
@@ -18,6 +19,7 @@ const nativeQueryEndpointDruid = config?.query_api?.druid?.native_query_path;
 const sqlQueryEndpoint = config?.query_api?.druid?.sql_query_path;
 
 const response = [{ dataValues: { datasource_ref: "test.1_rollup_week", metadata: { aggregated: true, granularity: "week" } } }]
+const invalidResponse = [{ dataValues: { datasource_ref: "test.1_rollup_week", metadata: { aggregated: true, granularity: "n/a" } } }]
 const msgid = "e180ecac-8f41-4f21-9a21-0b3a1a368917";
 
 describe("QUERY API TESTS", () => {
@@ -33,6 +35,11 @@ describe("QUERY API TESTS", () => {
                 response
             )
         })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["telemetry-events.1_rollup"])
@@ -46,7 +53,7 @@ describe("QUERY API TESTS", () => {
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.responseCode.should.be.eq("NOT_FOUND");
                 res.body.error.message.should.be.eq("Dataset telemetry-events with table week is not available for querying");
-                res.body.error.code.should.be.eq("DATA_OUT_SOURCE_NOT_FOUND");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
                 done();
             });
     });
@@ -65,7 +72,80 @@ describe("QUERY API TESTS", () => {
                 res.body.responseCode.should.be.eq("NOT_FOUND");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.error.message.should.be.eq("Datasource telemetry-events not available for querying");
-                res.body.error.code.should.be.eq("DATA_OUT_SOURCE_NOT_FOUND");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
+                done();
+            });
+    });
+
+    it("Query api failure: Datasource not available in druid", (done) => {
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve(
+                response
+            )
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "telemetry_events": 100 }
+            })
+        })
+        chai
+            .request(app)
+            .post("/v2/data/query/telemetry-events")
+            .send(JSON.parse(TestQueries.VALID_QUERY))
+            .end((err, res) => {
+                res.should.have.status(404);
+                res.body.params.status.should.be.eq("FAILED");
+                res.body.responseCode.should.be.eq("NOT_FOUND");
+                res.body.params.msgid.should.be.eq(msgid);
+                res.body.error.message.should.be.eq("Datasource not available for querying");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_AVAILABLE");
+                done();
+            });
+    });
+
+    it("Query api failure: Datasource not fully loaded in druid", (done) => {
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve(
+                response
+            )
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 20 }
+            })
+        })
+        chai
+            .request(app)
+            .post("/v2/data/query/telemetry-events")
+            .send(JSON.parse(TestQueries.VALID_QUERY))
+            .end((err, res) => {
+                res.should.have.status(416);
+                res.body.params.status.should.be.eq("FAILED");
+                res.body.responseCode.should.be.eq("RANGE_NOT_SATISFIABLE");
+                res.body.params.msgid.should.be.eq(msgid);
+                res.body.error.message.should.be.eq("Datasource not fully available for querying");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FULLY_AVAILABLE");
+                done();
+            });
+    });
+
+    it("Query api failure: Datasource not found", (done) => {
+        chai.spy.on(Datasource, "findAll", () => {
+            return Promise.resolve(
+                invalidResponse
+            )
+        })
+        chai
+            .request(app)
+            .post("/v2/data/query/telemetry-events")
+            .send(JSON.parse(TestQueries.VALID_QUERY))
+            .end((err, res) => {
+                res.should.have.status(404);
+                res.body.params.status.should.be.eq("FAILED");
+                res.body.responseCode.should.be.eq("NOT_FOUND");
+                res.body.params.msgid.should.be.eq(msgid);
+                res.body.error.message.should.be.eq("Datasource not found to query");
+                res.body.error.code.should.be.eq("DATASOURCE_NOT_FOUND");
                 done();
             });
     });
@@ -73,6 +153,11 @@ describe("QUERY API TESTS", () => {
     it("Query api failure : when druid is down, it should raise error when native query endpoint is called", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -89,8 +174,8 @@ describe("QUERY API TESTS", () => {
                 res.body.params.status.should.be.eq("FAILED");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.params.should.have.property("resmsgid");
-                res.body.error.message.should.be.eq("Unable to process the query.");
-                res.body.error.code.should.be.eq("INTERNAL_SERVER_ERROR");
+                res.body.error.message.should.be.eq("Request failed with status code 500");
+                res.body.error.code.should.be.eq("ERR_BAD_RESPONSE");
                 res.body.responseCode.should.be.eq("INTERNAL_SERVER_ERROR");
                 done();
             });
@@ -99,6 +184,11 @@ describe("QUERY API TESTS", () => {
     it("Query api failure : when druid is down, it should raise error when sql query endpoint is called", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -115,8 +205,8 @@ describe("QUERY API TESTS", () => {
                 res.body.params.status.should.be.eq("FAILED");
                 res.body.params.msgid.should.be.eq(msgid);
                 res.body.params.should.have.property("resmsgid");
-                res.body.error.message.should.be.eq("Unable to process the query.");
-                res.body.error.code.should.be.eq("INTERNAL_SERVER_ERROR");
+                res.body.error.message.should.be.eq("Request failed with status code 500");
+                res.body.error.code.should.be.eq("ERR_BAD_RESPONSE");
                 res.body.responseCode.should.be.eq("INTERNAL_SERVER_ERROR");
                 done();
             });
@@ -125,6 +215,11 @@ describe("QUERY API TESTS", () => {
     it("Query api success : it should fetch information from druid data source for native query", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -153,6 +248,11 @@ describe("QUERY API TESTS", () => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
         })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
+        })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
             .reply(200, ["test.1_rollup_week"])
@@ -179,6 +279,11 @@ describe("QUERY API TESTS", () => {
     it("Query api success : it should allow druid to query when a valid sql query is given", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)
@@ -222,6 +327,11 @@ describe("QUERY API TESTS", () => {
     it("it should set threshold to default when threshold is greater than maximum threshold", (done) => {
         chai.spy.on(Datasource, "findAll", () => {
             return Promise.resolve(response)
+        })
+        chai.spy.on(druidHttpService, "get", () => {
+            return Promise.resolve({
+                data: { "test.1_rollup_week": 100 }
+            })
         })
         nock(druidHost + ":" + druidPort)
             .get(listDruidDatasources)

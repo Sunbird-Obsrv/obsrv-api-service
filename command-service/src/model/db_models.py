@@ -79,7 +79,7 @@ class DatasourcesDraft:
 class DatasetConnectorConfigDraft:
     id: str
     connector_id: str
-    connector_config: str | None
+    connector_config: str | dict
     version: str
     operations_config: dict | None = None
     data_format: str | None = 'json'
@@ -121,7 +121,8 @@ class ConnectorRegsitryv2:
 class ConnectorInstance:
     id: str
     connector_id: str
+    dataset_id: str
     operations_config: dict
     connector_runtime: str
-    connector_source: str
+    connector_source: dict
     technology: str
