@@ -9443,7 +9443,7 @@ paths:
     post:
       tags:
         - Alert Notification-channels
-      summary: search channels
+      summary: Search Notificaation Channels
       requestBody:
         content: {}
       responses:
@@ -9455,7 +9455,7 @@ paths:
     post:
       tags:
         - Alert Notification-channels
-      summary: Add channel (Email)
+      summary: Configure channel
       requestBody:
         content:
           application/json:
@@ -9484,7 +9484,7 @@ paths:
     get:
       tags:
         - Alert Notification-channels
-      summary: publish channel
+      summary: Publish Channel
       responses:
         '200':
           description: Successful response
@@ -9494,7 +9494,7 @@ paths:
     post:
       tags:
         - Alert Notification-channels
-      summary: test channel
+      summary: Verify Configured Channel
       requestBody:
         content:
           application/json:
@@ -9527,7 +9527,7 @@ paths:
     patch:
       tags:
         - Alert Notification-channels
-      summary: update channel
+      summary: Update Specific Channel
       requestBody:
         content:
           application/json:
@@ -9551,7 +9551,7 @@ paths:
     delete:
       tags:
         - Alert Notification-channels
-      summary: delete channel
+      summary: Delete Channel
       responses:
         '200':
           description: Successful response
@@ -9632,7 +9632,7 @@ paths:
     patch:
       tags:
         - Alert silence
-      summary: Edit Request
+      summary: Modify Silence Request
       requestBody:
         content:
           application/json:
@@ -9657,7 +9657,7 @@ paths:
     delete:
       tags:
         - Alerts Wrapper
-      summary: 'delete rule '
+      summary: 'Delete Configured Alert Rules '
       description: This URLwill provided access to user to delete any custom rule.
       responses:
         '200':
@@ -9675,7 +9675,7 @@ paths:
     patch:
       tags:
         - Alerts Wrapper
-      summary: 'edit rule '
+      summary: 'Update Rule '
       description: >-
         This URL will provide access to users to edit any properties in the
         Alert rule and save the changes.
@@ -9707,7 +9707,7 @@ paths:
     get:
       tags:
         - Alerts Wrapper
-      summary: 'publish rule '
+      summary: 'Publish Alert Rules '
       responses:
         '200':
           description: Successful response
@@ -9896,7 +9896,7 @@ paths:
     post:
       tags:
         - Alerts Wrapper
-      summary: 'search rule '
+      summary: 'Search Alert Rule'
       requestBody:
         content:
           application/json:
@@ -9920,7 +9920,7 @@ paths:
     get:
       tags:
         - Alerts Wrapper
-      summary: 'get specific rule '
+      summary: 'Get Alert Rule'
       responses:
         '200':
           description: Successful response
@@ -9930,7 +9930,7 @@ paths:
     post:
       tags:
         - Alert Metric_alias
-      summary: add metric
+      summary: Create Custom Metric
       requestBody:
         content:
           application/json:
@@ -9949,7 +9949,7 @@ paths:
     post:
       tags:
         - Alert Metric_alias
-      summary: list metrics
+      summary: List Create Metrics
       requestBody:
         content:
           application/json:
@@ -9972,7 +9972,7 @@ paths:
     patch:
       tags:
         - Alert Metric_alias
-      summary: update metric
+      summary: Modify Metric
       requestBody:
         content:
           application/json:
@@ -9996,7 +9996,7 @@ paths:
     delete:
       tags:
         - Alert Metric_alias
-      summary: remove metric
+      summary: Delete Metric
       responses:
         '200':
           description: Successful response
