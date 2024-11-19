@@ -544,6 +544,7 @@ paths:
                       - value:
                           denorm_key: eid
                           denorm_out_field: userdata
+                          dataset_id: master-telemetry
                         action: remove
                       - value:
                           denorm_key: eid
