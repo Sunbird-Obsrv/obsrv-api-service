@@ -28,7 +28,7 @@ paths:
     post:
       tags:
         - Dataset api's
-      summary: Dataset create
+      summary: Dataset Create
       description: >-
         This API allows you to create new datasets used by the analytical data
         source.
@@ -310,7 +310,7 @@ paths:
     post:
       tags:
         - Dataset api's
-      summary: File generate url
+      summary: Generate Presigned URLs
       description: This API generates presigned URLs to upload or download files from cloud
       requestBody:
         content:
@@ -486,7 +486,7 @@ paths:
     patch:
       tags:
         - Dataset api's
-      summary: Dataset update
+      summary: Update Dataset
       description: >-
         This API allows you to update existing datasets, add or remove denorm
         fields used by the analytical data source. User can even add, remove or
@@ -841,7 +841,7 @@ paths:
     get:
       tags:
         - Dataset api's
-      summary: Read dataset
+      summary: Read Dataset
       description: >-
         This API allows you to read dataset from the requested dataset_id. User
         can request for the specific fields and status of the dataset through
@@ -1113,7 +1113,7 @@ paths:
     post:
       tags:
         - Dataset api's
-      summary: Dataset list
+      summary: List Datasets
       description: >-
         This API allows you to list all datasets. User can apply filters on
         dataset status and type.
@@ -3718,7 +3718,7 @@ paths:
     post:
       tags:
         - Dataset api's
-      summary: Data schema generator
+      summary: Schema Generation
       description: This api is used to generate data schema for the given dataset event.
       requestBody:
         content:
@@ -5768,7 +5768,7 @@ paths:
     get:
       tags:
         - Dataset api's
-      summary: Dataset export
+      summary: Export Dataset
       parameters:
         - name: status
           in: query
@@ -6455,7 +6455,7 @@ paths:
     post:
       tags:
         - Dataset api's
-      summary: Dataset copy
+      summary: Clone Dataset
       requestBody:
         content:
           application/json:
@@ -6579,7 +6579,7 @@ paths:
     post:
       tags:
         - Connector api's
-      summary: Connector list
+      summary: List Connectors
       requestBody:
         content:
           application/json:
@@ -7127,7 +7127,7 @@ paths:
     get:
       tags:
         - Connector api's
-      summary: Connector Read
+      summary: Read Connector
       responses:
         '200':
           description: OK
@@ -7423,7 +7423,7 @@ paths:
     post:
       tags:
         - Data Ingest
-      summary: Data ingest
+      summary: Ingest Data
       requestBody:
         content:
           application/json:
@@ -7646,7 +7646,7 @@ paths:
     post:
       tags:
         - Data query
-      summary: Data query
+      summary: Query Data
       requestBody:
         content:
           application/json:
@@ -7944,7 +7944,7 @@ paths:
     get:
       tags:
         - Query Templates
-      summary: Read template
+      summary: Read Template
       responses:
         '200':
           description: OK
@@ -8083,7 +8083,7 @@ paths:
     delete:
       tags:
         - Query Templates
-      summary: Delete template
+      summary: Delete Template
       responses:
         '200':
           description: OK
@@ -8399,7 +8399,7 @@ paths:
     post:
       tags:
         - Query Templates
-      summary: List templates
+      summary: List Templates
       requestBody:
         content:
           application/json:
@@ -9019,7 +9019,7 @@ paths:
     patch:
       tags:
         - Query Templates
-      summary: update template
+      summary: Update Template
       requestBody:
         content:
           application/json:
@@ -9204,7 +9204,7 @@ paths:
     post:
       tags:
         - Query Templates
-      summary: query template
+      summary: Query Template
       requestBody:
         content:
           application/json:
@@ -9976,7 +9976,7 @@ paths:
       requestBody:
         content:
           application/json:
-            schema:
+            schem:
               type: object
               example:
                 alias: Druid native
