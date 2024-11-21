@@ -7736,7 +7736,7 @@ paths:
                       code: TOPIC_NOT_FOUND
                       message: Entry topic is not defined
                       trace: ''
-  /v2/data/query/test:
+  /v2/data/query/{dataset_id}:
     post:
       tags:
         - Data Query
@@ -7755,7 +7755,7 @@ paths:
                 context:
                   aggregationLevel: day
                 query: >-
-                  Select * from   "check" WHERE __time >= timestamp '2020-12-31'
+                  Select * from  "check" WHERE __time >= timestamp '2020-12-31'
                   AND __time < TIMESTAMP '2024-01-21' Limit 1
       responses:
         '200':
