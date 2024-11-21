@@ -9976,7 +9976,7 @@ paths:
       requestBody:
         content:
           application/json:
-            schem:
+            schema:
               type: object
               example:
                 alias: Druid native
