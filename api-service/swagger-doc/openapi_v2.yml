@@ -10,24 +10,24 @@ servers:
   - url: http://localhost:3000
   - url: http://{{host_ip}}
 tags:
-  - name: Dataset api's
+  - name: Dataset API's
     description: >-
       The Dataset APIs facilitate efficient management of datasets by enabling
       users to create, read, and update dataset records, along with the
       capability to list multiple records based on specific criteria.
-  - name: Connector api's
+  - name: Connector API's
   - name: Data Ingest
-  - name: Data query
+  - name: Data Query
   - name: Query Templates
-  - name: Alert Notification-channels
-  - name: Alert silence
+  - name: Alert Notification Channels
+  - name: Alert Silence
   - name: Alerts Wrapper
-  - name: Alert Metric_alias
+  - name: Alert Metric Alias
 paths:
   /v2/datasets/create:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Dataset Create
       description: >-
         This API allows you to create new datasets used by the analytical data
@@ -279,7 +279,7 @@ paths:
                 example-0:
                   summary: 'Failure: Master dataset already exists'
                   value:
-                    id: api.datasets.create
+                    id: api.files.generate-url
                     ver: v2
                     ts: '2024-07-16T08:37:28+05:30'
                     params:
@@ -294,7 +294,7 @@ paths:
                 example-1:
                   summary: 'Failure: Dataset already exists'
                   value:
-                    id: api.datasets.create
+                    id: api.files.generate-url
                     ver: v2
                     ts: '2024-07-16T08:38:05+05:30'
                     params:
@@ -309,7 +309,7 @@ paths:
   /v2/files/generate-url:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Generate Presigned URLs
       description: This API generates presigned URLs to upload or download files from cloud
       requestBody:
@@ -485,7 +485,7 @@ paths:
   /v2/datasets/update:
     patch:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Update Dataset
       description: >-
         This API allows you to update existing datasets, add or remove denorm
@@ -544,7 +544,6 @@ paths:
                       - value:
                           denorm_key: eid
                           denorm_out_field: userdata
-                          dataset_id: master-telemetry
                         action: remove
                       - value:
                           denorm_key: eid
@@ -840,7 +839,7 @@ paths:
         description: Unique identifier for the dataset
     get:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Read Dataset
       description: >-
         This API allows you to read dataset from the requested dataset_id. User
@@ -1112,7 +1111,7 @@ paths:
   /v2/datasets/list:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: List Datasets
       description: >-
         This API allows you to list all datasets. User can apply filters on
@@ -3717,7 +3716,7 @@ paths:
   /v2/datasets/dataschema:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Schema Generation
       description: This api is used to generate data schema for the given dataset event.
       requestBody:
@@ -4619,7 +4618,7 @@ paths:
   /v2/datasets/status-transition:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Dataset Status Transition
       description: >-
         This API allows you to perform status transition between 2 states.
@@ -4870,7 +4869,7 @@ paths:
   /v2/datasets/import:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Dataset import
       requestBody:
         content:
@@ -5767,7 +5766,7 @@ paths:
         description: Unique identifier for the dataset
     get:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Export Dataset
       parameters:
         - name: status
@@ -6454,7 +6453,7 @@ paths:
   /v2/datasets/copy:
     post:
       tags:
-        - Dataset api's
+        - Dataset API's
       summary: Clone Dataset
       requestBody:
         content:
@@ -6578,7 +6577,7 @@ paths:
   /v2/connectors/list:
     post:
       tags:
-        - Connector api's
+        - Connector API's
       summary: List Connectors
       requestBody:
         content:
@@ -7126,7 +7125,7 @@ paths:
         description: Unique identifier for the connector
     get:
       tags:
-        - Connector api's
+        - Connector API's
       summary: Read Connector
       responses:
         '200':
@@ -7412,6 +7411,101 @@ paths:
                 error:
                   code: CONNECTOR_NOT_FOUND
                   message: 'Connector not found: postgres-conn'
+  /v2/connector/register:
+    post:
+      tags:
+        - Connector API's
+      summary: Register a connector
+      description: Registers a connector by uploading a file.
+      operationId: registerConnector
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file3:
+                  type: string
+                  format: binary
+                  description: Connector distribution file to upload.
+      responses:
+        '200':
+          description: Connector registered successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: api.connector.register
+                  ver:
+                    type: string
+                    example: v2
+                  ts:
+                    type: string
+                    format: date-time
+                    example: "2024-11-19T09:28:47+00:00"
+                  params:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: SUCCESS
+                      resmsgid:
+                        type: string
+                        example: fc2ce24f-a333-479f-931c-024d61039801
+                  responseCode:
+                    type: string
+                    example: OK
+                  result:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: connector registered successfully.
+        '500':
+          description: Internal server error while registering the connector.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: api.connector.register
+                  ver:
+                    type: string
+                    example: v2
+                  ts:
+                    type: string
+                    format: date-time
+                    example: "2024-11-19T09:50:21+00:00"
+                  params:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      resmsgid:
+                        type: string
+                        example: ebaad9d7-c0d4-47e4-8cde-87fb25eef739
+                  responseCode:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: FAILED_TO_REGISTER_CONNECTOR
+                      message:
+                        type: string
+                        example: Failed to Extract the File
+                      trace:
+                        type: string
+                        example: "" 
   /v2/data/in/{dataset_id}:
     parameters:
       - name: dataset_id
@@ -7645,7 +7739,7 @@ paths:
   /v2/data/query/test:
     post:
       tags:
-        - Data query
+        - Data Query
       summary: Query Data
       requestBody:
         content:
@@ -9442,7 +9536,7 @@ paths:
   /alerts/v1/notifications/search:
     post:
       tags:
-        - Alert Notification-channels
+        - Alert Notification Channels
       summary: Search Notificaation Channels
       requestBody:
         content: {}
@@ -9454,7 +9548,7 @@ paths:
   /alerts/v1/notifications/create:
     post:
       tags:
-        - Alert Notification-channels
+        - Alert Notification Channels
       summary: Configure channel
       requestBody:
         content:
@@ -9483,7 +9577,7 @@ paths:
         description: Unique identifier for the alert
     get:
       tags:
-        - Alert Notification-channels
+        - Alert Notification Channels
       summary: Publish Channel
       responses:
         '200':
@@ -9493,7 +9587,7 @@ paths:
   /alerts/v1/notifications/test:
     post:
       tags:
-        - Alert Notification-channels
+        - Alert Notification Channels
       summary: Verify Configured Channel
       requestBody:
         content:
@@ -9526,7 +9620,7 @@ paths:
         description: Unique identifier for the alert
     patch:
       tags:
-        - Alert Notification-channels
+        - Alert Notification Channels
       summary: Update Specific Channel
       requestBody:
         content:
@@ -9550,7 +9644,7 @@ paths:
         description: Unique identifier for the alert
     delete:
       tags:
-        - Alert Notification-channels
+        - Alert Notification Channels
       summary: Delete Channel
       responses:
         '200':
@@ -9560,7 +9654,7 @@ paths:
   /alerts/v1/silence/create:
     post:
       tags:
-        - Alert silence
+        - Alert Silence
       summary: Add Silence
       requestBody:
         content:
@@ -9587,7 +9681,7 @@ paths:
         description: Unique identifier for the alert
     get:
       tags:
-        - Alert silence
+        - Alert Silence
       summary: Get Silence
       responses:
         '200':
@@ -9604,7 +9698,7 @@ paths:
         description: Unique identifier for the alert
     delete:
       tags:
-        - Alert silence
+        - Alert Silence
       summary: Delete Silence
       responses:
         '200':
@@ -9614,7 +9708,7 @@ paths:
   /alerts/v1/silence/search:
     get:
       tags:
-        - Alert silence
+        - Alert Silence
       summary: Fetch All Silences
       responses:
         '200':
@@ -9631,7 +9725,7 @@ paths:
         description: Unique identifier for the alert
     patch:
       tags:
-        - Alert silence
+        - Alert Silence
       summary: Modify Silence Request
       requestBody:
         content:
@@ -9929,7 +10023,7 @@ paths:
   /alerts/v1/metric/alias/create:
     post:
       tags:
-        - Alert Metric_alias
+        - Alert Metric Alias
       summary: Create Custom Metric
       requestBody:
         content:
@@ -9948,7 +10042,7 @@ paths:
   /alerts/v1/metric/alias/search:
     post:
       tags:
-        - Alert Metric_alias
+        - Alert Metric Alias
       summary: List Create Metrics
       requestBody:
         content:
@@ -9971,7 +10065,7 @@ paths:
         description: Unique identifier for the alert
     patch:
       tags:
-        - Alert Metric_alias
+        - Alert Metric Alias
       summary: Modify Metric
       requestBody:
         content:
@@ -9995,7 +10089,7 @@ paths:
         description: Unique identifier for the alert
     delete:
       tags:
-        - Alert Metric_alias
+        - Alert Metric Alias
       summary: Delete Metric
       responses:
         '200':
