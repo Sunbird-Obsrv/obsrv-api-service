@@ -188,7 +188,7 @@
         "type",
         "properties"
       ],
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "denorm_config": {
       "type": "object",

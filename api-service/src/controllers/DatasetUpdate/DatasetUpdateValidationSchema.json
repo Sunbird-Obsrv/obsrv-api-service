@@ -170,8 +170,8 @@
               "default": true
             }
           },
-          "required": ["$schema", "type", "properties", "additionalProperties"],
-          "additionalProperties": false
+          "required": ["type", "properties"],
+          "additionalProperties": true
         },
         "dataset_config": {
           "type": "object",
@@ -224,7 +224,7 @@
               "additionalProperties": false
             }
           },
-          "required": ["indexing_config", "keys_config"],
+          "required": [],
           "additionalProperties": false
         },
         "transformations_config": {
