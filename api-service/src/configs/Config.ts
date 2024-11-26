@@ -115,5 +115,10 @@ export const config = {
   },
   "user_token_public_key": process.env.user_token_public_key || "",
   "is_RBAC_enabled": process.env.is_rbac_enabled || "false",
-  "otel_collector_endpoint": process.env.OTEL_COLLECTOR_ENDPOINT || "http://localhost:4318"
+  "otel": {
+    "enable": process.env.OTEL_ENABLE || true,
+    "collector_endpoint": process.env.OTEL_COLLECTOR_ENDPOINT || "http://localhost:4318"
+  }
+  
+
 }

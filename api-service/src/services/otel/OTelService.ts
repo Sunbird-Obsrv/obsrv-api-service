@@ -12,7 +12,7 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import logger from '../../logger';
 import * as _ from "lodash";
 import { config } from "../../configs/Config";
-const collectorEndpoint = _.get(config, "otel_collector_endpoint", "http://localhost:4318");
+const collectorEndpoint = _.get(config, "otel.collector_endpoint", "http://localhost:4318");
 
 export class OTelService {
     private static meterProvider: MeterProvider;
