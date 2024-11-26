@@ -16,8 +16,6 @@ import { interceptAuditEvents } from "./services/telemetry";
 const app: Application = express();
 OTelService.init() // Initialisation of Open telemetry Service.
 
-
-
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
 app.use(express.json());
