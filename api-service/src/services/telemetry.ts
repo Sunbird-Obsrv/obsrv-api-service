@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import _ from "lodash";
 import { config as appConfig } from "../configs/Config";
 import {send} from "../connections/kafkaConnection"
-import { OTelService } from "../otel/OTelService";
+import { OTelService } from "./otel/OTelService";
 
 const {env, version} = _.pick(appConfig, ["env","version"])
 const telemetryTopic = _.get(appConfig, "telemetry_dataset");

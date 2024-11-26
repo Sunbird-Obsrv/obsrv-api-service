@@ -7,7 +7,7 @@ import bodyParser from "body-parser";
 import { config } from "./configs/Config";
 import { ResponseHandler } from "./helpers/ResponseHandler";
 import { errorHandler, obsrvErrorHandler } from "./middlewares/errors";
-import { OTelService } from "./otel/OTelService";
+import { OTelService } from "./services/otel/OTelService";
 import { alertsRouter } from "./routes/AlertsRouter";
 import { interceptAuditEvents } from "./services/telemetry";
 
