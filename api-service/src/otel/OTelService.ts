@@ -10,7 +10,9 @@ import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import logger from '../logger';
-
+import * as _ from "lodash";
+import { config } from "../configs/Config";
+const collectorEndpoint = _.get(config, "otel_collector_endpoint", "http://localhost:4318");
 
 export class OTelService {
     private static meterProvider: MeterProvider;
@@ -18,7 +20,6 @@ export class OTelService {
     private static tracerProvider: NodeTracerProvider;
 
     public static init() {
-        const collectorEndpoint = process.env.OTEL_COLLECTOR_ENDPOINT || 'http://localhost:4318';
         this.tracerProvider = this.createTracerProvider(collectorEndpoint);
         this.meterProvider = this.createMeterProvider(collectorEndpoint);
         this.loggerProvider = this.createLoggerProvider(collectorEndpoint);
