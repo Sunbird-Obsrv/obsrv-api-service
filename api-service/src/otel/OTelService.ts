@@ -1,15 +1,15 @@
 import { Counter, diag, DiagConsoleLogger, DiagLogLevel, Meter, metrics } from '@opentelemetry/api';
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
-import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { Resource } from '@opentelemetry/resources';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import * as logsAPI from '@opentelemetry/api-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { Resource } from '@opentelemetry/resources';
+import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs';
+import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import logger from '../logger';
-import * as logsAPI from '@opentelemetry/api-logs';
 
 
 export class OTelService {
@@ -19,9 +19,9 @@ export class OTelService {
 
     public static init() {
         const collectorEndpoint = process.env.OTEL_COLLECTOR_ENDPOINT || 'http://localhost:4318';
-        this.tracerProvider = this.createTracerProvider(collectorEndpoint); // Store the tracer provider
-        this.meterProvider = this.createMeterProvider(collectorEndpoint); // Store the meter provider
-        this.loggerProvider = this.createLoggerProvider(collectorEndpoint); // Store the logger provider
+        this.tracerProvider = this.createTracerProvider(collectorEndpoint);
+        this.meterProvider = this.createMeterProvider(collectorEndpoint);
+        this.loggerProvider = this.createLoggerProvider(collectorEndpoint);
 
         // Register the global tracer, meter, and logger providers
         this.tracerProvider.register();
@@ -123,41 +123,32 @@ export class OTelService {
     // Method to record the counter metric
     public static recordCounter(counter: Counter, value: number) {
         counter.add(value, {
-            // Optional attributes can be added here
             service: 'obsrv-api-service',
         });
     }
 
-    // Method to log messages
-    public static log() {
-        const loggerInstance = this.loggerProvider.getLogger('obsrv-api-service'); // Retrieve a logger instance
 
-        loggerInstance.emit({
-            severityNumber: logsAPI.SeverityNumber.INFO,
-            severityText: 'INFO',
-            body: 'test',
-            attributes: { 'log.type': 'LogRecord' },
-        });
-    }
-
-    public static emitAuditLog(auditLog: Record<string, any>) {
+    public static generateOTelLog(auditLog: Record<string, any>, severity: 'INFO' | 'WARN' | 'ERROR', logType?: string) {
         const loggerInstance = this.loggerProvider.getLogger('obsrv-api-service');
     
-        // Construct the log record
-        const logRecord = {
-            severityNumber: logsAPI.SeverityNumber.INFO, // or ERROR depending on the context
-            severityText: 'INFO',
-            body: JSON.stringify(auditLog), // Convert the log object to a string
-            attributes: {
-                'log.type': 'AuditLog',
-                ...auditLog, // Include the whole log object as attributes if necessary
-            },
+        const severityMapping: Record<string, number> = {
+            INFO: logsAPI.SeverityNumber.INFO,
+            WARN: logsAPI.SeverityNumber.WARN,
+            ERROR: logsAPI.SeverityNumber.ERROR,
         };
     
-        // Emit the log record to OpenTelemetry
-        loggerInstance.emit(logRecord);
+        const severityNumber = severityMapping[severity] || logsAPI.SeverityNumber.INFO; 
     
-        // Log the same message to Winston (optional)
-        logger.info("Audit log emitted", { auditLog });
+        const logRecord = {
+            severityNumber,
+            severityText: severity,
+            body: JSON.stringify(auditLog),
+            attributes: {
+                'log.type': logType || 'console',
+                ...auditLog,
+            },
+        };
+        loggerInstance.emit(logRecord);
     }
+    
 }
