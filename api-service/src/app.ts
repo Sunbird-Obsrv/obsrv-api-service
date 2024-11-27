@@ -15,7 +15,7 @@ import _ from "lodash";
 
 
 const app: Application = express();
-((config.otel && _.toLower(config.otel.enable) === "true")) && OTelService.init() // Initialisation of Open telemetry Service.
+((config.otel && _.toLower(config?.otel?.enable) === "true")) && OTelService.init() // Initialisation of Open telemetry Service.
 
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
