@@ -10,12 +10,13 @@ import { errorHandler, obsrvErrorHandler } from "./middlewares/errors";
 import { OTelService } from "./services/otel/OTelService";
 import { alertsRouter } from "./routes/AlertsRouter";
 import { interceptAuditEvents } from "./services/telemetry";
+import _ from "lodash";
 
 
 
 const app: Application = express();
 // Initialisation of Open telemetry Service.
-(config.otel && config.otel.enable) ? OTelService.init() : console.log("OpenTelemetry Service is disabled"); 
+(config.otel && _.toLower(config?.otel?.enable) === "true") ? OTelService.init() : console.info("OpenTelemetry Service is Disabled"); 
 
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
