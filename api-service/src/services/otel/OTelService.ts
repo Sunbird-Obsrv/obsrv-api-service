@@ -130,26 +130,29 @@ export class OTelService {
 
 
     public static generateOTelLog(auditLog: Record<string, any>, severity: 'INFO' | 'WARN' | 'ERROR', logType?: string) {
-        const loggerInstance = this.loggerProvider.getLogger('obsrv-api-service');
-    
-        const severityMapping: Record<string, number> = {
-            INFO: logsAPI.SeverityNumber.INFO,
-            WARN: logsAPI.SeverityNumber.WARN,
-            ERROR: logsAPI.SeverityNumber.ERROR,
-        };
-    
-        const severityNumber = severityMapping[severity] || logsAPI.SeverityNumber.INFO; 
-    
-        const logRecord = {
-            severityNumber,
-            severityText: severity,
-            body: JSON.stringify(auditLog),
-            attributes: {
-                'log.type': logType || 'console',
-                ...auditLog,
-            },
-        };
-        loggerInstance.emit(logRecord);
+        if((config.otel && _.toLower(config?.otel?.enable) === "true")){
+            const loggerInstance = this.loggerProvider.getLogger('obsrv-api-service');
+        
+            const severityMapping: Record<string, number> = {
+                INFO: logsAPI.SeverityNumber.INFO,
+                WARN: logsAPI.SeverityNumber.WARN,
+                ERROR: logsAPI.SeverityNumber.ERROR,
+            };
+        
+            const severityNumber = severityMapping[severity] || logsAPI.SeverityNumber.INFO; 
+        
+            const logRecord = {
+                severityNumber,
+                severityText: severity,
+                body: JSON.stringify(auditLog),
+                attributes: {
+                    'log.type': logType || 'console',
+                    ...auditLog,
+                },
+            };
+            loggerInstance.emit(logRecord);
+        }
     }
+        
     
 }
