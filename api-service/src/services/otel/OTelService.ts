@@ -130,7 +130,7 @@ export class OTelService {
 
 
     public static generateOTelLog(auditLog: Record<string, any>, severity: 'INFO' | 'WARN' | 'ERROR', logType?: string) {
-        if(config.otel && config.otel.enable){
+        if((config.otel && _.toLower(config?.otel?.enable) === "true")){
             const loggerInstance = this.loggerProvider.getLogger('obsrv-api-service');
         
             const severityMapping: Record<string, number> = {
