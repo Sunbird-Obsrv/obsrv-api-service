@@ -14,7 +14,8 @@ import { interceptAuditEvents } from "./services/telemetry";
 
 
 const app: Application = express();
-(config.otel && config.otel.enable) && OTelService.init() // Initialisation of Open telemetry Service.
+// Initialisation of Open telemetry Service.
+(config.otel && config.otel.enable) ? OTelService.init() : console.log("OpenTelemetry Service is disabled"); 
 
 app.use(bodyParser.json({ limit: config.body_parser_limit}));
 app.use(express.text());
