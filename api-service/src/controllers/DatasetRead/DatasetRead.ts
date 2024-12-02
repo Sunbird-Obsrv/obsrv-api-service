@@ -94,7 +94,6 @@ const readDataset = async (datasetId: string, attributes: string[]): Promise<any
 }
 
 const processConnectorsConfig = (connectorsConfig: any) => {
-
     return connectorsConfig.map((connector: any) => {
         let connector_config = _.get(connector, "connector_config");
         const authMechanism = _.get(connector_config, ["authenticationMechanism"]);
