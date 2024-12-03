@@ -58,7 +58,7 @@ class BaseTableGenerator {
                 const properties = this.flattenSchema(denormDataset.data_schema, type);
                 const transformProps = _.map(properties, (prop) => {
                     _.set(prop, "name", _.join([denormField.denorm_out_field, prop.name], "."));
-                    _.set(prop, "expr", _.replace(prop.expr, "$", "$." + denormField.denorm_out_field));
+                    _.set(prop, "expr", _.replace(prop.expr, "$", "$." + `['${denormField.denorm_out_field}']`));
                     return prop;
                 });
                 dataFields.push(...transformProps);
@@ -66,7 +66,7 @@ class BaseTableGenerator {
         }
         if (!_.isEmpty(transformations_config)) {
             const transformationFields = _.map(transformations_config, (tf) => ({
-                expr: "$." + tf.field_key,
+                expr: "$." + `['${tf.field_key}']`,
                 name: tf.field_key,
                 data_type: tf.transformation_function.datatype,
                 arrival_format: tf.transformation_function.datatype,
@@ -90,7 +90,7 @@ class BaseTableGenerator {
                 const properties = this.flattenSchema(denormDataset.data_schema, type);
                 const transformProps = _.map(properties, (prop) => {
                     _.set(prop, "name", _.join([_.replace(denormField.denorm_out_field, /\./g, "_"), prop.name], "_"));
-                    _.set(prop, "expr", _.replace(prop.expr, "$", "$." + denormField.denorm_out_field));
+                    _.set(prop, "expr", _.replace(prop.expr, "$", "$." + `['${denormField.denorm_out_field}']`));
                     return prop;
                 });
                 dataFields.push(...transformProps);
@@ -98,7 +98,7 @@ class BaseTableGenerator {
         }
         if (!_.isEmpty(transformations_config)) {
             const transformationFields = _.map(transformations_config, (tf) => ({
-                expr: "$." + tf.field_key,
+                expr: "$." + `['${tf.field_key}']`,
                 name: _.replace(tf.field_key, /\./g, "_"),
                 data_type: tf.transformation_function.datatype,
                 arrival_format: tf.transformation_function.datatype,
